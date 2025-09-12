@@ -202,7 +202,7 @@ def vis_result_fast_on_depth(
     depth_image: np.ndarray, 
     detections: sv.Detections, 
     classes: list[str], 
-    color: Color | ColorPalette = ColorPalette.default(), 
+    color: Color | ColorPalette = ColorPalette.DEFAULT, #color: Color | ColorPalette = ColorPalette.default(), 
     instance_random_color: bool = False,
     draw_bbox: bool = True,
 ) -> np.ndarray:
@@ -462,7 +462,7 @@ def vis_result_for_vlm(
     image: np.ndarray, 
     detections: sv.Detections, 
     labels: list[str], 
-    color: Color | ColorPalette = ColorPalette.default(), 
+    color: Color | ColorPalette = ColorPalette.DEFAULT, # color: Color | ColorPalette = ColorPalette.default(), 
     draw_bbox: bool = True,
     thickness: int = 2,
     text_scale: float = 0.3,
@@ -497,7 +497,7 @@ def vis_result_fast(
     image: np.ndarray, 
     detections: sv.Detections, 
     classes: list[str], 
-    color: Color | ColorPalette = ColorPalette.default(), 
+    color: Color | ColorPalette = ColorPalette.DEFAULT, # color: Color | ColorPalette = ColorPalette.default(), 
     instance_random_color: bool = False,
     draw_bbox: bool = True,
 ) -> np.ndarray:
