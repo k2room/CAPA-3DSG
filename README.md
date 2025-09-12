@@ -136,3 +136,18 @@ git remote add recognizeanything https://github.com/xinyu1205/recognize-anything
 git subtree add --prefix=src/thirdparty/groundedsam/recognize-anything recognizeanything main --squash
 
 ```
+
+
+# Dataset
+
+## Symbolic links
+```
+sudo ln -s /home/main/storage/gpuserver00_storage/s3dis /home/main/workspace/k2room2/CAPA-3DSG/dataset/S3DIS
+
+sudo ln -s /home/main/storage/gpuserver00_storage/replica/Replica /home/main/workspace/k2room2/CAPA-3DSG/dataset/Replica
+
+sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/SceneFun3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/SceneFun3D
+
+sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/FunGraph3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/FunGraph3D
+
+```
