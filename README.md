@@ -53,11 +53,25 @@ python -m pip install -e src/thirdparty/groundedsam/recognize-anything
 # 4) ConceptGraph
 python -m pip install -e src/thirdparty/conceptgraph
 ```
-## Check the third party repository
+## Check the third-party repository
 ```
-python import_test.py
+python scripts/import_test.py
 ```
+## Run the demo codes of the third-party repository
+```
+cd src/thirdparty/groundedsam
 
+python grounded_sam_demo.py \
+  --config GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py \
+  --grounded_checkpoint /home/main/workspace/k2room2/CO3DSG/checkpoints/groundingdino_swint_ogc.pth \
+  --sam_checkpoint /home/main/workspace/k2room2/CO3DSG/checkpoints/sam_vit_h_4b8939.pth \
+  --input_image "/home/main/workspace/k2room2/CAPA-3DSG/assets/test_imgs/6.png" \
+  --output_dir "/home/main/workspace/k2room2/CAPA-3DSG/assets/test_outputs" \
+  --box_threshold 0.2 \
+  --text_threshold 0.2 \
+  --text_prompt "cabinet, counter top, dish washer, exhaust hood, floor, hardwood, hardwood floor, kitchen, microwave, oven, stove, switch, button, dial, handle" \
+  --device "cuda"
+```
 ### troubleshooting
 - Permission denied issue
 ```
@@ -150,4 +164,17 @@ sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/SceneFun3D /home/mai
 
 sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/FunGraph3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/FunGraph3D
 
+```
+
+# Checkpoints
+```
+cd checkpoints
+
+wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+
+wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+
+wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
+
+# wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
 ```
