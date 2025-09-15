@@ -52,6 +52,14 @@ python -m pip install -e src/thirdparty/groundedsam/recognize-anything
 
 # 4) ConceptGraph
 python -m pip install -e src/thirdparty/conceptgraph
+
+# 5) VLPart
+# Download detectron2 (Reference: https://github.com/facebookresearch/detectron2/discussions/5200)
+# Find the proper version in here: https://miropsota.github.io/torch_packages_builder/detectron2/ 
+# We use 'detectron2-0.6+2a420edpt2.0.1cu118-cp310-cp310-linux_x86_64.whl'
+pip install --extra-index-url https://miropsota.github.io/torch_packages_builder 'detectron2==0.6+2a420edpt2.0.1cu118'
+
+python -m pip install -e src/thirdparty/vlpart --no-deps
 ```
 ## Check the third-party repository
 ```
@@ -148,6 +156,10 @@ git subtree add --prefix=src/thirdparty/groundedsam/segment_anything segmentanyt
 # RAM for Grounded Segment Anything
 git remote add recognizeanything https://github.com/xinyu1205/recognize-anything.git
 git subtree add --prefix=src/thirdparty/groundedsam/recognize-anything recognizeanything main --squash
+
+# VLPart
+git remote add vlpart https://github.com/facebookresearch/VLPart.git
+git subtree add --prefix=src/thirdparty/vlpart vlpart main --squash
 
 ```
 
