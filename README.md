@@ -22,10 +22,10 @@ conda install -y https://anaconda.org/pytorch3d/pytorch3d/0.7.4/download/linux-6
 # (e.g.) export PIP_CONSTRAINT="/home/main/workspace/k2room2/CAPA-3DSG/constraints.txt"
 export PIP_CONSTRAINT="path/CAPA-3DSG/constraints.txt"
 
-pip install --upgrade-strategy only-if-needed tyro open_clip_torch wandb h5py openai hydra-core distinctipy ultralytics dill supervision==0.21.0 open3d imageio natsort kornia rerun-sdk pyliblzfse pypng git+https://github.com/ultralytics/CLIP.git 
+pip install --upgrade-strategy only-if-needed tyro timm==1.0.17 open_clip_torch wandb h5py openai hydra-core distinctipy ultralytics dill supervision==0.21.0 open3d imageio natsort kornia rerun-sdk pyliblzfse pypng git+https://github.com/ultralytics/CLIP.git 
 
 # for RAM
-pip install --upgrade-strategy only-if-needed "transformers==4.35.2" "tokenizers==0.14.1" "huggingface-hub==0.17.3" "accelerate==0.24.1" "safetensors==0.4.2"
+pip install --upgrade-strategy only-if-needed "transformers==4.35.2" "tokenizers==0.14.1" "huggingface-hub==0.17.3" "accelerate==0.24.1" "safetensors==0.4.2" 
 
 # check path by 'conda env list'
 # (e.g.) export CUDA_HOME=/home/k2room/.conda/envs/capa
@@ -62,10 +62,11 @@ pip install --extra-index-url https://miropsota.github.io/torch_packages_builder
 python -m pip install -e src/thirdparty/vlpart --no-deps
 ```
 ## Check the third-party repository
+### Check the path
 ```
 python scripts/import_test.py
 ```
-## Run the demo codes of the third-party repository
+### Run the demo codes of the third-party repository
 ```
 cd src/thirdparty/groundedsam
 
@@ -80,58 +81,16 @@ python grounded_sam_demo.py \
   --text_prompt "cabinet, counter top, dish washer, exhaust hood, floor, hardwood, hardwood floor, kitchen, microwave, oven, stove, switch, button, dial, handle" \
   --device "cuda"
 ```
-### troubleshooting
-- Permission denied issue
 ```
-# 누가 소유/권한을 갖는지 확인
-ls -ld src/thirdparty/groundedsam/segment_anything
+cd src/thirdparty/vlpart
 
-# 내 계정으로 소유권 되돌리기
-sudo chown -R "$USER":"$(id -gn)" src/thirdparty/groundedsam/segment_anything
-
-# 이전에 잘못 만들어진 egg-info가 있으면 정리
-sudo rm -rf src/thirdparty/groundedsam/segment_anything/*.egg-info 2>/dev/null || true
-
-# 다시 설치
-python -m pip install -e src/thirdparty/groundedsam/segment_anything
-
+python demo/demo.py --config-file configs/joint/swinbase_cascade_lvis_paco.yaml \
+  --input /home/main/workspace/k2room2/CAPA-3DSG/assets/test_imgs/6.png \
+  --output /home/main/workspace/k2room2/CAPA-3DSG/outputs/output_image \
+  --vocabulary paco \
+  --confidence-threshold 0.3 \
+  --opts MODEL.WEIGHTS /home/main/workspace/k2room2/CAPA-3DSG/checkpoints/swinbase_cascade_lvis_paco.pth VIS.BOX False
 ```
-- python -m pip install --no-build-isolation -e src/thirdparty/groundedsam/GroundingDINO
-```
-conda install -y -c conda-forge gxx_linux-64=11.* gcc_linux-64=11.* sysroot_linux-64=2.17
-conda install -y -c conda-forge cmake ninja make
-
-# Thrust 헤더가 있는지 확인
-ls "$CONDA_PREFIX/targets/x86_64-linux/include/thrust/complex.h" || \
-ls "$CONDA_PREFIX/include/thrust/complex.h" || \
-echo ">> Thrust not found"
-
-# CUDA 경로(11.8)로 고정
-export CUDA_HOME="$CONDA_PREFIX"
-export PATH="$CUDA_HOME/bin:$PATH"
-export LD_LIBRARY_PATH="$CUDA_HOME/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH"
-
-# Thrust 포함된 include 경로를 컴파일러가 보게 함
-export CUDATK_INC="$CUDA_HOME/include:$CUDA_HOME/targets/x86_64-linux/include"
-export CPATH="$CUDATK_INC:${CPATH:-}"
-export CPLUS_INCLUDE_PATH="$CUDATK_INC:${CPLUS_INCLUDE_PATH:-}"
-
-# Conda 툴체인 사용 (g++ 11 계열 권장)
-which x86_64-conda-linux-gnu-g++ >/dev/null 2>&1 || \
-  conda install -y -c conda-forge gxx_linux-64=11.* gcc_linux-64=11.* sysroot_linux-64=2.17
-
-export CC="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc"
-export CXX="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++"
-
-# NVCC의 host compiler 중복 지정 경고 제거
-unset CUDAHOSTCXX
-
-rm -rf ~/.cache/torch_extensions/*
-find src/thirdparty/groundedsam/GroundingDINO -maxdepth 2 -name build -type d -exec rm -rf {} +
-
-python -m pip install --no-build-isolation -v -e src/thirdparty/groundedsam/GroundingDINO
-```
-
 
 ### Git Subtree History
 We used subtree because we take several repositories and use them by modifying some codes. The process below is just for recording and **does not need to be performed.**
@@ -164,9 +123,9 @@ git subtree add --prefix=src/thirdparty/vlpart vlpart main --squash
 ```
 
 
-# Dataset
+# Data
 
-## Symbolic links
+## Symbolic links for Datasets
 ```
 sudo ln -s /home/main/storage/gpuserver00_storage/s3dis /home/main/workspace/k2room2/CAPA-3DSG/dataset/S3DIS
 
@@ -178,7 +137,7 @@ sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/FunGraph3D /home/mai
 
 ```
 
-# Checkpoints
+## Checkpoints
 ```
 cd checkpoints
 
@@ -189,4 +148,6 @@ wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alp
 wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/ram_swin_large_14m.pth
 
 # wget https://huggingface.co/spaces/xinyu1205/Tag2Text/resolve/main/tag2text_swin_14m.pth
+
+wget https://github.com/PeizeSun/VLPart/releases/download/v0.1/swinbase_cascade_lvis_paco.pth
 ```
