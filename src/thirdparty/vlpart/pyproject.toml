@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vlpart"                      
+version = "0.0.0+vendored"
+description = "Vendored VLPart for CAPA-3DSG"
+requires-python = ">=3.9"
+
+# dependencies = []
+
+[tool.setuptools]
+include-package-data = true          
+
+[tool.setuptools.packages.find]
+include = ["vlpart*"]                 
+exclude = ["configs*", "datasets*", "demo*", "tools*", "docs*", "assets*"]
