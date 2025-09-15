@@ -1,0 +1,7 @@
+defaults:
+  - base_paths
+
+dataset_root: ${data_root}/SceneFun3D
+dataset_config: ${repo_root}/dataset/dataconfigs/scenefun3d/scenefun3d.yaml
+scene_id: scene/420693/42445168   
+render_camera_path: ${dataset_root}

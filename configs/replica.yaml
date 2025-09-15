@@ -1,0 +1,11 @@
+defaults:
+  - base_paths
+
+dataset_root: ${data_root}/Replica
+dataset_config: ${repo_root}/dataset/dataconfigs/replica/replica.yaml
+# scene_id: room0
+# render_camera_path: ${repo_root}/conceptgraph/dataset/dataconfigs/replica/replica_room0.json
+scene_id: office2   
+
+# for vis_render True
+render_camera_path: ${repo_root}/dataset/dataconfigs/replica/replica_office2.json

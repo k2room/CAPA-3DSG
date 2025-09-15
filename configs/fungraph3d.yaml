@@ -1,0 +1,7 @@
+defaults:
+  - base_paths
+
+dataset_root: ${data_root}/FunGraph3D/
+dataset_config: ${repo_root}/dataset/dataconfigs/fungraph3d/fungraph3d.yaml
+scene_id: 0kitchen/video1    
+render_camera_path: ${dataset_root} 
