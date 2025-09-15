@@ -211,3 +211,6 @@ __marimo__/
 assets/test_imgs/*
 assets/test_outputs/*
 checkpoints/*
+
+latest_pcd_save
+outputs/*
