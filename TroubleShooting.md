@@ -83,3 +83,8 @@ prune .git
 # 권한 오류인지 확인
 sudo chmod +777 /home/main/workspace/k2room2/CAPA-3DSG/src/thirdparty/vlpart/
 ```
+- from groundingdino.util.inference import Model as GDINO 으로부터 아래 오류 문구 등장
+```
+There's a wrong phrase happen, this is because of our post-process merged wrong tokens, which will be modified in the future. We will assign it with a random label at this time.
+```
+이는 텍스트 프롬프트에서 만들어진 phrase 토큰이 클래스 리스트(classes)와 정확히 일치하지 않아 발생하는 문제로, 가장 앞 단어로 매핑하여 저장하도록 처리되면서 위 문구도 함께 발생한다. 무시해도 괜찮아서 해당 부분 주석 처리하였다. (e.g.) "lake river" will only keep "lake"

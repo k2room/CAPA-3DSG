@@ -485,7 +485,7 @@ def measure_time(func):
         result = func(*args, **kwargs)  # Call the function with any arguments it was called with
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"Done! Execution time of {func.__name__} function: {elapsed_time:.2f} seconds")
+        print(f"[Execution time] {elapsed_time:.2f} seconds for {func.__name__} function")
         return result  # Return the result of the function call
     return wrapper
 

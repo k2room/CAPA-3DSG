@@ -253,5 +253,5 @@ class Model:
         for i, s in enumerate(lst):
             if string in s.lower():
                 return i
-        print("There's a wrong phrase happen, this is because of our post-process merged wrong tokens, which will be modified in the future. We will assign it with a random label at this time.")
+        # print("There's a wrong phrase happen, this is because of our post-process merged wrong tokens, which will be modified in the future. We will assign it with a random label at this time.")
         return 0
