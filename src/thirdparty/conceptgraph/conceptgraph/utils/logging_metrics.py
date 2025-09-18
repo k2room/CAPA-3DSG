@@ -31,9 +31,6 @@ class MappingTracker:
             self.prev_bbox_names = []
             self.brand_new_counter = 0
 
-            
-    def increment_total_detections(self, count):
-        self.total_detections += count
     def get_total_detections(self):
         return self.total_detections
     
