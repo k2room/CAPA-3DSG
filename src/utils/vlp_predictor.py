@@ -15,7 +15,7 @@ from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode
 
-from vlp_visualizer import CustomVisualizer
+from .vlp_visualizer import CustomVisualizer
 
 def get_clip_embeddings(vocabulary, prompt='a '):
     from vlpart.modeling.text_encoder.text_encoder import build_text_encoder
@@ -25,14 +25,65 @@ def get_clip_embeddings(vocabulary, prompt='a '):
     emb = text_encoder(texts).detach().permute(1, 0).contiguous().cpu()
     return emb
 
+from pathlib import Path
+_VLPART_DIR = Path(__file__).resolve().parents[1] / "thirdparty" / "vlpart"
+_METADATA_DIR = _VLPART_DIR / "datasets" / "metadata"
+
 BUILDIN_CLASSIFIER = {
-    'pascal_part': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/pascal_part_clip_RN50_a+cname.npy',
-    'partimagenet': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/partimagenet_clip_RN50_a+cname.npy',
-    'paco': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/paco_clip_RN50_a+cname.npy',
-    'lvis': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/lvis_v1_clip_RN50_a+cname.npy',
-    'coco': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/coco_clip_RN50_a+cname.npy',
-    'voc': 'CAPA-3DSG/src/thirdparty/vlpart/datasets/metadata/voc_clip_RN50_a+cname.npy',
+    "lvis":         str((_METADATA_DIR / "lvis_v1_clip_RN50_a+cname.npy").resolve()),
+    "paco":         str((_METADATA_DIR / "paco_clip_RN50_a+cname.npy").resolve()),
+    "coco":         str((_METADATA_DIR / "coco_clip_RN50_a+cname.npy").resolve()),
+    "voc":          str((_METADATA_DIR / "voc_clip_RN50_a+cname.npy").resolve()),
+    "pascal_part":  str((_METADATA_DIR / "pascal_part_clip_RN50_a+cname.npy").resolve()),
+    "partimagenet": str((_METADATA_DIR / "partimagenet_clip_RN50_a+cname.npy").resolve()),
 }
+
+def _resolve_metadata_path(s: str) -> str:
+    """
+    ZeroShotClassifier가 참조하는 경로 문자열을 안전한 절대경로로 변환.
+    - 이미 절대경로이고 존재하면 그대로 반환
+    - 상대경로이거나 'datasets/metadata/' 포함 시, 파일명 기준으로 _METADATA_DIR로 매핑
+    """
+    p = Path(s)
+    if p.is_absolute() and p.exists():
+        return str(p)
+    # s에 디렉토리 구성이 있어도 파일명만 취해 metadata 디렉터리로 매핑
+    q = (_METADATA_DIR / p.name).resolve()
+    return str(q)
+
+def _rewrite_metadata_paths_in_cfg(node):
+    """
+    detectron2/yacs CfgNode를 재귀 순회하면서
+    'datasets/metadata/'를 포함하거나 *_clip_RN50_a+cname.npy 로 끝나는 문자열/리스트 항목을
+    _METADATA_DIR 기준 절대경로로 치환.
+    """
+    # yacs.CfgNode는 dict 인터페이스를 흉내내므로 .items() 사용 가능
+    for k, v in node.items():
+        # 하위 노드 재귀
+        try:
+            # v가 또 다른 CfgNode라면 재귀
+            if hasattr(v, "items"):
+                _rewrite_metadata_paths_in_cfg(v)
+                continue
+        except Exception:
+            pass
+
+        # 리스트 처리
+        if isinstance(v, list):
+            changed = False
+            new_list = []
+            for x in v:
+                if isinstance(x, str) and ("datasets/metadata/" in x or x.endswith("_clip_RN50_a+cname.npy")):
+                    new_list.append(_resolve_metadata_path(x))
+                    changed = True
+                else:
+                    new_list.append(x)
+            if changed:
+                node[k] = new_list
+
+        # 문자열 처리
+        elif isinstance(v, str) and ("datasets/metadata/" in v or v.endswith("_clip_RN50_a+cname.npy")):
+            node[k] = _resolve_metadata_path(v)
 
 BUILDIN_METADATA_PATH = {
     'pascal_part': 'pascal_part_val',
@@ -119,6 +170,11 @@ class VisualizationDemo(object):
 
         self.cpu_device = torch.device("cpu")
         self.instance_mode = instance_mode
+
+        cfg = cfg.clone()
+        cfg.defrost()
+        _rewrite_metadata_paths_in_cfg(cfg)
+        cfg.freeze()
 
         self.parallel = parallel
         if parallel:

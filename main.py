@@ -58,9 +58,12 @@ from src.utils.gsa import (
     GDINO, sam_model_registry, SamPredictor, RAM, inference_ram
 )
 
+from src.utils.vlp import VLPart
+
 # === utils: utils functions, DynamicClasses ===
 from src.utils.utils import (
-    _build_ram_stack, _seg_sam, _ensure_bool_mask, _vis_safe_det, _load_part_knowledge, _curate_tags, 
+    # _build_OFG_stack, 
+    _seg_sam, _ensure_bool_mask, _vis_safe_det, load_knowledge, _curate_tags, 
     DynamicClasses
 )
 
@@ -72,11 +75,23 @@ torch.set_grad_enabled(False)
 # ============== detection branches (models preloaded) ==============
 
 def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, usam: ULTRA_SAM, color_np):
-    bgr = cv2.imread(str(color_path))
-    yres = yolo_model.predict(color_path, conf=0.1, verbose=False)
-    conf = yres[0].boxes.conf.cpu().numpy()
-    cls_id = yres[0].boxes.cls.cpu().numpy().astype(int)
-    xyxy_t = yres[0].boxes.xyxy
+    """
+        Args:  
+            color_path: Path to the color image
+            obj_classes: ObjectClasses instance
+            cfg: config
+            yolo_model: preloaded YOLO model
+            usam: preloaded UltraSAM model
+            color_np: numpy array of the color image (H, W, 3) uint8
+        Returns: 
+            det: sv.Detections instance
+            labs: list of labels for each detection
+            bgr: BGR image as numpy array (H, W, 3) uint8
+    """
+    results = yolo_model.predict(color_path, conf=0.1, verbose=False)
+    conf = results[0].boxes.conf.cpu().numpy()
+    cls_id = results[0].boxes.cls.cpu().numpy().astype(int)
+    xyxy_t = results[0].boxes.xyxy
     xyxy = xyxy_t.cpu().numpy()
 
     if xyxy_t.numel() != 0:
@@ -87,16 +102,16 @@ def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, usam: 
         masks = np.empty((0, *color_np.shape[:2]), dtype=bool)
 
     det = sv.Detections(xyxy=xyxy, confidence=conf, class_id=cls_id, mask=masks)
-    labs = [f"{obj_classes.get_classes_arr()[cid]} {i}" for i, cid in enumerate(cls_id)]
-    return det, labs, bgr
+    labels = [f"{obj_classes.get_classes_arr()[cid]} {i}" for i, cid in enumerate(cls_id)]
+    return det, labels
 
-def run_ram_gdino_sam_branch(color_path: Path, gdino: GDINO, sam_pred: SamPredictor, ram_model: RAM, ram_tf, dyn: DynamicClasses, cfg, device, knowledge: dict):
+def run_ram_branch(color_path: Path, model: GDINO, sam_pred: SamPredictor, ram_pred: RAM, ram_tf, dyn: DynamicClasses, cfg, device, knowledge: dict):
     bgr = cv2.imread(str(color_path))
 
     # RAM -> tags
     pil = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)).resize((384, 384))
     inp = ram_tf(pil).unsqueeze(0).to(device)
-    ram_out = inference_ram(inp, ram_model)  # "a | b | c"
+    ram_out = inference_ram(inp, ram_pred)  # "a | b | c"
     tags = [t.strip() for t in ram_out[0].split(" | ") if t.strip()]
 
     # Apply object/part knowledge (remove/add/parts expansion)
@@ -106,7 +121,7 @@ def run_ram_gdino_sam_branch(color_path: Path, gdino: GDINO, sam_pred: SamPredic
     dyn.add(tags)
 
     # DINO
-    det = gdino.predict_with_classes(
+    det = model.predict_with_classes(
         image=bgr, classes=tags,
         box_threshold=cfg.box_thresh, text_threshold=cfg.text_thresh
     )
@@ -138,16 +153,16 @@ def run_ram_gdino_sam_branch(color_path: Path, gdino: GDINO, sam_pred: SamPredic
             txt = tags[int(det.class_id[i])] if len(tags) > 0 else "obj"
         labels.append(f"{txt} {float(det2.confidence[i]):0.2f}")
 
-    return det2, labels, bgr, tags
+    return det2, labels, tags
 
 # ============== main ==============
-
 @hydra.main(version_base=None, config_path="/home/main/workspace/k2room2/CAPA-3DSG/configs/", config_name="main")
 def main(cfg: DictConfig):
+    # ==================== loggers ====================
     tracker = MappingTracker()
-
     logging.getLogger('PIL').setLevel(logging.INFO)
     logging.getLogger('Image').setLevel(logging.INFO)
+    logging.getLogger('PngImagePlugin').setLevel(logging.INFO)
 
     if cfg.use_rerun:
         orr = OptionalReRun()
@@ -160,18 +175,8 @@ def main(cfg: DictConfig):
         owandb.set_use_wandb(cfg.use_wandb)
         owandb.init(project="concept-graphs", config=cfg_to_dict(cfg))
 
+    # ==================== setting ====================
     cfg = process_cfg(cfg)
-
-    dataset = get_dataset(
-        dataconfig=cfg.dataset_config,
-        start=cfg.start, end=cfg.end, stride=cfg.stride,
-        basedir=cfg.dataset_root, sequence=cfg.scene_id,
-        desired_height=cfg.image_height, desired_width=cfg.image_width,
-        device="cpu", dtype=torch.float,
-    )
-
-    objects = MapObjectList(device=cfg.device)
-    map_edges = MapEdgeMapping(objects)
 
     if cfg.vis_render:
         view_param = read_pinhole_camera_parameters(cfg.render_camera_path)
@@ -191,64 +196,93 @@ def main(cfg: DictConfig):
     det_exp_vis_path = get_vis_out_path(det_exp_path)
     prev_adjusted_pose = None
 
-    # ==== CLIP (once) ====
-    clip_model = clip_preprocess = clip_tokenizer = None
-    if run_detections:
-        det_exp_path.mkdir(parents=True, exist_ok=True)
-        clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(
-            "ViT-H-14", "laion2b_s32b_b79k"
-        )
-        clip_model = clip_model.to(cfg.device)
-        clip_tokenizer = open_clip.get_tokenizer("ViT-H-14")
-    else:
-        print("\n".join(["NOT Running detections..."] * 3))
+    # ==================== dataset ====================
+    dataset = get_dataset(
+        dataconfig=cfg.dataset_config,
+        start=cfg.start, end=cfg.end, stride=cfg.stride,
+        basedir=cfg.dataset_root, sequence=cfg.scene_id,
+        desired_height=cfg.image_height, desired_width=cfg.image_width,
+        device="cpu", dtype=torch.float,
+    )
 
-    # ==== Detection stack preload (once) ====
+    # ==================== graph ====================
+    objects = MapObjectList(device=cfg.device)
+    map_edges = MapEdgeMapping(objects)
+    knowledge = load_knowledge(cfg)
+
+    # ==================== detection models ====================
     yolo_model = usam = None
-    dyn_classes = None
+    clip_model = clip_preprocess = clip_tokenizer = None
     obj_classes = None  
-    knowledge = _load_part_knowledge(cfg)
 
-    if run_detections and cfg.detector_mode == "yolo":
-        # classes file needed only for YOLO
-        print("\n".join(["Running YOLO detections..."] * 3))
-        detections_exp_cfg = cfg_to_dict(cfg)
-        base_classes_file = Path(detections_exp_cfg['classes_file'])
-        obj_classes = ObjectClasses(
-            classes_file_path=str(base_classes_file),
-            bg_classes=detections_exp_cfg['bg_classes'],
-            skip_bg=detections_exp_cfg['skip_bg']
-        )
-        yolo_model = YOLO('yolov8l-world.pt')
-        yolo_model.set_classes(obj_classes.get_classes_arr())
-        usam = ULTRA_SAM('sam_l.pt')
+    if run_detections:
+        print("LOAD DETECTION MODELS...")
+        if cfg.detector_mode == "CG" or cfg.detector_mode == "OFG":
+            print("LOAD CLIP MODELS...")
+            det_exp_path.mkdir(parents=True, exist_ok=True)
+            clip_model, _, clip_preprocess = open_clip.create_model_and_transforms("ViT-H-14", "laion2b_s32b_b79k")
+            clip_model = clip_model.to(cfg.device)
+            clip_tokenizer = open_clip.get_tokenizer("ViT-H-14")
+            print("CLIP MODELS LOADED.")
+        
+        if cfg.detector_mode == "CG":
+            print("LOAD YOLO + SAM MODELS...")
+            detections_exp_cfg = cfg_to_dict(cfg)
+            base_classes_file = Path(detections_exp_cfg['classes_file'])
+            obj_classes = ObjectClasses(
+                classes_file_path=str(base_classes_file),
+                bg_classes=detections_exp_cfg['bg_classes'],
+                skip_bg=detections_exp_cfg['skip_bg']
+            )
+            yolo_model = YOLO('yolov8l-world.pt')
+            yolo_model.set_classes(obj_classes.get_classes_arr())
+            usam = ULTRA_SAM('sam_l.pt')
+            print("YOLO + SAM MODELS LOADED.")
 
-    if run_detections and cfg.detector_mode == "ram_gdino_sam":
-        # no classes_file read; build dynamic table
-        print("\n".join(["Running Ram_GDINO_SAM detections..."] * 3))
-        dyn_classes = DynamicClasses(
-            bg_classes=getattr(cfg, "bg_classes", []),
-            skip_bg=getattr(cfg, "skip_bg", False),
-            colors_file_path=None,
-            rng_seed=0
-        )
+        elif cfg.detector_mode == "OFG":
+            print("LOAD RAM + GDINO + SAM MODELS...")
+            obj_classes = DynamicClasses(
+                bg_classes=getattr(cfg, "bg_classes", []),
+                skip_bg=getattr(cfg, "skip_bg", False),
+                colors_file_path=None,
+                rng_seed=0
+            )
+            gdino = GDINO(model_config_path=cfg.gdino_cfg_path, model_checkpoint_path=cfg.gdino_ckpt_path)
+            sam_pred = SamPredictor(sam_model_registry[cfg.sam_encoder](checkpoint=cfg.sam_ckpt_path))
+            ram_pred = RAM(pretrained=cfg.ram_ckpt_path, image_size=384, vit='swin_l').to(cfg.device)
+            ram_pred.eval()
+            ram_tf = TS.Compose([TS.Resize((384,384)), TS.ToTensor(), TS.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])])
+            print("RAM + GDINO + SAM MODELS LOADED.")
 
-        obj_classes = dyn_classes
-        # groundingdino, sam, ram, transpose preprocessing for ram input
-        gdino, sam_pred, ram_model, ram_tf = _build_ram_stack(cfg, cfg.device)
+        elif cfg.detector_mode == "CAPA":
+            print("LOAD RAM + VLPart + SAM MODELS...")
+            obj_classes = DynamicClasses(
+                bg_classes=getattr(cfg, "bg_classes", []),
+                skip_bg=getattr(cfg, "skip_bg", False),
+                colors_file_path=None,
+                rng_seed=0
+            )
+            vlpart = VLPart(model_path=cfg.vlpart_ckpt_path, config_file=cfg.vlpart_cfg_path, device=cfg.device, score_thresh=cfg.box_thresh)
+            sam_pred = SamPredictor(sam_model_registry[cfg.sam_encoder](checkpoint=cfg.sam_ckpt_path))
+            ram_pred = RAM(pretrained=cfg.ram_ckpt_path, image_size=384, vit='swin_l').to(cfg.device)
+            ram_pred.eval()
+            ram_tf = TS.Compose([TS.Resize((384,384)), TS.ToTensor(), TS.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])])
+            print("RAM + VLPart + SAM MODELS LOADED.")
 
-    # save cfgs
+        else:
+            raise NotImplementedError(f"Unknown detector_mode: {cfg.detector_mode}")
+
+    # ==================== save config ====================
     save_hydra_config(cfg, exp_out_path)
-    if cfg.detector_mode == "yolo":
-        save_hydra_config(cfg_to_dict(cfg), exp_out_path, is_detection_config=True)
+    save_hydra_config(cfg_to_dict(cfg), exp_out_path, is_detection_config=True)
 
     if cfg.save_objects_all_frames:
         obj_all_frames_out_path = exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}"
         os.makedirs(obj_all_frames_out_path, exist_ok=True)
-
+    return 
+    # ==================== main loop ====================
     exit_early_flag = False
     counter = 0
-
     for frame_idx in trange(len(dataset)):
         if cfg.max_frames != 0 and frame_idx >= cfg.max_frames:
             print("Stop for Debug: max_frames reached.")
@@ -262,47 +296,70 @@ def main(cfg: DictConfig):
         if not exit_early_flag and should_exit_early(cfg.exit_early_file):
             print("Exit early signal detected. Skipping to the final frame...")
             exit_early_flag = True
+
         if exit_early_flag and frame_idx < len(dataset) - 1:
             continue
 
+        # ==== Sanity checks ====
         color_path = Path(dataset.color_paths[frame_idx])
         image_original_pil = Image.open(color_path)
         color_tensor, depth_tensor, intrinsics, *_ = dataset[frame_idx]
         depth_tensor = depth_tensor[..., 0]
         depth_array = depth_tensor.cpu().numpy()
-        color_np = color_tensor.cpu().numpy().astype(np.uint8)
-        image_rgb = color_np
+        color_np = color_tensor.cpu().numpy()
+        image_rgb = (color_np).astype(np.uint8) 
+        assert image_rgb.max() > 1, "Image is not in range [0, 255]"
+
+
+        raw_gobs = None
+        gobs = None
+        detections_path = det_exp_pkl_path / (color_path.stem + ".pkl.gz")
 
         # vis_save_path_for_vlm = get_vlm_annotated_image_path(det_exp_vis_path, color_path)
         # vis_save_path_for_vlm_edges = get_vlm_annotated_image_path(det_exp_vis_path, color_path, w_edges=True)
 
-        raw_gobs = None
-
-        # ===== detection (inference only) =====
         if run_detections:
-            if cfg.detector_mode == "yolo":
-                curr_det, det_labels, bgr = run_yolo_branch(
+            # ==== Load frame ====
+            image = cv2.imread(str(color_path)) # BGR uint8
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+            if cfg.detector_mode == "CG":
+                curr_det, det_labels = measure_time(run_yolo_branch)(
                     color_path=color_path, obj_classes=obj_classes, cfg=cfg,
                     yolo_model=yolo_model, usam=usam, color_np=color_np
                 )
-            else:
-                curr_det, det_labels, bgr, tags = run_ram_gdino_sam_branch(
-                    color_path=color_path, gdino=gdino, sam_pred=sam_pred,
-                    ram_model=ram_model, ram_tf=ram_tf,
-                    dyn=dyn_classes, cfg=cfg, device=cfg.device, knowledge=knowledge
+                image_crops, image_feats, text_feats = compute_clip_features_batched(
+                    image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
+                    obj_classes.get_classes_arr(), cfg.device
                 )
+
+            elif cfg.detector_mode == "OFG":
+                curr_det, det_labels, tags = measure_time(run_ram_branch)(
+                    color_path=color_path, model=gdino, sam_pred=sam_pred,
+                    ram_pred=ram_pred, ram_tf=ram_tf,
+                    dyn=obj_classes, cfg=cfg, device=cfg.device, knowledge=knowledge
+                )
+                image_crops, image_feats, text_feats = compute_clip_features_batched(
+                    image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
+                    obj_classes.get_classes_arr(), cfg.device
+                )
+
+            elif cfg.detector_mode == "CAPA":
+                curr_det, det_labels, tags = measure_time(run_ram_branch)(
+                    color_path=color_path, model=vlpart, sam_pred=sam_pred,
+                    ram_pred=ram_pred, ram_tf=ram_tf,
+                    dyn=obj_classes, cfg=cfg, device=cfg.device, knowledge=knowledge
+                )
+
+            else:
+                raise NotImplementedError(f"Unknown detector_mode: {cfg.detector_mode}")
 
             # labels_vlm, edges, edge_image, captions = make_vlm_edges_and_captions(
             #     bgr, curr_det, obj_classes, det_labels, det_exp_vis_path, color_path, False, None
-            # )
+            # )image
             labels_vlm, edges, edge_image, captions = [], [], None, []
-            image_crops, image_feats, text_feats = compute_clip_features_batched(
-                image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
-                obj_classes.get_classes_arr(), cfg.device
-            )
 
             tracker.increment_total_detections(len(curr_det.xyxy))
-
             results = {
                 "xyxy": curr_det.xyxy,
                 "confidence": curr_det.confidence,
@@ -317,15 +374,15 @@ def main(cfg: DictConfig):
                 "edges": edges,
                 "captions": captions,
             }
-            raw_gobs = results
 
+            # ===== save detections =====
             if cfg.save_detections:
                 vis_save_path = (det_exp_vis_path / color_path.name).with_suffix(".jpg")
                 box_annot = sv.BoxAnnotator()
                 mask_annot = sv.MaskAnnotator()
                 viz_det = _vis_safe_det(curr_det)
 
-                ann_img = mask_annot.annotate(scene=bgr.copy(), detections=viz_det)
+                ann_img = mask_annot.annotate(scene=image.copy(), detections=viz_det)
                 ann_img = box_annot.annotate(scene=ann_img, detections=viz_det, labels=det_labels)
                 cv2.imwrite(str(vis_save_path), ann_img)
 
@@ -338,13 +395,17 @@ def main(cfg: DictConfig):
 
                 save_detection_results(det_exp_pkl_path / vis_save_path.stem, results)
 
+            raw_gobs = results
+
+        # ===== load old saving detections =====
         else:
-            stem = Path(dataset.color_paths[frame_idx]).stem
+            stem = Path(dataset.color_paths[frame_idx]).stem # Support current and old saving formats
             if os.path.exists(det_exp_pkl_path / stem):
                 raw_gobs = load_saved_detections(det_exp_pkl_path / stem)
             elif os.path.exists(det_exp_pkl_path / f"{int(stem):06}"):
                 raw_gobs = load_saved_detections(det_exp_pkl_path / f"{int(stem):06}")
             else:
+                # if no detections, throw an error
                 raise FileNotFoundError(
                     f"No detections found for frame {frame_idx} at paths \n"
                     f"{det_exp_pkl_path / stem} or \n"
@@ -352,8 +413,9 @@ def main(cfg: DictConfig):
                 )
 
         # ===== pose/cam logs =====
-        unt_pose = dataset.poses[frame_idx].cpu().numpy()
+        unt_pose = dataset.poses[frame_idx].cpu().numpy() # untrasformed pose
         adjusted_pose = unt_pose
+
         if cfg.use_rerun:
             prev_adjusted_pose = orr_log_camera(intrinsics, adjusted_pose, prev_adjusted_pose, cfg.image_width, cfg.image_height, frame_idx)
             orr_log_rgb_image(color_path)
@@ -362,7 +424,7 @@ def main(cfg: DictConfig):
             orr_log_vlm_image(vis_save_path_for_vlm)
             orr_log_vlm_image(vis_save_path_for_vlm_edges, label="w_edges")
 
-        # ===== masks -> pcd =====
+        # ===== filtering =====
         resized_gobs = resize_gobs(raw_gobs, image_rgb)
         filtered_gobs = filter_gobs(
             resized_gobs, image_rgb,
@@ -372,12 +434,16 @@ def main(cfg: DictConfig):
             max_bbox_area_ratio=cfg.max_bbox_area_ratio,
             mask_conf_threshold=cfg.mask_conf_threshold,
         )
+
         gobs = filtered_gobs
-        if len(gobs['mask']) == 0:
+
+        if len(gobs['mask']) == 0: # no detections in this frame
             continue
 
+        # ===== seperate the overlapped masks (so that each mask only covers one object) =====
         gobs['mask'] = mask_subtract_contained(gobs['xyxy'], gobs['mask'])
 
+        # ==================== Mask to Point Cloud ====================
         obj_pcds_and_bboxes = measure_time(detections_to_obj_pcd_and_bbox)(
             depth_array=depth_array,
             masks=gobs['mask'],
@@ -390,6 +456,7 @@ def main(cfg: DictConfig):
             device=cfg.device,
         )
 
+        # ==================== remove noise ====================
         for obj in obj_pcds_and_bboxes:
             if obj:
                 obj["pcd"] = init_process_pcd(
@@ -404,9 +471,10 @@ def main(cfg: DictConfig):
         detection_list = make_detection_list_from_pcd_and_gobs(
             obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
         )
-        if len(detection_list) == 0:
+        if len(detection_list) == 0: # no detections in this frame
             continue
 
+        # if no objects yet in the map, just add all the objects from the current frame (no need to match or merge)
         if len(objects) == 0:
             objects.extend(detection_list)
             tracker.increment_total_objects(len(detection_list))
@@ -414,6 +482,7 @@ def main(cfg: DictConfig):
                 owandb.log({"total_objects_so_far": tracker.get_total_objects(), "objects_this_frame": len(detection_list)})
             continue
 
+        # ==================== match and merge ====================
         spatial_sim = compute_spatial_similarities(
             spatial_sim_type=cfg['spatial_sim_type'],
             detection_list=detection_list, objects=objects,
@@ -424,16 +493,22 @@ def main(cfg: DictConfig):
             match_method=cfg['match_method'], phys_bias=cfg['phys_bias'],
             spatial_sim=spatial_sim, visual_sim=visual_sim
         )
+        # Perform matching of detections to existing objects
         match_indices = match_detections_to_objects(agg_sim=agg_sim, detection_threshold=cfg['sim_threshold'])
+        # Now merge the detected objects into the existing objects based on the match indices
         objects = merge_obj_matches(
-            detection_list=detection_list, objects=objects, match_indices=match_indices,
-            downsample_voxel_size=cfg['downsample_voxel_size'],
-            dbscan_remove_noise=cfg['dbscan_remove_noise'],
-            dbscan_eps=cfg['dbscan_eps'], dbscan_min_points=cfg['dbscan_min_points'],
-            spatial_sim_type=cfg['spatial_sim_type'], device=cfg['device']
+            detection_list=detection_list, 
+            objects=objects, 
+            match_indices=match_indices,
+            downsample_voxel_size=cfg['downsample_voxel_size'], 
+            dbscan_remove_noise=cfg['dbscan_remove_noise'], 
+            dbscan_eps=cfg['dbscan_eps'], 
+            dbscan_min_points=cfg['dbscan_min_points'], 
+            spatial_sim_type=cfg['spatial_sim_type'], 
+            device=cfg['device']
         )
 
-        # majority class (ignore negative)
+        # voting to set majority class (ignore negative)
         for idx, obj in enumerate(objects):
             valid_ids = [i for i in obj['class_id'] if i >= 0]
             if not valid_ids:
@@ -444,11 +519,26 @@ def main(cfg: DictConfig):
                 obj["class_name"] = cname
 
         map_edges = process_edges(match_indices, gobs, len(objects), objects, map_edges, frame_idx)
+        # Clean up outlier edges
+        edges_to_delete = []
+        for curr_map_edge in map_edges.edges_by_index.values():
+            curr_obj1_idx = curr_map_edge.obj1_idx
+            curr_obj2_idx = curr_map_edge.obj2_idx
+            obj1_class_name = objects[curr_obj1_idx]['class_name'] 
+            obj2_class_name = objects[curr_obj2_idx]['class_name']
+            curr_first_detected = curr_map_edge.first_detected
+            curr_num_det = curr_map_edge.num_detections
+            if (frame_idx - curr_first_detected > 5) and curr_num_det < 2:
+                edges_to_delete.append((curr_obj1_idx, curr_obj2_idx))
+        for edge in edges_to_delete:
+            map_edges.delete_edge(edge[0], edge[1])
+
+        # ==================== post-processing (denoise_objects, filter_objects, merge_objects) ====================
         is_final_frame = frame_idx == len(dataset) - 1
         if is_final_frame:
             print("Final frame detected. Performing final post-processing...")
 
-        # light cleanup / post steps (unchanged)
+        # light cleanup / post steps (unchanged) for every process_interval or final frame
         if processing_needed(cfg["denoise_interval"], cfg["run_denoise_final_frame"], frame_idx, is_final_frame):
             objects = measure_time(denoise_objects)(
                 downsample_voxel_size=cfg['downsample_voxel_size'],
@@ -471,6 +561,8 @@ def main(cfg: DictConfig):
                 dbscan_min_points=cfg["dbscan_min_points"], spatial_sim_type=cfg["spatial_sim_type"],
                 device=cfg["device"], do_edges=cfg["make_edges"], map_edges=map_edges
             )
+
+        # ==================== saving and visualization ====================
         if cfg.use_rerun:
             orr_log_objs_pcd_and_bbox(objects, obj_classes)
             orr_log_edges(objects, map_edges, obj_classes)
@@ -495,19 +587,22 @@ def main(cfg: DictConfig):
                 create_symlink=True
             )
 
+        tracker.increment_total_objects(len(objects))
+        tracker.increment_total_detections(len(detection_list))
+
         if cfg.use_wandb:
             owandb.log({
                 "frame_idx": frame_idx, "counter": counter,
                 "is_final_frame": is_final_frame,
             })
-        tracker.increment_total_objects(len(objects))
-        tracker.increment_total_detections(len(detection_list))
+        
         if cfg.use_wandb:
             owandb.log({
                 "total_objects": tracker.get_total_objects(),
                 "objects_this_frame": len(objects),
                 "total_detections": tracker.get_total_detections(),
             })
+    # ===================== end of main loop ====================
 
     # captions
     for obj in objects:
@@ -517,27 +612,19 @@ def main(cfg: DictConfig):
     if cfg.use_rerun:
         handle_rerun_saving(cfg.use_rerun, cfg.save_rerun, cfg.exp_suffix, exp_out_path)
 
-    # === save dynamic classes only for RAM mode ===
-    if run_detections and cfg.detector_mode == "ram_gdino_sam":
+    # ===================== save dynamic classes =====================
+    if run_detections and cfg.detector_mode == "OFG":
         out_cls = exp_out_path / getattr(cfg, "classes_output_filename", "ram_classes.txt")
-        dyn_classes.save(out_cls)
+        obj_classes.save(out_cls)
         print(f"[RAM] saved classes -> {out_cls}")
     
+    # ==================== final saving and visualization ====================
     if run_detections and cfg.save_video:
         save_video_detections(det_exp_path)
-
-    if cfg.save_pcd:
-        save_pointcloud(
-            exp_suffix=cfg.exp_suffix, exp_out_path=exp_out_path, cfg=cfg,
-            objects=objects, obj_classes=obj_classes,
-            latest_pcd_filepath=cfg.latest_pcd_filepath, create_symlink=True,
-            edges=map_edges
-        )
 
     if cfg.save_json:
         save_obj_json(cfg.exp_suffix, exp_out_path, objects)
         save_edge_json(cfg.exp_suffix, exp_out_path, objects, map_edges)
-
 
     if cfg.save_objects_all_frames:
         save_meta_path = (exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}" / "meta.pkl.gz")
@@ -547,6 +634,14 @@ def main(cfg: DictConfig):
                 'class_names': obj_classes.get_classes_arr(),
                 'class_colors': {},  # optional: can be filled if needed
             }, f)
+    
+    if cfg.save_pcd:
+        save_pointcloud(
+            exp_suffix=cfg.exp_suffix, exp_out_path=exp_out_path, cfg=cfg,
+            objects=objects, obj_classes=obj_classes,
+            latest_pcd_filepath=cfg.latest_pcd_filepath, create_symlink=True,
+            edges=map_edges
+        )
 
     if cfg.use_wandb:
         owandb.finish()
