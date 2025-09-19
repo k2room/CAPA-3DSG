@@ -27,16 +27,6 @@ import torchvision
 import torchvision.transforms as TS
 
 
-def _build_ram_stack(cfg, device):
-    gdino = GDINO(model_config_path=cfg.gdino_cfg_path, model_checkpoint_path=cfg.gdino_ckpt_path)
-    sam = sam_model_registry[cfg.sam_encoder](checkpoint=cfg.sam_ckpt_path)
-    sam_pred = SamPredictor(sam)
-    ram_model = RAM(pretrained=cfg.ram_ckpt_path, image_size=384, vit='swin_l').to(device)
-    ram_model.eval()
-    _norm = TS.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225]) # ImageNet dataset RGB channel mean and std
-    ram_tf = TS.Compose([TS.Resize((384,384)), TS.ToTensor(), _norm])
-    return gdino, sam_pred, ram_model, ram_tf
-
 def _seg_sam(sam_pred: SamPredictor, bgr: np.ndarray, xyxy: np.ndarray) -> np.ndarray:
     if len(xyxy) == 0:
         return np.empty((0, bgr.shape[0], bgr.shape[1]), dtype=bool)
@@ -66,7 +56,7 @@ def _vis_safe_det(det: sv.Detections) -> sv.Detections:
 
 # --- RAM tag knowledge helpers ---
 
-def _load_part_knowledge(cfg):
+def load_knowledge(cfg):
     """Load object/part knowledge JSON. Try typo key then correct key."""
     p = getattr(cfg, "object_part_knowledge", None)
     if not p:
@@ -137,7 +127,6 @@ def _curate_tags(raw_tags, knowledge, cfg) -> list[str]:
     return out
 
 
-# ---- Dynamic classes for RAM mode (no classes_file read) ----
 class DynamicClasses:
     def __init__(self, bg_classes=None, skip_bg: bool = False,
                  colors_file_path: str | Path | None = None, rng_seed: int | None = None):
