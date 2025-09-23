@@ -1,8 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
 import atexit
 import bisect
 import multiprocessing as mp
-from collections import deque
+from collections import deque, OrderedDict
 import cv2
 import torch
 import numpy as np
@@ -15,21 +14,18 @@ from detectron2.engine.defaults import DefaultPredictor
 from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode
 
+from vlpart.modeling.text_encoder.text_encoder import build_text_encoder
 from .vlp_visualizer import CustomVisualizer
-
-def get_clip_embeddings(vocabulary, prompt='a '):
-    from vlpart.modeling.text_encoder.text_encoder import build_text_encoder
-    text_encoder = build_text_encoder(pretrain=True)
-    text_encoder.eval()
-    texts = [prompt + x.lower().replace(':', ' ') for x in vocabulary]
-    emb = text_encoder(texts).detach().permute(1, 0).contiguous().cpu()
-    return emb
 
 from pathlib import Path
 _VLPART_DIR = Path(__file__).resolve().parents[1] / "thirdparty" / "vlpart"
 _METADATA_DIR = _VLPART_DIR / "datasets" / "metadata"
 
-BUILDIN_CLASSIFIER = {
+_TEXT_ENCODER = None              # Singleton text encoder
+_PHRASE_CACHE = OrderedDict()     # phrase(str) -> torch.Tensor(D,)
+_CACHE_CAP = 4096                 # LRU capacity; tune if needed
+
+_BUILDIN_CLASSIFIER = {
     "lvis":         str((_METADATA_DIR / "lvis_v1_clip_RN50_a+cname.npy").resolve()),
     "paco":         str((_METADATA_DIR / "paco_clip_RN50_a+cname.npy").resolve()),
     "coco":         str((_METADATA_DIR / "coco_clip_RN50_a+cname.npy").resolve()),
@@ -38,37 +34,33 @@ BUILDIN_CLASSIFIER = {
     "partimagenet": str((_METADATA_DIR / "partimagenet_clip_RN50_a+cname.npy").resolve()),
 }
 
+_BUILDIN_METADATA_PATH = {
+    'pascal_part': 'pascal_part_val',
+    'partimagenet': 'partimagenet_val',
+    'paco': 'paco_lvis_v1_val',
+    'lvis': 'lvis_v1_val',
+    'coco': 'coco_2017_val',
+    'voc': 'voc_2007_val',
+}
+
 def _resolve_metadata_path(s: str) -> str:
-    """
-    ZeroShotClassifier가 참조하는 경로 문자열을 안전한 절대경로로 변환.
-    - 이미 절대경로이고 존재하면 그대로 반환
-    - 상대경로이거나 'datasets/metadata/' 포함 시, 파일명 기준으로 _METADATA_DIR로 매핑
-    """
+    """Convert relative path to absolute path under _METADATA_DIR for detectron2 metadata"""
     p = Path(s)
     if p.is_absolute() and p.exists():
         return str(p)
-    # s에 디렉토리 구성이 있어도 파일명만 취해 metadata 디렉터리로 매핑
     q = (_METADATA_DIR / p.name).resolve()
     return str(q)
 
 def _rewrite_metadata_paths_in_cfg(node):
-    """
-    detectron2/yacs CfgNode를 재귀 순회하면서
-    'datasets/metadata/'를 포함하거나 *_clip_RN50_a+cname.npy 로 끝나는 문자열/리스트 항목을
-    _METADATA_DIR 기준 절대경로로 치환.
-    """
-    # yacs.CfgNode는 dict 인터페이스를 흉내내므로 .items() 사용 가능
+    """Convert relative path to absolute path under _METADATA_DIR for detectron2 cfg (yacs.CfgNod)."""
     for k, v in node.items():
-        # 하위 노드 재귀
         try:
-            # v가 또 다른 CfgNode라면 재귀
             if hasattr(v, "items"):
                 _rewrite_metadata_paths_in_cfg(v)
                 continue
         except Exception:
             pass
 
-        # 리스트 처리
         if isinstance(v, list):
             changed = False
             new_list = []
@@ -81,18 +73,9 @@ def _rewrite_metadata_paths_in_cfg(node):
             if changed:
                 node[k] = new_list
 
-        # 문자열 처리
         elif isinstance(v, str) and ("datasets/metadata/" in v or v.endswith("_clip_RN50_a+cname.npy")):
             node[k] = _resolve_metadata_path(v)
 
-BUILDIN_METADATA_PATH = {
-    'pascal_part': 'pascal_part_val',
-    'partimagenet': 'partimagenet_val',
-    'paco': 'paco_lvis_v1_val',
-    'lvis': 'lvis_v1_val',
-    'coco': 'coco_2017_val',
-    'voc': 'voc_2007_val',
-}
 
 def reset_cls_test(model, cls_path):
     # model.roi_heads.num_classes = num_classes
@@ -131,6 +114,62 @@ def reset_cls_test(model, cls_path):
         model.roi_heads.box_predictor.cls_score.zs_weight_inference = zs_weight
 
 
+# def get_clip_embeddings(vocabulary, prompt='a '):
+#     text_encoder = build_text_encoder(pretrain=True)
+#     text_encoder.eval()
+#     texts = [prompt + x.lower().replace(':', ' ') for x in vocabulary]
+#     emb = text_encoder(texts).detach().permute(1, 0).contiguous().cpu()
+#     return emb
+
+def _get_text_encoder():
+    """Build the internal text encoder once and reuse."""
+    global _TEXT_ENCODER
+    if _TEXT_ENCODER is None:
+        enc = build_text_encoder(pretrain=True)  # original builder from VLPart
+        enc.eval()                               # disable dropout for determinism
+        _TEXT_ENCODER = enc
+    return _TEXT_ENCODER
+
+def _canon(s: str) -> str:
+    """Canonicalize phrase for cache keys (lowercase + whitespace squeeze)."""
+    return " ".join(s.split()).strip().lower().replace(":", " ")
+
+@torch.no_grad()
+def get_clip_embeddings(vocabulary, prompt='a '):
+    """
+    Return zs-weight matrix (D, C) on CPU for the given vocabulary.
+    This uses a persistent internal text encoder and a small phrase-level LRU cache
+    so that only unseen phrases are encoded each time.
+    """
+    enc = _get_text_encoder()
+
+    # 1) Find cache misses and prepare normalized texts
+    keys = []
+    miss_idx, miss_texts = [], []
+    for i, term in enumerate(vocabulary):
+        k = _canon(term)
+        keys.append(k)
+        if k not in _PHRASE_CACHE:
+            miss_idx.append(i)
+            miss_texts.append(prompt + term.lower().replace(":", " "))
+
+    # 2) Encode only the missing phrases
+    if len(miss_texts) > 0:
+        vec = enc(miss_texts)                               # (M, D)
+        vec = vec / (vec.norm(dim=-1, keepdim=True) + 1e-6) # L2 norm for stability
+        vec = vec.to(dtype=torch.float32, device="cpu")
+        for j, i in enumerate(miss_idx):
+            k = keys[i]
+            _PHRASE_CACHE[k] = vec[j]
+            # LRU eviction
+            if len(_PHRASE_CACHE) > _CACHE_CAP:
+                _PHRASE_CACHE.popitem(last=False)
+
+    # 3) Assemble zs-weight (D, C) following current vocabulary order
+    cols = [ _PHRASE_CACHE[k].unsqueeze(1) for k in keys ]  # each (D,1)
+    mat = torch.cat(cols, dim=1)                            # (D, C)
+    return mat
+
 class VisualizationDemo(object):
     def __init__(self, cfg, args=None, instance_mode=ColorMode.IMAGE, parallel=False):
         """
@@ -138,35 +177,38 @@ class VisualizationDemo(object):
             cfg (CfgNode):
             instance_mode (ColorMode):
             parallel (bool): whether to run the model in different processes from visualization.
-                Useful since the visualization logic can be slow.
         """
-        # self.metadata = MetadataCatalog.get(
-        #     cfg.DATASETS.TEST[0] if len(cfg.DATASETS.TEST) else "__unused"
-        # )
-        if args is None:
-            self.metadata = MetadataCatalog.get(
-                BUILDIN_METADATA_PATH['pascal_part'])
-            classifier = BUILDIN_CLASSIFIER['pascal_part']
+        # --- Dynamic custom-vocabulary mode for CAPA ---
+        # Use '__unused' metadata and do NOT set thing_classes here.
+        if args is not None and getattr(args, "vocabulary", "") == "custom_dynamic":
+            self.metadata = MetadataCatalog.get("__unused")
+            classifier = None  # Zero-shot weights will be injected at runtime (per frame).
+
+        # --- Existing branches unchanged below ---
+        elif args is None:
+            self.metadata = MetadataCatalog.get(_BUILDIN_METADATA_PATH['pascal_part'])
+            classifier = _BUILDIN_CLASSIFIER['pascal_part']
+
         elif args.vocabulary == 'custom':
             self.metadata = MetadataCatalog.get("__unused")
             self.metadata.thing_classes = args.custom_vocabulary.split(',')
             classifier = get_clip_embeddings(self.metadata.thing_classes)
+
         elif args.vocabulary == 'pascal_part_voc':
             self.metadata = MetadataCatalog.get("__unused")
             self.metadata.thing_classes = args.custom_vocabulary.split(',')
             classifier = get_clip_embeddings(self.metadata.thing_classes)
+
         elif args.vocabulary == 'lvis_paco':
             self.metadata = MetadataCatalog.get("__unused")
-            lvis_thing_classes = MetadataCatalog.get(
-                BUILDIN_METADATA_PATH['lvis']).thing_classes
-            paco_thing_classes = MetadataCatalog.get(
-                BUILDIN_METADATA_PATH['paco']).thing_classes[75:]
+            lvis_thing_classes = MetadataCatalog.get(_BUILDIN_METADATA_PATH['lvis']).thing_classes
+            paco_thing_classes = MetadataCatalog.get(_BUILDIN_METADATA_PATH['paco']).thing_classes[75:]
             self.metadata.thing_classes = lvis_thing_classes + paco_thing_classes
             classifier = get_clip_embeddings(self.metadata.thing_classes)
+
         else:
-            self.metadata = MetadataCatalog.get(
-                BUILDIN_METADATA_PATH[args.vocabulary])
-            classifier = BUILDIN_CLASSIFIER[args.vocabulary]
+            self.metadata = MetadataCatalog.get(_BUILDIN_METADATA_PATH[args.vocabulary])
+            classifier = _BUILDIN_CLASSIFIER[args.vocabulary]
 
         self.cpu_device = torch.device("cpu")
         self.instance_mode = instance_mode
@@ -183,7 +225,10 @@ class VisualizationDemo(object):
         else:
             self.predictor = DefaultPredictor(cfg)
         self.cfg = cfg
-        reset_cls_test(self.predictor.model, classifier)
+        
+        # Only apply classifier for static modes (dynamic mode injects per frame)
+        if classifier is not None:
+            reset_cls_test(self.predictor.model, classifier)
 
     def run_on_image(self, image):
         """
