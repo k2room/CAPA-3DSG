@@ -60,9 +60,14 @@ from src.utils.gsa import (
 
 from src.utils.vlp import VLPart
 
+from src.utils.color_extraction import (
+    extract_color_features,
+    compute_texture_sim,
+    ema_update_color_feat,
+)
+
 # === utils: utils functions, DynamicClasses ===
 from src.utils.utils import (
-    # _build_OFG_stack, 
     _seg_sam, _ensure_bool_mask, _vis_safe_det, load_knowledge, _curate_tags, 
     DynamicClasses
 )
@@ -74,19 +79,19 @@ torch.set_grad_enabled(False)
 
 # ============== detection branches (models preloaded) ==============
 
-def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, usam: ULTRA_SAM, color_np):
+def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, sam_pred: ULTRA_SAM, color_np):
     """
-        Args:  
-            color_path: Path to the color image
-            obj_classes: ObjectClasses instance
-            cfg: config
-            yolo_model: preloaded YOLO model
-            usam: preloaded UltraSAM model
-            color_np: numpy array of the color image (H, W, 3) uint8
-        Returns: 
-            det: sv.Detections instance
-            labs: list of labels for each detection
-            bgr: BGR image as numpy array (H, W, 3) uint8
+    Args:  
+        color_path: Path to the color image
+        obj_classes: ObjectClasses instance
+        cfg: config
+        yolo_model: preloaded YOLO model
+        sam_pred: preloaded UltraSAM model
+        color_np: numpy array of the color image (H, W, 3) uint8
+    Returns: 
+        det: sv.Detections instance
+        labs: list of labels for each detection
+        bgr: BGR image as numpy array (H, W, 3) uint8
     """
     results = yolo_model.predict(color_path, conf=0.1, verbose=False)
     conf = results[0].boxes.conf.cpu().numpy()
@@ -95,7 +100,7 @@ def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, usam: 
     xyxy = xyxy_t.cpu().numpy()
 
     if xyxy_t.numel() != 0:
-        sam_out = usam.predict(color_path, bboxes=xyxy_t, verbose=False)
+        sam_out = sam_pred.predict(color_path, bboxes=xyxy_t, verbose=False)
         masks_t = sam_out[0].masks.data
         masks = _ensure_bool_mask(masks_t.cpu().numpy())
     else:
@@ -106,6 +111,22 @@ def run_yolo_branch(color_path: Path, obj_classes, cfg, yolo_model: YOLO, usam: 
     return det, labels
 
 def run_ram_branch(color_path: Path, model: GDINO, sam_pred: SamPredictor, ram_pred: RAM, ram_tf, dyn: DynamicClasses, cfg, device, knowledge: dict):
+    """
+    Args:
+        color_path: Path to the color image
+        model: preloaded GDINO model
+        sam_pred: preloaded SAM predictor (can be None when cfg.use_sam=False)
+        ram_pred: preloaded RAM model
+        ram_tf: RAM image transform
+        dyn: DynamicClasses instance
+        cfg: config
+        device: torch device
+        knowledge: object/part knowledge dict
+    Returns:
+        det2: sv.Detections (xyxy, confidence, class_id=global id, mask)
+        labels: List[str]
+        tags: List[str]
+    """
     bgr = cv2.imread(str(color_path))
 
     # RAM -> tags
@@ -131,7 +152,7 @@ def run_ram_branch(color_path: Path, model: GDINO, sam_pred: SamPredictor, ram_p
         keep = torchvision.ops.nms(
             torch.from_numpy(det.xyxy),
             torch.from_numpy(det.confidence),
-            cfg.iou_thresh
+            cfg.NMS_iou_thresh
         ).cpu().numpy().tolist()
         det.xyxy = det.xyxy[keep]
         det.confidence = det.confidence[keep]
@@ -154,6 +175,87 @@ def run_ram_branch(color_path: Path, model: GDINO, sam_pred: SamPredictor, ram_p
         labels.append(f"{txt} {float(det2.confidence[i]):0.2f}")
 
     return det2, labels, tags
+
+def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_pred: RAM, ram_tf, dyn: DynamicClasses, cfg, device, knowledge: dict):
+    """
+    Args:
+        color_path: Path to the color image
+        model: preloaded VLPart model
+        sam_pred: preloaded SAM predictor (can be None when cfg.use_sam=False)
+        ram_pred: preloaded RAM model
+        ram_tf: RAM image transform
+        dyn: DynamicClasses instance
+        cfg: config
+        device: torch device
+        knowledge: object/part knowledge dict
+    Returns:
+        det2: sv.Detections (xyxy, confidence, class_id=global id, mask)
+        labels: List[str]
+        tags: List[str]
+        image_crops, image_feats, text_feats  # from VLPart internal CLIP
+    """
+    bgr = cv2.imread(str(color_path))
+
+    # RAM tags
+    pil = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)).resize((384, 384))
+    inp = ram_tf(pil).unsqueeze(0).to(device)
+    ram_out = inference_ram(inp, ram_pred)  # "a | b | c"
+    tags = [t.strip() for t in ram_out[0].split(" | ") if t.strip()]
+
+    # Apply knowledge (remove/add/parts) and update dynamic classes
+    tags = _curate_tags(tags, knowledge, cfg)
+    dyn.add(tags)
+
+    # VLPart inference with current vocabulary (uses internal CLIP)
+    det = model.predict_with_classes(image=bgr, classes=tags)
+
+    # NMS (keep masks/features aligned)
+    if len(det.xyxy) > 0 and getattr(cfg, "NMS_on", True):
+        keep = torchvision.ops.nms(
+            torch.from_numpy(det.xyxy),
+            torch.from_numpy(det.confidence),
+            cfg.NMS_iou_thresh
+        ).cpu().numpy().tolist()
+        det.xyxy = det.xyxy[keep]
+        det.confidence = det.confidence[keep]
+        det.class_id = det.class_id[keep]
+        if getattr(det, "mask", None) is not None:
+            det.mask = det.mask[keep]
+        if getattr(det, "image_feats", None) is not None:
+            det.image_feats = det.image_feats[keep]
+        if getattr(det, "image_crops", None) is not None:
+            det.image_crops = [det.image_crops[i] for i in keep]
+
+    # Mask source: SAM toggle
+    use_sam = bool(getattr(cfg, "use_sam", True))
+    if not use_sam:
+        masks = det.mask if getattr(det, "mask", None) is not None else None
+        if masks is None:
+            print("[VLPart] pred_masks not found and use_sam=False → returning masks=None")
+    else:
+        if sam_pred is None:
+            raise ValueError("cfg.use_sam=True but sam_pred is None. Check SAM loader.")
+        masks = _seg_sam(sam_pred, bgr, det.xyxy)
+
+    # Map to global class id
+    gid = np.array([dyn.id_of(tags[c]) if len(tags) > 0 else -1 for c in det.class_id], dtype=int)
+    det2 = sv.Detections(xyxy=det.xyxy, confidence=det.confidence, class_id=gid, mask=masks)
+
+    # Labels
+    gclasses = dyn.get_classes_arr()
+    labels = []
+    for i in range(len(det2.xyxy)):
+        gi = int(det2.class_id[i])
+        txt = gclasses[gi] if 0 <= gi < len(gclasses) else (tags[int(det.class_id[i])] if len(tags) > 0 else "obj")
+        labels.append(f"{txt} {float(det2.confidence[i]):0.2f}")
+
+    # Use VLPart-provided CLIP embeddings
+    image_crops = getattr(det, "image_crops", None)
+    image_feats = getattr(det, "image_feats", None)
+    text_feats  = getattr(det, "text_feats", None)
+
+    return det2, labels, tags, image_crops, image_feats, text_feats
+
 
 # ============== main ==============
 @hydra.main(version_base=None, config_path="/home/main/workspace/k2room2/CAPA-3DSG/configs/", config_name="main")
@@ -211,9 +313,10 @@ def main(cfg: DictConfig):
     knowledge = load_knowledge(cfg)
 
     # ==================== detection models ====================
-    yolo_model = usam = None
+    yolo_model = None
     clip_model = clip_preprocess = clip_tokenizer = None
-    obj_classes = None  
+    obj_classes = None
+    sam_pred = None  
 
     if run_detections:
         print("LOAD DETECTION MODELS...")
@@ -236,7 +339,7 @@ def main(cfg: DictConfig):
             )
             yolo_model = YOLO('yolov8l-world.pt')
             yolo_model.set_classes(obj_classes.get_classes_arr())
-            usam = ULTRA_SAM('sam_l.pt')
+            sam_pred = ULTRA_SAM('sam_l.pt')
             print("YOLO + SAM MODELS LOADED.")
 
         elif cfg.detector_mode == "OFG":
@@ -262,8 +365,9 @@ def main(cfg: DictConfig):
                 colors_file_path=None,
                 rng_seed=0
             )
-            vlpart = VLPart(model_path=cfg.vlpart_ckpt_path, config_file=cfg.vlpart_cfg_path, device=cfg.device, score_thresh=cfg.box_thresh)
-            sam_pred = SamPredictor(sam_model_registry[cfg.sam_encoder](checkpoint=cfg.sam_ckpt_path))
+            vlpart = VLPart(model_path=cfg.vlpart_ckpt_path, config_file=cfg.vlpart_cfg_path, device=cfg.device, score_thresh=cfg.score_thresh)
+            if getattr(cfg, "use_sam", True):
+                sam_pred = SamPredictor(sam_model_registry[cfg.sam_encoder](checkpoint=cfg.sam_ckpt_path))
             ram_pred = RAM(pretrained=cfg.ram_ckpt_path, image_size=384, vit='swin_l').to(cfg.device)
             ram_pred.eval()
             ram_tf = TS.Compose([TS.Resize((384,384)), TS.ToTensor(), TS.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])])
@@ -279,7 +383,7 @@ def main(cfg: DictConfig):
     if cfg.save_objects_all_frames:
         obj_all_frames_out_path = exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}"
         os.makedirs(obj_all_frames_out_path, exist_ok=True)
-    return 
+    
     # ==================== main loop ====================
     exit_early_flag = False
     counter = 0
@@ -314,7 +418,7 @@ def main(cfg: DictConfig):
         raw_gobs = None
         gobs = None
         detections_path = det_exp_pkl_path / (color_path.stem + ".pkl.gz")
-
+        
         # vis_save_path_for_vlm = get_vlm_annotated_image_path(det_exp_vis_path, color_path)
         # vis_save_path_for_vlm_edges = get_vlm_annotated_image_path(det_exp_vis_path, color_path, w_edges=True)
 
@@ -326,7 +430,7 @@ def main(cfg: DictConfig):
             if cfg.detector_mode == "CG":
                 curr_det, det_labels = measure_time(run_yolo_branch)(
                     color_path=color_path, obj_classes=obj_classes, cfg=cfg,
-                    yolo_model=yolo_model, usam=usam, color_np=color_np
+                    yolo_model=yolo_model, sam_pred=sam_pred, color_np=color_np
                 )
                 image_crops, image_feats, text_feats = compute_clip_features_batched(
                     image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
@@ -345,11 +449,21 @@ def main(cfg: DictConfig):
                 )
 
             elif cfg.detector_mode == "CAPA":
-                curr_det, det_labels, tags = measure_time(run_ram_branch)(
+                curr_det, det_labels, tags, image_crops, image_feats, text_feats = measure_time(run_vlp_branch)(
                     color_path=color_path, model=vlpart, sam_pred=sam_pred,
                     ram_pred=ram_pred, ram_tf=ram_tf,
                     dyn=obj_classes, cfg=cfg, device=cfg.device, knowledge=knowledge
                 )
+                
+                color_params = dict(
+                    use_wb=bool(cfg.get('color_use_wb', True)),
+                    use_retinex=bool(cfg.get('color_use_retinex', False)),
+                    bins=int(cfg.get('color_bins', 32)),
+                    s_threshold=float(cfg.get('color_s_threshold', 0.10)),
+                    v_spec_threshold=float(cfg.get('color_v_spec_threshold', 0.90)),
+                    compute_cn=bool(cfg.get('color_compute_cn', True)),
+                )
+                color_feats = measure_time(extract_color_features)(image_rgb, curr_det.mask, params=color_params)
 
             else:
                 raise NotImplementedError(f"Unknown detector_mode: {cfg.detector_mode}")
@@ -373,6 +487,7 @@ def main(cfg: DictConfig):
                 "labels": labels_vlm,
                 "edges": edges,
                 "captions": captions,
+                "color_feats": color_feats,
             }
 
             # ===== save detections =====
@@ -482,17 +597,36 @@ def main(cfg: DictConfig):
                 owandb.log({"total_objects_so_far": tracker.get_total_objects(), "objects_this_frame": len(detection_list)})
             continue
 
-        # ==================== match and merge ====================
+        # ==================== calculate similarity, match and merge ====================
+        # Geometric similarity
         spatial_sim = compute_spatial_similarities(
             spatial_sim_type=cfg['spatial_sim_type'],
             detection_list=detection_list, objects=objects,
             downsample_voxel_size=cfg['downsample_voxel_size']
         )
+
+        # Semantic similarity
         visual_sim = compute_visual_similarities(detection_list, objects)
+
+        # Texture similarity
+        if cfg.detector_mode == "CAPA":
+            texture_sim = compute_texture_sim(
+                detection_list=detection_list,
+                objects=objects,
+                weights=tuple(cfg.get('color_ab_rg_cn_weights', [0.50, 0.20, 0.20, 0.10])),
+                mapping=cfg.get('color_sim_mapping', 'inv'),    # 'inv' or 'exp'
+                gamma=float(cfg.get('color_sim_gamma', 3.0)),
+            )
+
+            # Visual + Texture 융합 (texture_weight로 비율 제어)
+            beta = float(cfg.get('texture_weight', 0.30))
+            visual_sim = (1.0 - beta) * visual_sim + beta * texture_sim
+
         agg_sim = aggregate_similarities(
             match_method=cfg['match_method'], phys_bias=cfg['phys_bias'],
             spatial_sim=spatial_sim, visual_sim=visual_sim
         )
+
         # Perform matching of detections to existing objects
         match_indices = match_detections_to_objects(agg_sim=agg_sim, detection_threshold=cfg['sim_threshold'])
         # Now merge the detected objects into the existing objects based on the match indices
@@ -642,6 +776,9 @@ def main(cfg: DictConfig):
             latest_pcd_filepath=cfg.latest_pcd_filepath, create_symlink=True,
             edges=map_edges
         )
+
+        pcd_save_path = Path(exp_out_path) / f"pcd_{cfg.exp_suffix}.pkl.gz"
+        print(f"\nUse '$ python src/visualize_saved_pointcloud.py --pcd_path {pcd_save_path} --mode part' to visualize the point cloud.")
 
     if cfg.use_wandb:
         owandb.finish()
