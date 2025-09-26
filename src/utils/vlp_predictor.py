@@ -113,14 +113,6 @@ def reset_cls_test(model, cls_path):
     else:
         model.roi_heads.box_predictor.cls_score.zs_weight_inference = zs_weight
 
-
-# def get_clip_embeddings(vocabulary, prompt='a '):
-#     text_encoder = build_text_encoder(pretrain=True)
-#     text_encoder.eval()
-#     texts = [prompt + x.lower().replace(':', ' ') for x in vocabulary]
-#     emb = text_encoder(texts).detach().permute(1, 0).contiguous().cpu()
-#     return emb
-
 def _get_text_encoder():
     """Build the internal text encoder once and reuse."""
     global _TEXT_ENCODER
@@ -133,6 +125,7 @@ def _get_text_encoder():
 def _canon(s: str) -> str:
     """Canonicalize phrase for cache keys (lowercase + whitespace squeeze)."""
     return " ".join(s.split()).strip().lower().replace(":", " ")
+
 
 @torch.no_grad()
 def get_clip_embeddings(vocabulary, prompt='a '):
