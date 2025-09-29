@@ -32,7 +32,6 @@ DEFAULT_PARAMS: Dict[str, Any] = {
     "retinex_radius": 15,
     "compute_cn": True,          # 11-bin Color Names
     "clip_ab": 110.0,            # histogram range for a*, b* ∈ [-clip_ab, clip_ab]
-    "min_valid": 50,             # min valid pixels to trust the histogram
 }
 
 # ---------------------------- helpers ----------------------------
@@ -68,7 +67,7 @@ def _retinex_ssr_u8(img_rgb_u8: np.ndarray, radius: int) -> np.ndarray:
 def _rgb2hsv_float(img_rgb_u8: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     hsv = cv2.cvtColor(img_rgb_u8, cv2.COLOR_RGB2HSV)  # H:0..179, S:0..255, V:0..255
     hsv = hsv.astype(np.float32)
-    h = hsv[..., 0] * (360.0 / 179.0)     # 0..~360
+    h = hsv[..., 0] * 2.0
     s = hsv[..., 1] / 255.0               # 0..1
     v = hsv[..., 2] / 255.0               # 0..1
     return h, s, v
@@ -309,7 +308,6 @@ def compute_texture_sim(
     weights=(0.50, 0.20, 0.20, 0.10),
     mapping: str = "inv",
     gamma: float = 3.0,
-    invalid_sim: float = 0.0,
 ):
     """
     Compute an MxN texture-similarity matrix from two python lists of color feature dicts.

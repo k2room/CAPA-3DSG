@@ -63,8 +63,8 @@ from src.utils.vlp import VLPart
 from src.utils.color_extraction import (
     extract_color_features,
     compute_texture_sim,
-    ema_update_color_feat,
 )
+from src.utils.color_state import ColorFeatState
 
 # === utils: utils functions, DynamicClasses ===
 from src.utils.utils import (
@@ -132,15 +132,15 @@ def run_ram_branch(color_path: Path, model: GDINO, sam_pred: SamPredictor, ram_p
     # RAM -> tags
     pil = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)).resize((384, 384))
     inp = ram_tf(pil).unsqueeze(0).to(device)
-    ram_out = inference_ram(inp, ram_pred)  # "a | b | c"
-    tags = [t.strip() for t in ram_out[0].split(" | ") if t.strip()]
+    ram_out = inference_ram(inp, ram_pred)[0]
+    tags = [t.strip() for t in ram_out.split(" | ") if t.strip()]
 
     # Apply object/part knowledge (remove/add/parts expansion)
     tags = _curate_tags(tags, knowledge, cfg)
 
     # add tags to dynamic classes
     dyn.add(tags)
-
+    
     # DINO
     det = model.predict_with_classes(
         image=bgr, classes=tags,
@@ -193,14 +193,19 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
         labels: List[str]
         tags: List[str]
         image_crops, image_feats, text_feats  # from VLPart internal CLIP
+        idx_obj: List[int]  # indices of detections considered objects
+        idx_part: List[int] # indices of detections considered parts
     """
     bgr = cv2.imread(str(color_path))
 
     # RAM tags
     pil = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)).resize((384, 384))
     inp = ram_tf(pil).unsqueeze(0).to(device)
-    ram_out = inference_ram(inp, ram_pred)  # "a | b | c"
-    tags = [t.strip() for t in ram_out[0].split(" | ") if t.strip()]
+    ram_out = inference_ram(inp, ram_pred)[0]
+    
+    tags = [t.strip() for t in ram_out.split(" | ") if t.strip()]
+    logging.debug(f"[2D Detection] RAM tags: {len(tags)}")
+    logging.debug(tags)
 
     # Apply knowledge (remove/add/parts) and update dynamic classes
     tags = _curate_tags(tags, knowledge, cfg)
@@ -209,6 +214,8 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
     # VLPart inference with current vocabulary (uses internal CLIP)
     det = model.predict_with_classes(image=bgr, classes=tags)
 
+    logging.debug(f"[2D Detection] class: {len(det.class_id)}, xyxy: {len(det.xyxy)}")
+    logging.debug(det.class_id)
     # NMS (keep masks/features aligned)
     if len(det.xyxy) > 0 and getattr(cfg, "NMS_on", True):
         keep = torchvision.ops.nms(
@@ -231,7 +238,7 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
     if not use_sam:
         masks = det.mask if getattr(det, "mask", None) is not None else None
         if masks is None:
-            print("[VLPart] pred_masks not found and use_sam=False → returning masks=None")
+            logging.debug("[VLPart] No mask detected.(use_sam=False)")
     else:
         if sam_pred is None:
             raise ValueError("cfg.use_sam=True but sam_pred is None. Check SAM loader.")
@@ -240,6 +247,8 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
     # Map to global class id
     gid = np.array([dyn.id_of(tags[c]) if len(tags) > 0 else -1 for c in det.class_id], dtype=int)
     det2 = sv.Detections(xyxy=det.xyxy, confidence=det.confidence, class_id=gid, mask=masks)
+    logging.debug(f"[2D Detection] class: {len(det2.class_id)}, xyxy: {len(det2.xyxy)}")
+    logging.debug(det.class_id)
 
     # Labels
     gclasses = dyn.get_classes_arr()
@@ -247,14 +256,56 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
     for i in range(len(det2.xyxy)):
         gi = int(det2.class_id[i])
         txt = gclasses[gi] if 0 <= gi < len(gclasses) else (tags[int(det.class_id[i])] if len(tags) > 0 else "obj")
-        labels.append(f"{txt} {float(det2.confidence[i]):0.2f}")
-
+        labels.append(f"{txt} {float(det2.confidence[i]):0.2f}") # 'label confidence_score' form for visualization
+    
     # Use VLPart-provided CLIP embeddings
     image_crops = getattr(det, "image_crops", None)
     image_feats = getattr(det, "image_feats", None)
     text_feats  = getattr(det, "text_feats", None)
 
-    return det2, labels, tags, image_crops, image_feats, text_feats
+    # ---- Split detections into object vs part buckets (by curated tags + knowledge) ----
+    # Build part lexicon from knowledge
+    parts_by_parent = knowledge.get('ram_add_part', {}) if isinstance(knowledge, dict) else {}
+    part_tokens = {str(p).strip().lower() for parts in parts_by_parent.values() for p in parts}
+    part_phrases = {f"{str(parent).strip().lower()} {str(p).strip().lower()}" for parent, parts in parts_by_parent.items() for p in parts}
+
+    idx_obj, idx_part = [], []
+    # Use local class ids from VLPart output to recover the tag for each detection
+    if len(tags) == 0:
+        idx_obj = list(range(len(det.xyxy)))
+    else:
+        for i, local_cid in enumerate(det.class_id):
+            try:
+                name = str(tags[int(local_cid)]).strip().lower()
+            except Exception:
+                name = ""
+            toks = name.split()
+            is_part = (name in part_phrases) or (len(toks) >= 2 and toks[-1] in part_tokens)
+            (idx_part if is_part else idx_obj).append(i)
+
+    return det2, labels, tags, image_crops, image_feats, text_feats, idx_obj, idx_part
+
+
+def _split_obj_part_from_gobs(gobs: dict, knowledge: dict):
+    """Split indices of current gobs into objects vs parts based on curated names.
+    Uses knowledge['ram_add_part'] to detect part tokens.
+    """
+    parts_by_parent = knowledge.get('ram_add_part', {}) if isinstance(knowledge, dict) else {}
+    part_tokens = {str(p).strip().lower() for parts in parts_by_parent.values() for p in parts}
+    part_phrases = {f"{str(parent).strip().lower()} {str(p).strip().lower()}" for parent, parts in parts_by_parent.items() for p in parts}
+
+    idx_obj, idx_part = [], []
+    classes = gobs.get('classes', [])
+    class_id = gobs.get('class_id', [])
+    for i in range(len(gobs.get('xyxy', []))):
+        try:
+            name = str(classes[int(class_id[i])]).strip().lower()
+        except Exception:
+            name = ""
+        toks = name.split()
+        is_part = (name in part_phrases) or (len(toks) >= 2 and toks[-1] in part_tokens)
+        (idx_part if is_part else idx_obj).append(i)
+    return idx_obj, idx_part
 
 
 # ============== main ==============
@@ -311,6 +362,7 @@ def main(cfg: DictConfig):
     objects = MapObjectList(device=cfg.device)
     map_edges = MapEdgeMapping(objects)
     knowledge = load_knowledge(cfg)
+    color_state = ColorFeatState(ema_alpha=float(cfg.get('color_ema_alpha', 0.30)))
 
     # ==================== detection models ====================
     yolo_model = None
@@ -320,7 +372,7 @@ def main(cfg: DictConfig):
 
     if run_detections:
         print("LOAD DETECTION MODELS...")
-        if cfg.detector_mode == "CG" or cfg.detector_mode == "OFG":
+        if cfg.detector_mode == "YOLO" or cfg.detector_mode == "GDINO":
             print("LOAD CLIP MODELS...")
             det_exp_path.mkdir(parents=True, exist_ok=True)
             clip_model, _, clip_preprocess = open_clip.create_model_and_transforms("ViT-H-14", "laion2b_s32b_b79k")
@@ -328,7 +380,7 @@ def main(cfg: DictConfig):
             clip_tokenizer = open_clip.get_tokenizer("ViT-H-14")
             print("CLIP MODELS LOADED.")
         
-        if cfg.detector_mode == "CG":
+        if cfg.detector_mode == "YOLO":
             print("LOAD YOLO + SAM MODELS...")
             detections_exp_cfg = cfg_to_dict(cfg)
             base_classes_file = Path(detections_exp_cfg['classes_file'])
@@ -342,7 +394,7 @@ def main(cfg: DictConfig):
             sam_pred = ULTRA_SAM('sam_l.pt')
             print("YOLO + SAM MODELS LOADED.")
 
-        elif cfg.detector_mode == "OFG":
+        elif cfg.detector_mode == "GDINO":
             print("LOAD RAM + GDINO + SAM MODELS...")
             obj_classes = DynamicClasses(
                 bg_classes=getattr(cfg, "bg_classes", []),
@@ -426,8 +478,9 @@ def main(cfg: DictConfig):
             # ==== Load frame ====
             image = cv2.imread(str(color_path)) # BGR uint8
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            color_feats = None  # default for non-CAPA modes
 
-            if cfg.detector_mode == "CG":
+            if cfg.detector_mode == "YOLO":
                 curr_det, det_labels = measure_time(run_yolo_branch)(
                     color_path=color_path, obj_classes=obj_classes, cfg=cfg,
                     yolo_model=yolo_model, sam_pred=sam_pred, color_np=color_np
@@ -437,7 +490,7 @@ def main(cfg: DictConfig):
                     obj_classes.get_classes_arr(), cfg.device
                 )
 
-            elif cfg.detector_mode == "OFG":
+            elif cfg.detector_mode == "GDINO":
                 curr_det, det_labels, tags = measure_time(run_ram_branch)(
                     color_path=color_path, model=gdino, sam_pred=sam_pred,
                     ram_pred=ram_pred, ram_tf=ram_tf,
@@ -449,7 +502,7 @@ def main(cfg: DictConfig):
                 )
 
             elif cfg.detector_mode == "CAPA":
-                curr_det, det_labels, tags, image_crops, image_feats, text_feats = measure_time(run_vlp_branch)(
+                curr_det, det_labels, tags, image_crops, image_feats, text_feats, idx_obj, idx_part = measure_time(run_vlp_branch)(
                     color_path=color_path, model=vlpart, sam_pred=sam_pred,
                     ram_pred=ram_pred, ram_tf=ram_tf,
                     dyn=obj_classes, cfg=cfg, device=cfg.device, knowledge=knowledge
@@ -463,7 +516,16 @@ def main(cfg: DictConfig):
                     v_spec_threshold=float(cfg.get('color_v_spec_threshold', 0.90)),
                     compute_cn=bool(cfg.get('color_compute_cn', True)),
                 )
-                color_feats = measure_time(extract_color_features)(image_rgb, curr_det.mask, params=color_params)
+                # Compute color features only for part masks; keep objects as None
+                if getattr(curr_det, 'mask', None) is not None and len(idx_part) > 0:
+                    N = len(curr_det.xyxy)
+                    color_feats = [None] * N
+                    part_idx_arr = np.asarray(idx_part, dtype=int)
+                    feats_part = measure_time(extract_color_features)(image_rgb, curr_det.mask[part_idx_arr], params=color_params)
+                    for k, mi in enumerate(idx_part):
+                        color_feats[mi] = feats_part[k]
+                else:
+                    color_feats = [None] * (len(curr_det.xyxy) if getattr(curr_det, 'xyxy', None) is not None else 0)
 
             else:
                 raise NotImplementedError(f"Unknown detector_mode: {cfg.detector_mode}")
@@ -541,15 +603,22 @@ def main(cfg: DictConfig):
 
         # ===== filtering =====
         resized_gobs = resize_gobs(raw_gobs, image_rgb)
-        filtered_gobs = filter_gobs(
+        filtered_out = filter_gobs(
             resized_gobs, image_rgb,
             skip_bg=cfg.skip_bg,
             BG_CLASSES=obj_classes.get_bg_classes_arr(),
             mask_area_threshold=cfg.mask_area_threshold,
             max_bbox_area_ratio=cfg.max_bbox_area_ratio,
             mask_conf_threshold=cfg.mask_conf_threshold,
+            return_index_map=True
         )
 
+        # gobs = filtered_gobs
+        # Unpack (gobs, raw->filt index map). Backward compatible if tuple not returned.
+        if isinstance(filtered_out, tuple):
+            filtered_gobs, idx_map_raw2filt = filtered_out
+        else:
+            filtered_gobs, idx_map_raw2filt = filtered_out, None
         gobs = filtered_gobs
 
         if len(gobs['mask']) == 0: # no detections in this frame
@@ -559,29 +628,99 @@ def main(cfg: DictConfig):
         gobs['mask'] = mask_subtract_contained(gobs['xyxy'], gobs['mask'])
 
         # ==================== Mask to Point Cloud ====================
-        obj_pcds_and_bboxes = measure_time(detections_to_obj_pcd_and_bbox)(
-            depth_array=depth_array,
-            masks=gobs['mask'],
-            cam_K=intrinsics.cpu().numpy()[:3, :3],
-            image_rgb=image_rgb,
-            trans_pose=adjusted_pose,
-            min_points_threshold=cfg.min_points_threshold,
-            spatial_sim_type=cfg.spatial_sim_type,
-            obj_pcd_max_points=cfg.obj_pcd_max_points,
-            device=cfg.device,
-        )
+        if cfg.detector_mode == "CAPA":
+            # Use index map to update indices from run_vlp_branch() without recomputing
+            if 'idx_map_raw2filt' in locals() and idx_map_raw2filt is not None:
+                idx_obj_filt  = [idx_map_raw2filt[i] for i in idx_obj  if i in idx_map_raw2filt]
+                idx_part_filt = [idx_map_raw2filt[i] for i in idx_part if i in idx_map_raw2filt]
+            #     try:
+            #         idx_obj_filt  = [idx_map_raw2filt[i] for i in idx_obj  if i in idx_map_raw2filt]
+            #         idx_part_filt = [idx_map_raw2filt[i] for i in idx_part if i in idx_map_raw2filt]
+            #     except NameError:
+            #         # Fallback (e.g., when loading cached detections w/o idx_obj/idx_part)
+            #         idx_obj_filt, idx_part_filt = _split_obj_part_from_gobs(gobs, knowledge)
+            # else:
+            #     # No map available -> fallback to name-based split
+            #     idx_obj_filt, idx_part_filt = _split_obj_part_from_gobs(gobs, knowledge)
 
-        # ==================== remove noise ====================
-        for obj in obj_pcds_and_bboxes:
-            if obj:
-                obj["pcd"] = init_process_pcd(
-                    pcd=obj["pcd"],
-                    downsample_voxel_size=cfg["downsample_voxel_size"],
-                    dbscan_remove_noise=cfg["dbscan_remove_noise"],
-                    dbscan_eps=cfg["dbscan_eps"],
-                    dbscan_min_points=cfg["dbscan_min_points"],
+            obj_pcds_and_bboxes = [None] * len(gobs['mask'])
+            K = intrinsics.cpu().numpy()[:3, :3]
+
+            # Objects: downsample to target points (default cfg.obj_pcd_max_points)
+            if len(idx_obj_filt) > 0:
+                masks_obj = gobs['mask'][np.asarray(idx_obj_filt, dtype=int)]
+                target_obj = int(getattr(cfg, 'obj_pcd_max_points_obj', getattr(cfg, 'obj_pcd_max_points', 5000)))
+                obj_list = measure_time(detections_to_obj_pcd_and_bbox)(
+                    depth_array=depth_array,
+                    masks=masks_obj,
+                    cam_K=K,
+                    image_rgb=image_rgb,
+                    trans_pose=adjusted_pose,
+                    min_points_threshold=cfg.min_points_threshold,
+                    spatial_sim_type=cfg.spatial_sim_type,
+                    obj_pcd_max_points=target_obj,
+                    device=cfg.device,
                 )
-                obj["bbox"] = get_bounding_box(spatial_sim_type=cfg['spatial_sim_type'], pcd=obj["pcd"])
+                for k, mi in enumerate(idx_obj_filt):
+                    obj_pcds_and_bboxes[mi] = obj_list[k]
+
+            # Parts: bypass downsampling with target=-1
+            if len(idx_part_filt) > 0:
+                masks_part = gobs['mask'][np.asarray(idx_part_filt, dtype=int)]
+                target_part = int(getattr(cfg, 'obj_pcd_max_points_part', -1))
+                part_list = measure_time(detections_to_obj_pcd_and_bbox)(
+                    depth_array=depth_array,
+                    masks=masks_part,
+                    cam_K=K,
+                    image_rgb=image_rgb,
+                    trans_pose=adjusted_pose,
+                    min_points_threshold=cfg.min_points_threshold,
+                    spatial_sim_type=cfg.spatial_sim_type,
+                    obj_pcd_max_points=target_part,
+                    device=cfg.device,
+                )
+                for k, mi in enumerate(idx_part_filt):
+                    obj_pcds_and_bboxes[mi] = part_list[k]
+
+            # ==================== remove noise ====================
+            for i, obj in enumerate(obj_pcds_and_bboxes):
+                if obj:
+                    if i in idx_part_filt:
+                        # parts: keep dense points; optionally skip DBSCAN/downsample
+                        pass
+                    else:
+                        obj["pcd"] = init_process_pcd(
+                            pcd=obj["pcd"],
+                            downsample_voxel_size=cfg["downsample_voxel_size"],
+                            dbscan_remove_noise=cfg["dbscan_remove_noise"],
+                            dbscan_eps=cfg["dbscan_eps"],
+                            dbscan_min_points=cfg["dbscan_min_points"],
+                        )
+                    obj["bbox"] = get_bounding_box(spatial_sim_type=cfg['spatial_sim_type'], pcd=obj["pcd"])
+        else:
+            obj_pcds_and_bboxes = measure_time(detections_to_obj_pcd_and_bbox)(
+                depth_array=depth_array,
+                masks=gobs['mask'],
+                cam_K=intrinsics.cpu().numpy()[:3, :3],
+                image_rgb=image_rgb,
+                trans_pose=adjusted_pose,
+                min_points_threshold=cfg.min_points_threshold,
+                spatial_sim_type=cfg.spatial_sim_type,
+                obj_pcd_max_points=cfg.obj_pcd_max_points,
+                device=cfg.device,
+            )
+
+            # ==================== remove noise ====================
+            for obj in obj_pcds_and_bboxes:
+                if obj:
+                    obj["pcd"] = init_process_pcd(
+                        pcd=obj["pcd"],
+                        downsample_voxel_size=cfg["downsample_voxel_size"],
+                        dbscan_remove_noise=cfg["dbscan_remove_noise"],
+                        dbscan_eps=cfg["dbscan_eps"],
+                        dbscan_min_points=cfg["dbscan_min_points"],
+                    )
+                    obj["bbox"] = get_bounding_box(spatial_sim_type=cfg['spatial_sim_type'], pcd=obj["pcd"])
 
         detection_list = make_detection_list_from_pcd_and_gobs(
             obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
@@ -589,9 +728,14 @@ def main(cfg: DictConfig):
         if len(detection_list) == 0: # no detections in this frame
             continue
 
+        # Keep detection objects schema minimal; color features are tracked in a sidecar map
+
         # if no objects yet in the map, just add all the objects from the current frame (no need to match or merge)
         if len(objects) == 0:
             objects.extend(detection_list)
+            # Seed color features for newly added objects from current detections
+            if cfg.detector_mode == "CAPA" and 'color_feats' in gobs:
+                color_state.seed_from_detections(detection_list, gobs['color_feats'])
             tracker.increment_total_objects(len(detection_list))
             if cfg.use_wandb:
                 owandb.log({"total_objects_so_far": tracker.get_total_objects(), "objects_this_frame": len(detection_list)})
@@ -608,27 +752,50 @@ def main(cfg: DictConfig):
         # Semantic similarity
         visual_sim = compute_visual_similarities(detection_list, objects)
 
-        # Texture similarity
-        if cfg.detector_mode == "CAPA":
+        if cfg.detector_mode == "YOLO" or cfg.detector_mode == "GDINO":
+            agg_sim = aggregate_similarities(
+                match_method=cfg['match_method'], phys_bias=cfg['phys_bias'],
+                spatial_sim=spatial_sim, visual_sim=visual_sim
+            )
+
+        # Texture similarity (aligned to detection_list by mask_idx)
+        elif cfg.detector_mode == "CAPA":
+            M = len(detection_list)
+            if 'color_feats' in gobs:
+                det_color_feats = []
+                for det in detection_list:
+                    try:
+                        mi = det.get('mask_idx', [None])[0]
+                        det_color_feats.append(gobs['color_feats'][mi] if mi is not None else None)
+                    except Exception:
+                        det_color_feats.append(None)
+            else:
+                det_color_feats = [None] * M
+            obj_color_feats = color_state.get_obj_feat_list(objects)
             texture_sim = compute_texture_sim(
-                detection_list=detection_list,
-                objects=objects,
+                det_color_feats,
+                obj_color_feats,
                 weights=tuple(cfg.get('color_ab_rg_cn_weights', [0.50, 0.20, 0.20, 0.10])),
                 mapping=cfg.get('color_sim_mapping', 'inv'),    # 'inv' or 'exp'
                 gamma=float(cfg.get('color_sim_gamma', 3.0)),
             )
 
-            # Visual + Texture 융합 (texture_weight로 비율 제어)
+            # One-step weighted aggregation of spatial, visual, and texture similarities
+            phys_bias = float(cfg.get('phys_bias', 0.0))
             beta = float(cfg.get('texture_weight', 0.30))
-            visual_sim = (1.0 - beta) * visual_sim + beta * texture_sim
-
-        agg_sim = aggregate_similarities(
-            match_method=cfg['match_method'], phys_bias=cfg['phys_bias'],
-            spatial_sim=spatial_sim, visual_sim=visual_sim
-        )
+            w_s_default = 1.0 + phys_bias
+            w_v_default = (1.0 - phys_bias) * (1.0 - beta)
+            w_t_default = (1.0 - phys_bias) * beta
+            w_s = float(cfg.get('sim_w_spatial', w_s_default))
+            w_v = float(cfg.get('sim_w_visual', w_v_default))
+            w_t = float(cfg.get('sim_w_texture', w_t_default))
+            agg_sim = w_s * spatial_sim + w_v * visual_sim + w_t * texture_sim
 
         # Perform matching of detections to existing objects
         match_indices = match_detections_to_objects(agg_sim=agg_sim, detection_threshold=cfg['sim_threshold'])
+
+        pre_len_objects = len(objects)
+
         # Now merge the detected objects into the existing objects based on the match indices
         objects = merge_obj_matches(
             detection_list=detection_list, 
@@ -641,6 +808,10 @@ def main(cfg: DictConfig):
             spatial_sim_type=cfg['spatial_sim_type'], 
             device=cfg['device']
         )
+
+        # Post-merge: update/assign object color features via EMA in sidecar map (no mutations to thirdparty objects)
+        if cfg.detector_mode == "CAPA":
+            color_state.update_post_merge(objects, match_indices, det_color_feats, pre_len_objects)
 
         # voting to set majority class (ignore negative)
         for idx, obj in enumerate(objects):
@@ -686,6 +857,14 @@ def main(cfg: DictConfig):
                 objects=objects, map_edges=map_edges
             )
         if processing_needed(cfg["merge_interval"], cfg["run_merge_final_frame"], frame_idx, is_final_frame):
+            # Ensure no stray custom keys exist before calling thirdparty merge
+            if cfg.detector_mode == "CAPA":
+                for obj in objects:
+                    if isinstance(obj, dict) and 'color_feat' in obj:
+                        try:
+                            del obj['color_feat']
+                        except Exception:
+                            pass
             objects, map_edges = measure_time(merge_objects)(
                 merge_overlap_thresh=cfg["merge_overlap_thresh"],
                 merge_visual_sim_thresh=cfg["merge_visual_sim_thresh"],
@@ -747,7 +926,7 @@ def main(cfg: DictConfig):
         handle_rerun_saving(cfg.use_rerun, cfg.save_rerun, cfg.exp_suffix, exp_out_path)
 
     # ===================== save dynamic classes =====================
-    if run_detections and cfg.detector_mode == "OFG":
+    if run_detections and cfg.detector_mode == "GDINO":
         out_cls = exp_out_path / getattr(cfg, "classes_output_filename", "ram_classes.txt")
         obj_classes.save(out_cls)
         print(f"[RAM] saved classes -> {out_cls}")
