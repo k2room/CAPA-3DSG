@@ -57,7 +57,8 @@ from conceptgraph.slam.utils import (
     process_edges,
     process_pcd,
     processing_needed,
-    resize_gobs
+    resize_gobs, 
+    filter_captions
 )
 from conceptgraph.slam.mapping import (
     compute_spatial_similarities,
@@ -68,3 +69,86 @@ from conceptgraph.slam.mapping import (
 )
 from conceptgraph.utils.model_utils import compute_clip_features_batched
 from conceptgraph.utils.general_utils import get_vis_out_path, cfg_to_dict, check_run_detections
+
+import numpy as np
+import logging
+
+def filter_gobs(
+    gobs: dict,
+    image: np.ndarray,
+    skip_bg: bool = None,  # Explicitly passing skip_bg
+    BG_CLASSES: list = None,  # Explicitly passing BG_CLASSES
+    mask_area_threshold: float = 10,  # Default value as fallback
+    max_bbox_area_ratio: float = None,  # Explicitly passing max_bbox_area_ratio
+    mask_conf_threshold: float = None,  # Explicitly passing mask_conf_threshold
+    return_index_map: bool = False,     
+):
+    # # If no detection at all
+    # if len(gobs['xyxy']) == 0:
+    #     return gobs
+    if len(gobs['xyxy']) == 0:
+        return (gobs, {}) if return_index_map else gobs
+
+    # Filter out the objects based on various criteria
+    idx_to_keep = []
+    for mask_idx in range(len(gobs['xyxy'])):
+        local_class_id = gobs['class_id'][mask_idx]
+        class_name = gobs['classes'][local_class_id]
+
+        # Skip masks that are too small
+        mask_area = gobs['mask'][mask_idx].sum()
+        if mask_area < max(mask_area_threshold, 10):
+            logging.debug(f"Skipped due to small mask area ({mask_area} pixels) - Class: {class_name}")
+            continue
+
+        # Skip the BG classes
+        if skip_bg and class_name in BG_CLASSES:
+            logging.debug(f"Skipped background class: {class_name}")
+            continue
+
+        # Skip the non-background boxes that are too large
+        if class_name not in BG_CLASSES:
+            x1, y1, x2, y2 = gobs['xyxy'][mask_idx]
+            bbox_area = (x2 - x1) * (y2 - y1)
+            image_area = image.shape[0] * image.shape[1]
+            if max_bbox_area_ratio is not None and bbox_area > max_bbox_area_ratio * image_area:
+                logging.debug(f"Skipped due to large bounding box area ratio - Class: {class_name}, Area Ratio: {bbox_area/image_area:.4f}")
+                continue
+
+        # Skip masks with low confidence
+        if mask_conf_threshold is not None and gobs['confidence'] is not None:
+            if gobs['confidence'][mask_idx] < mask_conf_threshold:
+                # logging.debug(f"Skipped due to low confidence ({gobs['confidence'][mask_idx]}) - Class: {class_name}")
+                continue
+
+        idx_to_keep.append(mask_idx)
+
+    # for key in gobs.keys():
+    #     print(key, type(gobs[key]), len(gobs[key]))
+
+    # for attribute in gobs.keys():
+    for attribute in list(gobs.keys()):  # avoid dict-size-change during iteration
+        if isinstance(gobs[attribute], str) or attribute == "classes":  # Captions
+            continue
+        if attribute in ['labels', 'edges', 'text_feats', 'captions']:
+            # Note: this statement was used to also exempt 'detection_class_labels' but that causes a bug. It causes the edges to be misalgined with the objects.
+            continue
+        elif isinstance(gobs[attribute], list):
+            gobs[attribute] = [gobs[attribute][i] for i in idx_to_keep]
+        elif isinstance(gobs[attribute], np.ndarray):
+            gobs[attribute] = gobs[attribute][idx_to_keep]
+        else:
+            raise NotImplementedError(f"Unhandled type {type(gobs[attribute])}")
+        
+    # filtered_captions = filter_captions(gobs['captions'], gobs['detection_class_labels'])
+    # gobs['captions'] = filtered_captions
+
+    # return gobs
+    filtered_captions = filter_captions(gobs['captions'], gobs['detection_class_labels'])
+    gobs['captions'] = filtered_captions
+
+    if return_index_map:
+        idx_map = {old_i: new_i for new_i, old_i in enumerate(idx_to_keep)}
+        return gobs, idx_map
+    else:
+        return gobs

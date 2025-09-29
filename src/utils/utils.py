@@ -60,33 +60,37 @@ def load_knowledge(cfg):
     """Load object/part knowledge JSON. Try typo key then correct key."""
     p = getattr(cfg, "object_part_knowledge", None)
     if not p:
-        return {"ram_add_obj": [], "ram_remove": [], "ram_add_part": {}}
+        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
     path = Path(p)
     if not path.exists():
         print(f"[WARN] object_part_knowledge not found: {path}")
-        return {"ram_add_obj": [], "ram_remove": [], "ram_add_part": {}}
+        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     # Normalize structure
     return {
         "ram_add_obj": list(data.get("ram_add_obj", [])),
         "ram_remove": list(data.get("ram_remove", [])),
+        "ram_remove_keyword": list(data.get("ram_remove_keyword", [])),
+        "small_object": list(data.get("small_object", [])),
         "ram_add_part": dict(data.get("ram_add_part", {})),
     }
 
 def _curate_tags(raw_tags, knowledge, cfg) -> list[str]:
     """
     Apply remove/add/parts expansion to RAM tags.
-    - Remove tags in ram_remove
-    - Always add ram_add_obj
+    - Remove tags in ram_remove (exact match on normalized tag)
+    - Remove tags containing any ram_remove_keyword (substring match)
+    - Always add ram_add_obj and small_object
     - If a parent object from ram_add_part exists in current tags, add its parts
     - De-duplicate while preserving order
     """
     def norm(s): return str(s).strip().lower()
     
     # normalize knowledge
-    rm_sub = [norm(x) for x in knowledge.get("ram_remove", []) if str(x).strip()]
-    add_obj = [str(x).strip() for x in knowledge.get("ram_add_obj", []) if str(x).strip()]
+    rm_exact = {norm(x) for x in knowledge.get("ram_remove", []) if str(x).strip()}
+    rm_sub   = [norm(x) for x in knowledge.get("ram_remove_keyword", []) if str(x).strip()]
+    add_obj  = [str(x).strip() for x in (knowledge.get("ram_add_obj", []) + knowledge.get("small_object", [])) if str(x).strip()]
     add_part_map = {norm(k): [str(y).strip() for y in v] for k, v in knowledge.get("ram_add_part", {}).items()}
 
     # filter by remove
@@ -96,6 +100,10 @@ def _curate_tags(raw_tags, knowledge, cfg) -> list[str]:
         if not t:
             continue
         tn = norm(t)
+        # exact removal first
+        if tn in rm_exact:
+            continue
+        # substring keyword removal
         if any(rm and rm in tn for rm in rm_sub):
             continue
         kept.append(t)
@@ -220,4 +228,3 @@ class DynamicClasses:
             self._colors_path = path.parent / f"{path.stem}_colors.json"
         with open(self._colors_path, "w", encoding="utf-8") as f:
             json.dump(self._colors, f)
-
