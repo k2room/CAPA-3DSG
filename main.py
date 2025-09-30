@@ -728,8 +728,6 @@ def main(cfg: DictConfig):
         if len(detection_list) == 0: # no detections in this frame
             continue
 
-        # Keep detection objects schema minimal; color features are tracked in a sidecar map
-
         # if no objects yet in the map, just add all the objects from the current frame (no need to match or merge)
         if len(objects) == 0:
             objects.extend(detection_list)
