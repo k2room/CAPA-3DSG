@@ -52,6 +52,7 @@ from src.utils.cg import (
     aggregate_similarities, match_detections_to_objects, merge_obj_matches,
     compute_clip_features_batched, get_vis_out_path, cfg_to_dict, check_run_detections,
 )
+from src.utils.multiview import render_multiview_scene
 
 # === utils: gsa functions ===
 from src.utils.gsa import (
@@ -204,8 +205,7 @@ def run_vlp_branch(color_path: Path, model: VLPart, sam_pred: SamPredictor, ram_
     ram_out = inference_ram(inp, ram_pred)[0]
     
     tags = [t.strip() for t in ram_out.split(" | ") if t.strip()]
-    logging.debug(f"[2D Detection] RAM tags: {len(tags)}")
-    logging.debug(tags)
+    logging.debug(f"[2D Detection] RAM tags: {len(tags)} - {tags}")
 
     # Apply knowledge (remove/add/parts) and update dynamic classes
     tags = _curate_tags(tags, knowledge, cfg)
@@ -956,6 +956,26 @@ def main(cfg: DictConfig):
 
         pcd_save_path = Path(exp_out_path) / f"pcd_{cfg.exp_suffix}.pkl.gz"
         print(f"\nUse '$ python src/visualize_saved_pointcloud.py --pcd_path {pcd_save_path} --mode part' to visualize the point cloud.")
+
+    # ===================== rendering multiview snapshots =====================
+    if bool(cfg.get('render_multiview', True)):
+        try:
+            render_multiview_scene(
+                objects=objects,
+                out_dir=exp_out_path,
+                obj_min_detections=cfg.obj_min_detections,
+                exclude_background=False,
+                image_size=tuple(cfg.get('multiview_image_size', [800, 600])),
+                fov_deg=cfg.get('multiview_fov_deg', 120.0),
+                radius_scale=float(cfg.get('multiview_radius_scale', 1.3)),
+                point_size=float(cfg.get('multiview_point_size', 3.5)),
+                include_bboxes=bool(cfg.get('multiview_include_bboxes', False)),
+                color_mode=str(cfg.get('multiview_color_mode', 'rgb')).lower(),
+                obj_classes=(obj_classes if color_mode == 'class' else None),
+            )
+            print(f"Saved multiview snapshots to: {exp_out_path / 'multiview'}")
+        except Exception as e:
+            print(f"[Multiview] Failed to render snapshots: {e}")
 
     if cfg.use_wandb:
         owandb.finish()
