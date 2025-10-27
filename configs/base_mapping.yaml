@@ -78,7 +78,7 @@ run_filter_final_frame: !!bool True
 run_merge_final_frame: !!bool True
 
 # Output point cloud
-save_pcd: !!bool True
+save_pcd: !!bool False
 save_json: !!bool True
 save_suffix: exp_streamlined_mapping_base_suffix
 

@@ -1,3 +1,9 @@
 # Main paths
 repo_root: /home/main/workspace/k2room2/CAPA-3DSG
 data_root: /home/main/workspace/k2room2/CAPA-3DSG/dataset
+
+# Checkpoints
+gdino_cfg_path: "${repo_root}/src/thirdparty/groundedsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+gdino_ckpt_path: "${repo_root}/checkpoints/groundingdino_swint_ogc.pth"
+sam_ckpt_path: "${repo_root}/checkpoints/sam_vit_h_4b8939.pth"
+ram_ckpt_path: "${repo_root}/checkpoints/ram_swin_large_14m.pth"
