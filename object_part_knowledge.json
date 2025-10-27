@@ -15,7 +15,7 @@
         "kitchenette", "lobby", "furniture", "hassock", "armchair",
         "blue", "green", "red", "yellow", "white", "black", "brown", "pink", "purple", "orange", "gray", "grey", "silver", "gold"
     ],
-    "small_object": ["outlet", "wire", "cable", "handbag", "ball", "basket", "book", "bottle", "bowl", "can", "cellular_telephone", "cup", "drill", "earphone", "glass_(drink_container)", "hammer", "hat", "knife", "laptop", "napkin", "paper", "pen", "plate", "remote", "scarf", "scissors", "screwdriver", "shoe", "slipper_(footwear)", "soap", "spoon", "telephone", "towel", "tray", "vase", "wallet", "watch", "wrench", "kitchen_towel", "tissue_box"],
+    "small_object": ["outlet", "wire"],
     "ram_add_part": {
         "door": ["handle", "knob"],
         "window": ["handle"],

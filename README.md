@@ -131,9 +131,11 @@ sudo ln -s /home/main/storage/gpuserver00_storage/s3dis /home/main/workspace/k2r
 
 sudo ln -s /home/main/storage/gpuserver00_storage/replica/Replica /home/main/workspace/k2room2/CAPA-3DSG/dataset/Replica
 
-sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/SceneFun3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/SceneFun3D
+# sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/SceneFun3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/SceneFun3D
+sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph /home/main/workspace/k2room2/CAPA-3DSG/dataset/SceneFun3D
 
-sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/FunGraph3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/FunGraph3D
+# sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/FunGraph3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/FunGraph3D
+sudo ln -s /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D /home/main/workspace/k2room2/CAPA-3DSG/dataset/FunGraph3D
 
 ```
 
