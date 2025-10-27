@@ -5,12 +5,31 @@ from typing import List, Optional
 from PIL import Image
 import cv2
 from types import SimpleNamespace
+import supervision as sv
 
 from detectron2.config import get_cfg
 from detectron2.utils.visualizer import ColorMode
 
 from vlpart.config import add_vlpart_config
 from .vlp_predictor import VisualizationDemo, reset_cls_test, get_clip_embeddings
+
+def to_sv_detections(det) -> sv.Detections:
+    """
+    Convert your _DetResult to supervision.Detections.
+    Only fields used by annotators are passed (xyxy, confidence, class_id, mask).
+    """
+    xyxy = np.asarray(det.xyxy, dtype=np.float32)              # (N,4)
+    conf = np.asarray(det.confidence, dtype=np.float32)        # (N,)
+    cls  = np.asarray(det.class_id, dtype=np.int32)            # (N,)
+
+    m = None
+    if det.mask is not None:
+        m = np.asarray(det.mask)
+        if m.dtype != np.bool_:
+            m = m.astype(bool)
+
+    return sv.Detections(xyxy=xyxy, confidence=conf, class_id=cls, mask=m)
+
 
 class _DetResult:
     """Container for detections and optional embeddings."""

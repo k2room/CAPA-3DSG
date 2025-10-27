@@ -722,9 +722,16 @@ def main(cfg: DictConfig):
                     )
                     obj["bbox"] = get_bounding_box(spatial_sim_type=cfg['spatial_sim_type'], pcd=obj["pcd"])
 
-        detection_list = make_detection_list_from_pcd_and_gobs(
-            obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
-        )
+        # Build detection list; in CAPA we pass object/part indices for downstream weighting
+        if cfg.detector_mode == "CAPA":
+            detection_list = make_detection_list_from_pcd_and_gobs(
+                obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx,
+                idx_obj_filt=idx_obj_filt, idx_part_filt=idx_part_filt,
+            )
+        else:
+            detection_list = make_detection_list_from_pcd_and_gobs(
+                obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
+            )
         if len(detection_list) == 0: # no detections in this frame
             continue
 
@@ -740,24 +747,34 @@ def main(cfg: DictConfig):
             continue
 
         # ==================== calculate similarity, match and merge ====================
-        # Geometric similarity
-        spatial_sim = compute_spatial_similarities(
-            spatial_sim_type=cfg['spatial_sim_type'],
-            detection_list=detection_list, objects=objects,
-            downsample_voxel_size=cfg['downsample_voxel_size']
-        )
-
-        # Semantic similarity
-        visual_sim = compute_visual_similarities(detection_list, objects)
-
         if cfg.detector_mode == "YOLO" or cfg.detector_mode == "GDINO":
+            # Geometric similarity
+            spatial_sim = compute_spatial_similarities(
+                spatial_sim_type=cfg['spatial_sim_type'],
+                detection_list=detection_list, objects=objects,
+                downsample_voxel_size=cfg['downsample_voxel_size']
+            )
+
+            # Semantic similarity
+            visual_sim = compute_visual_similarities(detection_list, objects)
+
             agg_sim = aggregate_similarities(
                 match_method=cfg['match_method'], phys_bias=cfg['phys_bias'],
                 spatial_sim=spatial_sim, visual_sim=visual_sim
             )
 
-        # Texture similarity (aligned to detection_list by mask_idx)
         elif cfg.detector_mode == "CAPA":
+            # Geometric similarity
+            spatial_sim = compute_spatial_similarities(
+                spatial_sim_type=cfg['spatial_sim_type'],
+                detection_list=detection_list, objects=objects,
+                downsample_voxel_size=cfg['downsample_voxel_size']
+            )
+
+            # Semantic similarity
+            visual_sim = compute_visual_similarities(detection_list, objects)
+
+            # Texture similarity (aligned to detection_list by mask_idx), only for parts
             M = len(detection_list)
             if 'color_feats' in gobs:
                 det_color_feats = []
@@ -778,7 +795,7 @@ def main(cfg: DictConfig):
                 gamma=float(cfg.get('color_sim_gamma', 3.0)),
             )
 
-            # One-step weighted aggregation of spatial, visual, and texture similarities
+            # Weighted aggregation with part/object separation
             phys_bias = float(cfg.get('phys_bias', 0.0))
             beta = float(cfg.get('texture_weight', 0.30))
             w_s_default = 1.0 + phys_bias
@@ -787,7 +804,14 @@ def main(cfg: DictConfig):
             w_s = float(cfg.get('sim_w_spatial', w_s_default))
             w_v = float(cfg.get('sim_w_visual', w_v_default))
             w_t = float(cfg.get('sim_w_texture', w_t_default))
-            agg_sim = w_s * spatial_sim + w_v * visual_sim + w_t * texture_sim
+
+            # Per-detection type mask
+            part_mask = torch.tensor([1.0 if d.get('is_part', False) else 0.0 for d in detection_list])
+            part_mask = part_mask.view(-1, 1)  # (M,1)
+
+            agg_sim_obj = w_s * spatial_sim + w_v * visual_sim
+            agg_sim_part = agg_sim_obj + w_t * texture_sim
+            agg_sim = (1.0 - part_mask) * agg_sim_obj + part_mask * agg_sim_part
 
         # Perform matching of detections to existing objects
         match_indices = match_detections_to_objects(agg_sim=agg_sim, detection_threshold=cfg['sim_threshold'])
@@ -955,22 +979,29 @@ def main(cfg: DictConfig):
         )
 
         pcd_save_path = Path(exp_out_path) / f"pcd_{cfg.exp_suffix}.pkl.gz"
-        print(f"\nUse '$ python src/visualize_saved_pointcloud.py --pcd_path {pcd_save_path} --mode part' to visualize the point cloud.")
+        print(f"\nUse '$ python src/utils/visualize_saved_pc.py --pcd_path {pcd_save_path}' to visualize the point cloud.")
 
     # ===================== rendering multiview snapshots =====================
     if bool(cfg.get('render_multiview', True)):
         try:
+            color_mode = cfg.get('multiview_color_mode', 'rgb')
+            image_size=tuple(cfg.get('multiview_image_size', [800, 600]))
+            fov_deg=cfg.get('multiview_fov_deg', 120.0)
+            radius_scale=float(cfg.get('multiview_radius_scale', 1.3))
+            point_size=float(cfg.get('multiview_point_size', 3.5))
+            include_bboxes=bool(cfg.get('multiview_include_bboxes', False))
+            
             render_multiview_scene(
                 objects=objects,
                 out_dir=exp_out_path,
                 obj_min_detections=cfg.obj_min_detections,
                 exclude_background=False,
-                image_size=tuple(cfg.get('multiview_image_size', [800, 600])),
-                fov_deg=cfg.get('multiview_fov_deg', 120.0),
-                radius_scale=float(cfg.get('multiview_radius_scale', 1.3)),
-                point_size=float(cfg.get('multiview_point_size', 3.5)),
-                include_bboxes=bool(cfg.get('multiview_include_bboxes', False)),
-                color_mode=str(cfg.get('multiview_color_mode', 'rgb')).lower(),
+                image_size=image_size,
+                fov_deg=fov_deg,
+                radius_scale=radius_scale,
+                point_size=point_size,
+                include_bboxes=include_bboxes,
+                color_mode=color_mode,
                 obj_classes=(obj_classes if color_mode == 'class' else None),
             )
             print(f"Saved multiview snapshots to: {exp_out_path / 'multiview'}")

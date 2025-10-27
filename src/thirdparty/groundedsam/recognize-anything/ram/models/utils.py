@@ -43,7 +43,7 @@ def tie_encoder_decoder_weights(encoder: nn.Module, decoder: nn.Module,
             if hasattr(decoder_pointer, "bias"):
                 assert hasattr(encoder_pointer, "bias")
                 encoder_pointer.bias = decoder_pointer.bias
-            print(module_name + ' is tied')
+            # print(module_name + ' is tied')
             return
 
         encoder_modules = encoder_pointer._modules
@@ -206,9 +206,9 @@ def load_checkpoint_swinbase(model, url_or_filename, kwargs):
     elif kwargs['image_size'] == 384:
         vision_config_path = f'{CONFIG_PATH}/configs/swin/config_swinB_384.json'
     window_size = read_json(vision_config_path)['window_size']
-    print('--------------')
-    print(url_or_filename)
-    print('--------------')
+    # print('--------------')
+    # print(url_or_filename)
+    # print('--------------')
     if is_url(url_or_filename):
         cached_file = download_cached_file(url_or_filename,
                                            check_hash=False,
@@ -234,7 +234,7 @@ def load_checkpoint_swinbase(model, url_or_filename, kwargs):
                                  "tagging_head")] = state_dict.pop(k)
 
     msg = model.load_state_dict(state_dict, strict=False)
-    print('load checkpoint from %s' % url_or_filename)
+    # print('load checkpoint from %s' % url_or_filename)
     return model, msg
 
 
@@ -244,9 +244,9 @@ def load_checkpoint_swinlarge(model, url_or_filename, kwargs):
     elif kwargs['image_size'] == 384:
         vision_config_path = f'{CONFIG_PATH}/configs/swin/config_swinL_384.json'
     window_size = read_json(vision_config_path)['window_size']
-    print('--------------')
-    print(url_or_filename)
-    print('--------------')
+    # print('--------------')
+    # print(url_or_filename)
+    # print('--------------')
     if is_url(url_or_filename):
         cached_file = download_cached_file(url_or_filename,
                                            check_hash=False,
@@ -272,7 +272,7 @@ def load_checkpoint_swinlarge(model, url_or_filename, kwargs):
                                  "tagging_head")] = state_dict.pop(k)
 
     msg = model.load_state_dict(state_dict, strict=False)
-    print('load checkpoint from %s' % url_or_filename)
+    # print('load checkpoint from %s' % url_or_filename)
     return model, msg
 
 

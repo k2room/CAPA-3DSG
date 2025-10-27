@@ -25,7 +25,31 @@ from ram.models import ram as RAM
 from ram import inference_ram
 import torchvision
 import torchvision.transforms as TS
+import yaml
 
+def load_yaml(p: Path) -> dict:
+    with open(p, "r") as f:
+        return yaml.safe_load(f) or {}
+
+def load_knowledge(cfg):
+    """Load object/part knowledge JSON. Try typo key then correct key."""
+    p = getattr(cfg, "object_part_knowledge", None)
+    if not p:
+        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
+    path = Path(p)
+    if not path.exists():
+        print(f"[WARN] object_part_knowledge not found: {path}")
+        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    # Normalize structure
+    return {
+        "ram_add_obj": list(data.get("ram_add_obj", [])),
+        "ram_remove": list(data.get("ram_remove", [])),
+        "ram_remove_keyword": list(data.get("ram_remove_keyword", [])),
+        "small_object": list(data.get("small_object", [])),
+        "ram_add_part": dict(data.get("ram_add_part", {})),
+    }
 
 def _seg_sam(sam_pred: SamPredictor, bgr: np.ndarray, xyxy: np.ndarray) -> np.ndarray:
     if len(xyxy) == 0:
@@ -54,27 +78,6 @@ def _vis_safe_det(det: sv.Detections) -> sv.Detections:
         v.class_id = adj
     return v
 
-# --- RAM tag knowledge helpers ---
-
-def load_knowledge(cfg):
-    """Load object/part knowledge JSON. Try typo key then correct key."""
-    p = getattr(cfg, "object_part_knowledge", None)
-    if not p:
-        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
-    path = Path(p)
-    if not path.exists():
-        print(f"[WARN] object_part_knowledge not found: {path}")
-        return {"ram_add_obj": [], "ram_remove": [], "ram_remove_keyword": [], "small_object": [], "ram_add_part": {}}
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    # Normalize structure
-    return {
-        "ram_add_obj": list(data.get("ram_add_obj", [])),
-        "ram_remove": list(data.get("ram_remove", [])),
-        "ram_remove_keyword": list(data.get("ram_remove_keyword", [])),
-        "small_object": list(data.get("small_object", [])),
-        "ram_add_part": dict(data.get("ram_add_part", {})),
-    }
 
 def _curate_tags(raw_tags, knowledge, cfg) -> list[str]:
     """

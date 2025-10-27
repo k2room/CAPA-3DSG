@@ -1,0 +1,1 @@
+# The code in this folder is adapted from GradSLAM (https://github.com/gradslam/gradslam)

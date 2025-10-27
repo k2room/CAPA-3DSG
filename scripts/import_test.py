@@ -70,6 +70,8 @@ def import_test():
     from conceptgraph.utils.general_utils import ObjectClasses
     from conceptgraph.slam.utils import filter_gobs
 
+    from utils.cg import filter_gobs
+
     print("\n[OK] All specific imports succeeded.")
 
 if __name__ == "__main__":
