@@ -13,6 +13,9 @@ from detectron2.utils.visualizer import ColorMode
 from vlpart.config import add_vlpart_config
 from .vlp_predictor import VisualizationDemo, reset_cls_test, get_clip_embeddings
 
+import logging
+LOGGER = logging.getLogger(__name__)
+
 def to_sv_detections(det) -> sv.Detections:
     """
     Convert your _DetResult to supervision.Detections.
@@ -144,8 +147,8 @@ class VLPart(object):
         match = np.mean((pred == clsid_np)) if clsid_np.size > 0 else 1.0
         if (match < self._align_warn_threshold) and (self._align_warn_count < self._align_warn_limit):
             n = int(clsid_np.size); k = min(5, n)
-            print(f"[VLPart][Alignment WARN] low image/text alignment: match={match:.3f} (N={n})")
-            print(f"[VLPart][Alignment INFO] hook_mode={self._hook_mode}, top{k} pred={pred[:k]} vs gt={clsid_np[:k]}")
+            LOGGER.debug(f"low image/text alignment: match={match:.3f} (N={n})")
+            LOGGER.debug(f"[VLPart][Alignment INFO] hook_mode={self._hook_mode}, top{k} pred={pred[:k]} vs gt={clsid_np[:k]}")
             self._align_warn_count += 1
         return i
 
