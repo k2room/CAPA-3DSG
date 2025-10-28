@@ -1,5 +1,8 @@
 """
     Open-vocabulary 2D object/part detection in each 2D image.
+    - use CAPA.yaml for configuration.
+    - example usage: 
+        $ python scripts/2D_detection.py --scene_id 0kitchen/video0 --dataset FunGraph3D
 """
 import os, argparse, sys
 from pathlib import Path
@@ -10,6 +13,7 @@ import json
 import imageio
 import matplotlib
 matplotlib.use("TkAgg")
+
 import numpy as np
 import pickle
 import gzip
@@ -290,7 +294,7 @@ def main(args: argparse.Namespace):
         color_path = Path(color_path)           # .../<scene>/rgb/frame_00000.jpg
 
         vis_save_path = color_path.parent.parent / args.save_folder_name / f"gsa_vis_{save_name}" / color_path.name
-        detections_save_path = color_path.parent.parent / f"gsa_detections_{save_name}" / color_path.name
+        detections_save_path = color_path.parent.parent / args.save_folder_name / f"gsa_detections_{save_name}" / color_path.name
         detections_save_path = detections_save_path.with_suffix(".pkl.gz")
         
         os.makedirs(os.path.dirname(vis_save_path), exist_ok=True)
@@ -443,6 +447,16 @@ def main(args: argparse.Namespace):
                 detections.image_crops = [detections.image_crops[i] for i in keep_idx]
                 detections.image_feats = np.take(detections.image_feats, keep_idx, axis=0)
 
+                is_obj = np.isin(
+                    np.array([classes[int(cid)] for cid in detections.class_id]),
+                    list(obj_classes),
+                ).astype(bool)
+
+                is_part = np.isin(
+                    np.array([classes[int(cid)] for cid in detections.class_id]),
+                    list(part_classes),
+                ).astype(bool)
+
                 print(f"After NMS: {len(detections.xyxy)} boxes")
 
             ########### Get SAM Mask ###########
@@ -456,7 +470,7 @@ def main(args: argparse.Namespace):
                 image_feats = list(detections.image_feats)
                 text_feats = list(detections.text_feats[detections.class_id])
             else:
-                image_crops, image_feats, text_feats = [], [], []
+                image_crops, image_feats, text_feats, is_part, is_obj = [], [], [], [], []
 
         else:
             print("Cannot happen.")
@@ -479,7 +493,9 @@ def main(args: argparse.Namespace):
             "image_crops": image_crops,
             "image_feats": image_feats,
             "text_feats": text_feats,
+            "is_part": is_part
         }
+        print(f"Total {len(classes)} = object {np.sum(is_obj)} + part {np.sum(is_part)}")
         
         if args.tagger == "ram":
             results["tagging_caption"] = "NA"
