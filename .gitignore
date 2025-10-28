@@ -214,3 +214,4 @@ checkpoints/*
 
 latest_pcd_save
 outputs/*
+logs/*
