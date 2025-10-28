@@ -107,10 +107,8 @@ def get_sam_segmentation_dense(model: Any, image: np.ndarray) -> tuple[np.ndarra
 
 
 # =========================
-# Config enrichment (fill derived fields so downstream can use cfg like args)
+# Config enrichment
 # =========================
-ALLOWED_DATASETS = {"FunGraph3D", "SceneFun3Ddev", "SceneFun3Dtest", "PADO"}  # [HYDRA]
-
 def _resolve_path(p) -> str:
     """Resolve path against original CWD (Hydra changes run dir)."""
     pp = Path(str(p))
@@ -127,8 +125,8 @@ def _enrich_cfg_inplace(cfg: DictConfig) -> None:  # [HYDRA]
     """
     if not cfg.get("scene_id") or not cfg.get("dataset"):
         raise ValueError("Both `scene_id` and `dataset` are required. e.g., scene_id=0kitchen/video0 dataset=FunGraph3D")
-    if str(cfg.dataset) not in ALLOWED_DATASETS:
-        raise ValueError(f"`dataset` must be one of {sorted(ALLOWED_DATASETS)}; got {cfg.dataset}")
+    if str(cfg.dataset) not in cfg.ALLOWED_DATASETS:
+        raise ValueError(f"`dataset` must be one of {sorted(cfg.ALLOWED_DATASETS)}; got {cfg.dataset}")
 
     prev_struct = OmegaConf.is_struct(cfg)
     OmegaConf.set_struct(cfg, False)
