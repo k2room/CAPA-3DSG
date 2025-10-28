@@ -15,14 +15,12 @@ handlers:
     class: logging.StreamHandler
     formatter: simple
     stream: ext://sys.stdout
-    level: INFO
   file:
     class: logging.FileHandler
     formatter: simple
     filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
-    level: DEBUG
 root:
-  level: DEBUG
+  level: INFO
   handlers: [console, file]
 
 disable_existing_loggers: false

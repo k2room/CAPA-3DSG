@@ -1,27 +1,13 @@
-tagger: ram       # {ram | none}
-detector: vlp    # {gdino | yolo | vlp}
+defaults: 
+  - base
+  - _self_
+
+tagger: ram           # {ram | none}
+detector: vlp         # {gdino | yolo | vlp}
 exp_suffix: v1
-
-# save
 save_folder_name: capa
-
-# datasets
-FUNGRAPH3D_root: /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/
-FUNGRAPH3D_config_path: /home/main/workspace/k2room2/CAPA-3DSG/dataset/dataconfigs/fungraph3d/fungraph3d.yaml
-SCENEFUN3D_root: /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/
-SCENEFUN3D_config: /home/main/workspace/k2room2/CAPA-3DSG/dataset/dataconfigs/scenefun3d/scenefun3d.yaml
-PADO_root: /home/main/workspace/k2room2/gpuserver00_storage/CAPA/PADO/
-PADO_config: /home/main/workspace/k2room2/CAPA-3DSG/dataset/dataconfigs/pado/pado.yaml
-knowledge_path: /home/main/workspace/k2room2/CAPA-3DSG/object_part_knowledge.json
-
-# checkpoints
-gdino_config_path: /home/main/workspace/k2room2/CAPA-3DSG/src/thirdparty/groundedsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py
-gdino_ckpt: /home/main/workspace/k2room2/CAPA-3DSG/checkpoints/groundingdino_swint_ogc.pth
-vlpart_config_path: /home/main/workspace/k2room2/CAPA-3DSG/src/thirdparty/vlpart/configs/joint/swinbase_cascade_lvis_paco.yaml
-vlpart_ckpt: /home/main/workspace/k2room2/CAPA-3DSG/checkpoints/swinbase_cascade_lvis_paco.pth
-sam_enc_version: vit_h
-sam_ckpt: /home/main/workspace/k2room2/CAPA-3DSG/checkpoints/sam_vit_h_4b8939.pth
-ram_ckpt: /home/main/workspace/k2room2/CAPA-3DSG/checkpoints/ram_swin_large_14m.pth
+dataset: ???         # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
+scene_id: ???
 
 # gdino
 gdino:
@@ -56,6 +42,6 @@ add_bg_classes: true
 accumu_classes: true
 
 skip_bg: false
-bg_classes: []
+bg_classes: [ "wall", "floor", "ceiling" ]
 
 device: cuda

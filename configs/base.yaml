@@ -1,5 +1,28 @@
+root: /home/main/workspace/k2room2
+project_root: ${root}/CAPA-3DSG
+
+hydra:
+  run:
+    dir: ${project_root}/logs/${dataset}_${detector}/${now:%Y-%m-%d}/${replace:${scene_id},/,-}_${now:%H-%M}
+
 defaults:
   - override hydra/job_logging: custom_logging_format
+  - _self_
 
-use_wandb: !!bool False
-use_rerun: !!bool False
+# datasets
+FUNGRAPH3D_root: ${root}/gpuserver00_storage/CAPA/FunGraph3D/
+FUNGRAPH3D_config_path: ${project_root}/dataset/dataconfigs/fungraph3d/fungraph3d.yaml
+SCENEFUN3D_root: ${root}/gpuserver00_storage/CAPA/SceneFun3D_Graph/
+SCENEFUN3D_config: ${project_root}/dataset/dataconfigs/scenefun3d/scenefun3d.yaml
+PADO_root: ${root}/gpuserver00_storage/CAPA/PADO/
+PADO_config: ${project_root}/dataset/dataconfigs/pado/pado.yaml
+knowledge_path: ${project_root}/object_part_knowledge.json
+
+# checkpoints
+gdino_config_path: ${project_root}/src/thirdparty/groundedsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py
+gdino_ckpt: ${project_root}/checkpoints/groundingdino_swint_ogc.pth
+vlpart_config_path: ${project_root}/src/thirdparty/vlpart/configs/joint/swinbase_cascade_lvis_paco.yaml
+vlpart_ckpt: ${project_root}/checkpoints/swinbase_cascade_lvis_paco.pth
+sam_enc_version: vit_h
+sam_ckpt: ${project_root}/checkpoints/sam_vit_h_4b8939.pth
+ram_ckpt: ${project_root}/checkpoints/ram_swin_large_14m.pth
