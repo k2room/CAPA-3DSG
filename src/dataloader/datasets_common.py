@@ -15,8 +15,8 @@ from natsort import natsorted
 from scipy.spatial.transform import Rotation as R
 
 from dataloader.colmap import read_model
-from utils.gradslam import datautils
-from utils.gradslam.geometryutils import relative_transformation
+from slam import datautils
+from slam.geometryutils import relative_transformation
 
 from conceptgraph.utils.general_utils import measure_time
 from conceptgraph.dataset.datasets_common import (
