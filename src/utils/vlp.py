@@ -33,6 +33,16 @@ def to_sv_detections(det) -> sv.Detections:
 
     return sv.Detections(xyxy=xyxy, confidence=conf, class_id=cls, mask=m)
 
+def mk_obj_part_det(src, idx):
+    xyxy       = src.xyxy[idx]
+    confidence = src.confidence[idx]
+    class_id   = src.class_id[idx]
+    mask        = (None if src.mask is None else src.mask[idx])
+    image_feats = (None if src.image_feats is None else src.image_feats[idx])
+    image_crops = (None if src.image_crops is None else [src.image_crops[i] for i in idx])
+    text_feats  = getattr(src, "text_feats", None)
+    return _DetResult(xyxy, confidence, class_id, mask, image_crops, image_feats, text_feats)
+
 
 class _DetResult:
     """Container for detections and optional embeddings."""

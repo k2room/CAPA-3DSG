@@ -12,11 +12,11 @@ import torch.nn.functional as F
 
 import faiss
 
-from openfungraph.utils.general_utils import to_tensor, to_numpy, Timer
-from openfungraph.slam.slam_classes import MapObjectList, DetectionList
+from utils.general_utils import to_tensor, to_numpy, Timer
+from slam.slam_classes import MapObjectList, DetectionList
 
-from openfungraph.utils.ious import compute_3d_iou, compute_3d_iou_accuracte_batch, mask_subtract_contained, compute_iou_batch
-from openfungraph.dataset.datasets_common import from_intrinsics_matrix
+from utils.ious import compute_3d_iou, compute_3d_iou_accuracte_batch, mask_subtract_contained, compute_iou_batch
+from dataloader.datasets_common import from_intrinsics_matrix
 
 def get_classes_colors(classes):
     class_colors = {}
@@ -39,9 +39,9 @@ def create_or_load_colors(cfg, filename="gsa_classes_tag2text"):
     
     # get the classes, should be saved when making the dataset
     if not cfg.part_reg:
-        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / f"{filename}.json"
+        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}.json"
     else:
-        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / 'part' / f"{filename}.json"
+        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}.json"
     classes  = None
     with open(classes_fp, "r") as f:
         classes = json.load(f)
@@ -49,9 +49,9 @@ def create_or_load_colors(cfg, filename="gsa_classes_tag2text"):
     # create the class colors, or load them if they exist
     class_colors  = None
     if not cfg.part_reg:
-        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / f"{filename}_colors.json"
+        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}_colors.json"
     else:
-        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / 'part' / f"{filename}_colors.json"
+        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}_colors.json"
     if class_colors_fp.exists():
         with open(class_colors_fp, "r") as f:
             class_colors = json.load(f)
