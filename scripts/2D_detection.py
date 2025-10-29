@@ -35,9 +35,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # ===== project imports =====
 from dataloader.datasets_common import get_dataset
 from utils.vis import vis_result_fast
-# from utils.utils import load_yaml
 from utils.knowledge import load_knowledge, curate_tags
-from utils.vlp import VLPart, to_sv_detections
+from utils.vlp import VLPart, to_sv_detections, mk_obj_part_det
 
 try:
     from segment_anything import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator
@@ -57,55 +56,6 @@ torch.set_grad_enabled(False)
 
 LOGGER = logging.getLogger(__name__)  # [HYDRA] use hydra-managed logger
 
-
-# =========================
-# Utilities (SAM helpers)
-# =========================
-def get_sam_predictor(cfg: DictConfig) -> SamPredictor:  # [HYDRA]
-    sam = sam_model_registry[cfg.sam_enc_version](checkpoint=cfg.sam_ckpt)
-    sam.to(cfg.device)
-    return SamPredictor(sam)
-
-def get_sam_mask_generator(cfg: DictConfig) -> SamAutomaticMaskGenerator:  # [HYDRA]
-    sam = sam_model_registry[cfg.sam_enc_version](checkpoint=cfg.sam_ckpt)
-    sam.to(cfg.device)
-    return SamAutomaticMaskGenerator(
-        model=sam,
-        points_per_side=12,
-        points_per_batch=144,
-        pred_iou_thresh=0.88,
-        stability_score_threshold=0.95,
-        crop_n_layers=0,
-        min_mask_region_area=100,
-    )
-
-def get_sam_segmentation_from_xyxy(sam_predictor: SamPredictor, image: np.ndarray, xyxy: np.ndarray) -> np.ndarray:
-    sam_predictor.set_image(image)
-    result_masks = []
-    for box in xyxy:
-        masks, scores, logits = sam_predictor.predict(box=box, multimask_output=True)
-        index = np.argmax(scores)
-        result_masks.append(masks[index])
-    return np.array(result_masks)
-
-def get_sam_segmentation_dense(model: Any, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    SAM automatic mask generation (no bbox prompt)
-    Returns:
-        mask: (N, H, W), xyxy: (N, 4), conf: (N,)
-    """
-    results = model.generate(image)
-    mask, xyxy, conf = [], [], []
-    for r in results:
-        mask.append(r["segmentation"])
-        r_xyxy = r["bbox"].copy()     # xyhw -> xyxy
-        r_xyxy[2] += r_xyxy[0]
-        r_xyxy[3] += r_xyxy[1]
-        xyxy.append(r_xyxy)
-        conf.append(r["predicted_iou"])
-    return np.array(mask), np.array(xyxy), np.array(conf)
-
-
 # =========================
 # Config enrichment
 # =========================
@@ -116,7 +66,7 @@ def _resolve_path(p) -> str:
         pp = Path(get_original_cwd()) / pp
     return str(pp)
 
-def _enrich_cfg_inplace(cfg: DictConfig) -> None:  # [HYDRA]
+def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     """
     - require scene_id & dataset
     - attach dataset_root / dataset_config
@@ -181,9 +131,60 @@ def _enrich_cfg_inplace(cfg: DictConfig) -> None:  # [HYDRA]
     OmegaConf.set_struct(cfg, prev_struct)
 
 # =========================
+# Utilities (SAM helpers)
+# =========================
+def get_sam_predictor(cfg: DictConfig) -> SamPredictor:  # [HYDRA]
+    sam = sam_model_registry[cfg.sam_enc_version](checkpoint=cfg.sam_ckpt)
+    sam.to(cfg.device)
+    return SamPredictor(sam)
+
+def get_sam_mask_generator(cfg: DictConfig) -> SamAutomaticMaskGenerator:  # [HYDRA]
+    sam = sam_model_registry[cfg.sam_enc_version](checkpoint=cfg.sam_ckpt)
+    sam.to(cfg.device)
+    return SamAutomaticMaskGenerator(
+        model=sam,
+        points_per_side=12,
+        points_per_batch=144,
+        pred_iou_thresh=0.88,
+        stability_score_threshold=0.95,
+        crop_n_layers=0,
+        min_mask_region_area=100,
+    )
+
+def get_sam_segmentation_from_xyxy(sam_predictor: SamPredictor, image: np.ndarray, xyxy: np.ndarray) -> np.ndarray:
+    sam_predictor.set_image(image)
+    result_masks = []
+    for box in xyxy:
+        masks, scores, logits = sam_predictor.predict(box=box, multimask_output=True)
+        index = np.argmax(scores)
+        result_masks.append(masks[index])
+    return np.array(result_masks)
+
+def get_sam_segmentation_dense(model: Any, image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    SAM automatic mask generation (no bbox prompt)
+    Returns:
+        mask: (N, H, W), xyxy: (N, 4), conf: (N,)
+    """
+    results = model.generate(image)
+    mask, xyxy, conf = [], [], []
+    for r in results:
+        mask.append(r["segmentation"])
+        r_xyxy = r["bbox"].copy()     # xyhw -> xyxy
+        r_xyxy[2] += r_xyxy[0]
+        r_xyxy[3] += r_xyxy[1]
+        xyxy.append(r_xyxy)
+        conf.append(r["predicted_iou"])
+    return np.array(mask), np.array(xyxy), np.array(conf)
+
+# =========================
 # Main pipeline
 # =========================
+@hydra.main(version_base=None, config_path="../configs", config_name="CAPA")  # [HYDRA]
 def main(cfg: DictConfig):  # [HYDRA] cfg directly
+    LOGGER.info("START main()")
+    _process_cfg(cfg)
+
     # Initialize the dataset
     dataset = get_dataset(
         dataconfig=cfg.dataset_config,
@@ -280,8 +281,6 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
         raise ValueError(f"Unknown cfg.tagger: {cfg.tagger}")
 
     save_name = f"{cfg.tagger}"
-    if cfg.get("exp_suffix"):
-        save_name += f"_{cfg.exp_suffix}"
 
     global_classes: set[str] = set()
     obj_classes: set[str] = set()
@@ -292,13 +291,18 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
     # ================= main loop =================
     for idx in trange(len(dataset)):
         color_path = Path(dataset.color_paths[idx])  # .../<scene>/rgb/frame_00000.jpg
+ 
+        obj_vis_save_path = color_path.parent.parent / cfg.save_folder_name / 'object' / f"gsa_vis_{save_name}" / color_path.name
+        obj_detections_save_path = color_path.parent.parent / cfg.save_folder_name / 'object' / f"gsa_detections_{save_name}" / color_path.name
+        obj_detections_save_path = obj_detections_save_path.with_suffix(".pkl.gz")
+        part_vis_save_path = color_path.parent.parent / cfg.save_folder_name / 'part' / f"gsa_vis_{save_name}" / color_path.name
+        part_detections_save_path = color_path.parent.parent / cfg.save_folder_name / 'part' / f"gsa_detections_{save_name}" / color_path.name
+        part_detections_save_path = part_detections_save_path.with_suffix(".pkl.gz")
 
-        vis_save_path = color_path.parent.parent / cfg.save_folder_name / f"gsa_vis_{save_name}" / color_path.name
-        detections_save_path = color_path.parent.parent / cfg.save_folder_name / f"gsa_detections_{save_name}" / color_path.name
-        detections_save_path = detections_save_path.with_suffix(".pkl.gz")
-
-        os.makedirs(os.path.dirname(str(vis_save_path)), exist_ok=True)
-        os.makedirs(os.path.dirname(str(detections_save_path)), exist_ok=True)
+        os.makedirs(os.path.dirname(str(obj_vis_save_path)), exist_ok=True)
+        os.makedirs(os.path.dirname(str(part_vis_save_path)), exist_ok=True)
+        os.makedirs(os.path.dirname(str(obj_detections_save_path)), exist_ok=True)
+        os.makedirs(os.path.dirname(str(part_detections_save_path)), exist_ok=True)
 
         # OpenCV wants str paths
         image = cv2.imread(str(color_path))  # BGR
@@ -329,26 +333,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             LOGGER.info("YOLO path does not use RAM tagging module.")
 
         # ---------- detection & segmentation ----------
-        if cfg.tagger == "none":
-            # SAM dense mode
-            mask, xyxy, conf = get_sam_segmentation_dense(mask_generator, image_rgb)
-            detections = sv.Detections(
-                xyxy=xyxy,
-                confidence=conf,
-                class_id=np.zeros_like(conf).astype(int),
-                mask=mask,
-            )
-            
-            image_crops, image_feats, text_feats = compute_clip_features(
-                image_rgb, detections, clip_model, clip_preprocess, clip_tokenizer, classes, args.device)
-
-            annotated_image, labels = vis_result_fast(image, detections, classes, instance_random_color=True)
-            cv2.imwrite(str(vis_save_path), annotated_image)
-            is_part = np.zeros((len(detections),), dtype=bool)
-            is_obj  = np.zeros((len(detections),), dtype=bool)
-            image_crops, image_feats, text_feats = [], [], []
-
-        elif cfg.detector == "yolo":
+        if cfg.detector == "yolo":
             LOGGER.error("YOLO + SAM not implemented yet.")
             raise NotImplementedError
 
@@ -447,10 +432,38 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             raise ValueError(f"Unknown cfg.detector: {cfg.detector}")
 
         # ---------- visualize ----------
-        annotated_image, labels = vis_result_fast(image, to_sv_detections(detections), classes)
-        cv2.imwrite(str(vis_save_path), annotated_image)
+        obj_idx  = np.flatnonzero(is_obj)
+        part_idx = np.flatnonzero(is_part)
+        # For objects
+        obj_detections = mk_obj_part_det(detections, obj_idx)
+        obj_annotated_image, obj_labels = vis_result_fast(image, to_sv_detections(obj_detections), classes)
+        cv2.imwrite(str(obj_vis_save_path), obj_annotated_image)
+        # For parts
+        part_detections = mk_obj_part_det(detections, part_idx)
+        part_annotated_image, part_labels = vis_result_fast(image, to_sv_detections(part_detections), classes)
+        cv2.imwrite(str(part_vis_save_path), part_annotated_image)
 
         # ---------- save pickled detections ----------
+        obj_results = {
+            "xyxy":        obj_detections.xyxy,
+            "confidence":  obj_detections.confidence,
+            "class_id":    obj_detections.class_id,
+            "mask":        obj_detections.mask,
+            "classes":     classes,
+            "image_crops": obj_detections.image_crops,
+            "image_feats": obj_detections.image_feats,
+            "text_feats":  text_feats, 
+        }
+        part_results = {
+            "xyxy":        part_detections.xyxy,
+            "confidence":  part_detections.confidence,
+            "class_id":    part_detections.class_id,
+            "mask":        part_detections.mask,
+            "classes":     classes,
+            "image_crops": part_detections.image_crops,
+            "image_feats": part_detections.image_feats,
+            "text_feats":  text_feats, 
+        }            
         results = {
             "xyxy":        detections.xyxy,
             "confidence":  detections.confidence,
@@ -468,8 +481,13 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             results["tagging_caption"] = "NA"
             results["tagging_text_prompt"] = raw_tags
 
-        with gzip.open(str(detections_save_path), "wb") as f:
-            pickle.dump(results, f)
+        # with gzip.open(str(detections_save_path), "wb") as f:
+        #     pickle.dump(results, f)
+
+        with gzip.open(str(obj_detections_save_path), "wb") as f:
+            pickle.dump(obj_results, f)
+        with gzip.open(str(part_detections_save_path), "wb") as f:
+            pickle.dump(part_results, f)
 
     # save global classes
     classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}.json"
@@ -478,17 +496,20 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
         json.dump(list(global_classes), f)
     LOGGER.info(f"Saved classes to: {classes_json}")
 
+    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}_obj.json"
+    os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
+    with open(str(classes_json), "w") as f:
+        json.dump(list(obj_classes), f)
+    LOGGER.info(f"Saved object classes")
 
-# =========================
-# Hydra entry
-# =========================
-@hydra.main(version_base=None, config_path="../configs", config_name="CAPA")  # [HYDRA]
-def entry(cfg: DictConfig):
-    _enrich_cfg_inplace(cfg)
-    LOGGER.info("START main()")
-    main(cfg)
+    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}_part.json"
+    os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
+    with open(str(classes_json), "w") as f:
+        json.dump(list(part_classes), f)
+    LOGGER.info(f"Saved part classes")
+
     LOGGER.info("FINISH main()")
 
 if __name__ == "__main__":
-    entry()
+    main()
     
