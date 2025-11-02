@@ -18,7 +18,7 @@ from dataloader.colmap import read_model
 from slam import datautils
 from slam.geometryutils import relative_transformation
 
-from conceptgraph.utils.general_utils import measure_time
+from utils.general_utils import measure_time, to_scalar
 from conceptgraph.dataset.datasets_common import (
     as_intrinsics_matrix, readEXR_onlydepth, load_dataset_config, update_recursive, common_dataset_to_batch,
     ICLDataset, ReplicaDataset, ScannetDataset, Ai2thorDataset, 
