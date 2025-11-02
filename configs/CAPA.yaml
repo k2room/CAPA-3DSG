@@ -2,12 +2,26 @@ defaults:
   - base
   - _self_
 
-tagger: ram           # {ram | none}
-detector: vlp         # {gdino | yolo | vlp}
-exp_suffix: v1
-save_folder_name: capa
-dataset: ???         # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
+dataset: ???              # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
 scene_id: ???
+save_folder_name: capa1   # set number to distinguish different runs
+tagger: ram               # {ram | none}
+detector: vlp             # {gdino | yolo | vlp}
+use_part_knowledge: !!bool True
+use_color_feat: !!bool True
+
+# color feature extraction parameters. LAB + {Color Name + OPP + ... }
+color_feat_params:
+  bins: 32
+  use_wb: true        # white balancing
+  use_retinex: false
+  s_threshold: 0.10
+  v_spec_threshold: 0.90
+  compute_cn: true      # Color Name
+  compute_opp: true     # OPP
+  compute_rg: false     # regulized RGB
+  compute_med: false    # median
+  clip_ab: 110.0
 
 # gdino
 gdino:
@@ -38,10 +52,10 @@ stride: 1
 desired_height: 480
 desired_width: 640
 
-add_bg_classes: true
-accumu_classes: true
+add_bg_classes: !!bool True
+accumu_classes: !!bool True
 
-skip_bg: false
+skip_bg: !!bool False
 bg_classes: [ "wall", "floor", "ceiling" ]
 
 device: cuda

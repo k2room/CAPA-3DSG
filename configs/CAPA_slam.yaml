@@ -1,13 +1,15 @@
-defaults: 
-  - base
-  - CAPA
-  - _self_
+defaults:
+- base
+- _self_
 
+save_folder_name: ??? # set number to distinguish different runs
+detector: vlp
+dataset: ??? # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
+scene_id: ???
+part_reg: !!bool False    # True for part, False for object
+use_color_feat: !!bool True
 
 # Dataset
-dataset_root: none
-dataset_config: none
-scene_id: train_3_interact
 start: 0
 end: -1
 stride: 1
@@ -17,20 +19,33 @@ image_width: null # if null, it will be determined by dataconfig
 # Input detections
 gsa_variant: ram
 detection_folder_name: gsa_detections_${gsa_variant}
-det_vis_folder_name: gsa_vis_${gsa_variant}
-color_file_name: gsa_classes_${gsa_variant}
+det_vis_folder_name: gsa_vis_${gsa_variant} # json file name for visulualization
+color_file_name: gsa_classes_${gsa_variant} # json file name for saving the detected class names
 
-device: cuda
+# Color feature extraction parameters. LAB + {Color Name + OPP + ... }
+color_ema_alpha: 0.3     # EMA update alpha for color feature fusion
+color_distance_weights:
+  ab:  0.40
+  opp: 0.40
+  cn:  0.20
+  rg:  0.00
+  med: 0.00
 
+# Matching parameters
 use_iou: !!bool True
-spatial_sim_type: iou # "iou", "giou", "overlap"
-phys_bias: 0.0
-match_method: "sep_thresh" # "sep_thresh", "sim_sum"
-# Only when match_method=="sep_thresh"
-semantic_threshold: 0.5
-physical_threshold: 0.5
+color_sim_mapping: inv   # {inv | exp}
+color_sim_gamma: 3.0     # Only when mapping=='exp'
+w_color: 0.6  
+phys_bias: 0.0            # (1+phys_bias) for spatial sim and (1-phys_bias) for visual sim
+spatial_sim_type: overlap # "iou", "giou", "overlap"
+match_method: "sim_sum" # "sep_thresh", "sim_sum"
+
+# # Only when match_method=="sep_thresh"
+# semantic_threshold: 0.5
+# physical_threshold: 0.5
+
 # Only when match_method=="sim_sum"
-sim_threshold: 0
+sim_threshold: 1.2
 
 # For contain_number
 use_contain_number: !!bool False
@@ -40,42 +55,40 @@ contain_mismatch_penalty: 0.5
 # Selection criteria on the 2D masks
 mask_area_threshold: 25 # mask with pixel area less than this will be skipped
 mask_conf_threshold: 0.2 # mask with lower confidence score will be skipped
-max_bbox_area_ratio: 1.0 # boxes with larger areas than this will be skipped
+max_bbox_area_ratio: 0.9 # boxes with larger areas than this will be skipped
 min_points_threshold: 16 # projected and sampled pcd with less points will be skipped
 
 # point cloud processing
 downsample_voxel_size: 0.01
 dbscan_remove_noise: !!bool True
-dbscan_eps: 0.05
+dbscan_eps: 0.1
 dbscan_min_points: 10
-                     
-skip_bg: !!bool True
-bg_classes: ["wall", "floor", "ceiling"]
+
+skip_bg: !!bool False
+bg_classes: [ "wall", "floor", "ceiling" ]
 
 # Selection criteria of the fused object point cloud
 obj_min_points: 0
 obj_min_detections: 9
 
 # For merge_overlap_objects() function
-merge_overlap_thresh: 0.7      # -1 means do not perform the merge_overlap_objects()
-merge_visual_sim_thresh: 0.7   # Merge only if the visual similarity is larger
-merge_text_sim_thresh: 0.7     # Merge only if the text cosine sim is larger
+merge_overlap_thresh: 1.0 # -1 means do not perform the merge_overlap_objects()
+merge_visual_sim_thresh: 0.7 # Merge only if the visual similarity is larger
+merge_text_sim_thresh: 0.7 # Merge only if the text cosine sim is larger
 
 # Periodically perform post-process operations every k frame
 # -1 means not perform them during the run. They are performed at the end anyway. 
-denoise_interval: 20           # Run DBSCAN every k frame. This operation is heavy
-filter_interval: -1            # Filter objects that have too few associations or are too small
-merge_interval: -1             # Merge objects based on geometric and semantic similarity
+denoise_interval: 20 # Run DBSCAN every k frame. This operation is heavy
+filter_interval: -1 # Filter objects that have too few associations or are too small
+merge_interval: -1 # Merge objects based on geometric and semantic similarity
 
 # Output point cloud
 save_pcd: !!bool True
-save_suffix: exp
 
 # Visualization
-debug_render: !!bool False     # If True, the vis.run() will be called and used for debugging
-class_agnostic: !!bool False   # If set, the color will be set by instance, rather than most common class
+# debug_render: !!bool False     # If True, the vis.run() will be called and used for debugging
+# class_agnostic: !!bool False   # If set, the color will be set by instance, rather than most common class
 
 render_camera_path: "replica_room0.json"
 
-# part recognition
-part_reg: !!bool False
+device: cuda

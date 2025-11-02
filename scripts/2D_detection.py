@@ -2,7 +2,7 @@
 Open-vocabulary 2D object/part detection in each 2D image.
 - use CAPA.yaml for configuration (Hydra).
 - example:
-    $ python scripts/2D_detection.py scene_id=0kitchen/video0 dataset=FunGraph3D hydra.job_logging.handlers.file.level=DEBUG
+    $ python scripts/2D_detection.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_1
 """
 # ===== imports =====
 import os, sys, json, gzip, pickle, warnings, logging
@@ -37,6 +37,7 @@ from dataloader.datasets_common import get_dataset
 from utils.vis import vis_result_fast
 from utils.knowledge import load_knowledge, curate_tags
 from utils.vlp import VLPart, to_sv_detections, mk_obj_part_det
+from utils.color_extraction import extract_color_features
 
 try:
     from segment_anything import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator
@@ -127,6 +128,8 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
         cfg.nms_threshold  = yo.nms_threshold
     else:
         raise ValueError(f"Unknown detector: {det}")
+
+    cfg.color_params = dict(cfg.color_feat_params)
 
     OmegaConf.set_struct(cfg, prev_struct)
 
@@ -287,6 +290,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
     part_classes: set[str] = set()
 
     knowledge = load_knowledge(cfg)  # expects cfg.knowledge_path / skip_bg / bg_classes
+    LOGGER.info(f"Knowledge loaded: use part knowledge = {cfg.use_part_knowledge}")
 
     # ================= main loop =================
     for idx in trange(len(dataset)):
@@ -343,6 +347,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
 
         elif cfg.detector == "vlp":
             # ---- VLPart detection ----
+            # Semantic features for newly detected classes are extracted on-the-fly within VLP
             detections = vlpart.predict_with_classes(image=image_rgb, classes=classes)
 
             # ---- NMS & clean-up ----
@@ -428,10 +433,25 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             else:
                 image_crops, image_feats, text_feats = [], [], []
 
+            # ---- texture features ----
+            color_feats = []
+            if cfg.use_color_feat and (len(detections.class_id) > 0) and (detections.mask is not None):
+                part_idx = np.flatnonzero(is_part)
+                if part_idx.size > 0:
+                    LOGGER.debug(f"Extracting texture features for {part_idx.size} parts...")
+                    masks_u8 = detections.mask[part_idx].astype(np.uint8) # (N, H, W) only for parts
+                    color_feats = extract_color_features(
+                        cfg,
+                        img_rgb_u8=image_rgb,
+                        masks=masks_u8,
+                        params=cfg.color_params
+                    )
+
         else:
             raise ValueError(f"Unknown cfg.detector: {cfg.detector}")
 
         # ---------- visualize ----------
+        LOGGER.debug("Saving visualizations...")
         obj_idx  = np.flatnonzero(is_obj)
         part_idx = np.flatnonzero(is_part)
         # For objects
@@ -453,6 +473,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             "image_crops": obj_detections.image_crops,
             "image_feats": obj_detections.image_feats,
             "text_feats":  text_feats, 
+            "color_feats": None,                        # empty for objects
         }
         part_results = {
             "xyxy":        part_detections.xyxy,
@@ -463,23 +484,24 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             "image_crops": part_detections.image_crops,
             "image_feats": part_detections.image_feats,
             "text_feats":  text_feats, 
+            "color_feats": color_feats,                 # [For each mask, Dict with keys:{Hab, Hrg, Hopp, med, Hcn}]
         }            
-        results = {
-            "xyxy":        detections.xyxy,
-            "confidence":  detections.confidence,
-            "class_id":    detections.class_id,
-            "mask":        detections.mask,
-            "classes":     classes,
-            "image_crops": image_crops,
-            "image_feats": image_feats,
-            "text_feats":  text_feats, 
-            "is_part":     is_part,
-        }
+        # results = {
+        #     "xyxy":        detections.xyxy,
+        #     "confidence":  detections.confidence,
+        #     "class_id":    detections.class_id,
+        #     "mask":        detections.mask,
+        #     "classes":     classes,
+        #     "image_crops": image_crops,
+        #     "image_feats": image_feats,
+        #     "text_feats":  text_feats, 
+        #     "is_part":     is_part,
+        # }
         LOGGER.debug(f"\t= {int(np.sum(is_obj))} objects + {int(np.sum(is_part))} parts")
 
-        if cfg.tagger == "ram":
-            results["tagging_caption"] = "NA"
-            results["tagging_text_prompt"] = raw_tags
+        # if cfg.tagger == "ram":
+        #     results["tagging_caption"] = "NA"
+        #     results["tagging_text_prompt"] = raw_tags
 
         # with gzip.open(str(detections_save_path), "wb") as f:
         #     pickle.dump(results, f)
@@ -496,13 +518,13 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
         json.dump(list(global_classes), f)
     LOGGER.info(f"Saved classes to: {classes_json}")
 
-    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}_obj.json"
+    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'object' / f"gsa_classes_{save_name}_obj.json"
     os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
     with open(str(classes_json), "w") as f:
         json.dump(list(obj_classes), f)
     LOGGER.info(f"Saved object classes")
 
-    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}_part.json"
+    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'part' / f"gsa_classes_{save_name}_part.json"
     os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
     with open(str(classes_json), "w") as f:
         json.dump(list(part_classes), f)

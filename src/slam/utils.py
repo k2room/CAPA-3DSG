@@ -1,5 +1,6 @@
 from collections import Counter
 import copy
+from pathlib import Path
 import json
 import cv2
 
@@ -13,10 +14,14 @@ import torch.nn.functional as F
 import faiss
 
 from utils.general_utils import to_tensor, to_numpy, Timer
+from utils.color_extraction import ema_update_color_feat
 from slam.slam_classes import MapObjectList, DetectionList
 
 from utils.ious import compute_3d_iou, compute_3d_iou_accuracte_batch, mask_subtract_contained, compute_iou_batch
 from dataloader.datasets_common import from_intrinsics_matrix
+
+import logging
+LOGGER = logging.getLogger(__name__)  # [HYDRA] use hydra-managed logger
 
 def get_classes_colors(classes):
     class_colors = {}
@@ -39,9 +44,9 @@ def create_or_load_colors(cfg, filename="gsa_classes_tag2text"):
     
     # get the classes, should be saved when making the dataset
     if not cfg.part_reg:
-        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}.json"
+        classes_fp = Path(cfg['dataset_root']) / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}_obj.json"
     else:
-        classes_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}.json"
+        classes_fp = Path(cfg['dataset_root']) / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}_part.json"
     classes  = None
     with open(classes_fp, "r") as f:
         classes = json.load(f)
@@ -49,19 +54,19 @@ def create_or_load_colors(cfg, filename="gsa_classes_tag2text"):
     # create the class colors, or load them if they exist
     class_colors  = None
     if not cfg.part_reg:
-        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}_colors.json"
+        class_colors_fp = Path(cfg['dataset_root']) / cfg['scene_id'] / cfg["save_folder_name"] / 'object' / f"{filename}_colors_obj.json"
     else:
-        class_colors_fp = cfg['dataset_root'] / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}_colors.json"
+        class_colors_fp = Path(cfg['dataset_root']) / cfg['scene_id'] / cfg["save_folder_name"] / 'part' / f"{filename}_colors_part.json"
     if class_colors_fp.exists():
         with open(class_colors_fp, "r") as f:
             class_colors = json.load(f)
-        print("Loaded class colors from ", class_colors_fp)
+        LOGGER.info(f"Loaded class colors from {str(class_colors_fp)}")
     else:
         class_colors = get_classes_colors(classes)
         class_colors = {str(k): v for k, v in class_colors.items()}
         with open(class_colors_fp, "w") as f:
             json.dump(class_colors, f)
-        print("Saved class colors to ", class_colors_fp)
+        LOGGER.info(f"Saved class colors to {str(class_colors_fp)}")
     return classes, class_colors
 
 def create_object_pcd(depth_array, mask, cam_K, image, obj_color=None) -> o3d.geometry.PointCloud:
@@ -197,7 +202,7 @@ def merge_obj2_into_obj1(cfg, obj1, obj2, run_dbscan=True):
         elif k not in ['pcd', 'bbox', 'clip_ft', "text_ft"]:
             if isinstance(obj1[k], list) or isinstance(obj1[k], int):
                 obj1[k] += obj2[k]
-            elif k == "inst_color":
+            elif k == "inst_color" or k == "color_ft":
                 obj1[k] = obj1[k] # Keep the initial instance color
             else:
                 # TODO: handle other types if needed in the future
@@ -224,6 +229,13 @@ def merge_obj2_into_obj1(cfg, obj1, obj2, run_dbscan=True):
                        obj2['text_ft'] * n_obj2_det) / (
                        n_obj1_det + n_obj2_det)
     obj1['text_ft'] = F.normalize(obj1['text_ft'], dim=0)
+
+    if cfg.use_color_feat and obj1['color_ft'] is not None and obj2['color_ft'] is not None:
+        # for kk in obj1['color_ft'].keys():
+        #     if obj1['color_ft'][kk] is not None and obj2['color_ft'][kk] is not None:
+        #         obj1['color_ft'][kk] = to_tensor(obj1['color_ft'][kk], cfg.device)
+        #         obj2['color_ft'][kk] = to_tensor(obj2['color_ft'][kk], cfg.device)    
+        obj1['color_ft'] = ema_update_color_feat(obj1['color_ft'], obj2['color_ft'], alpha=cfg.color_ema_alpha)
     
     return obj1
 
@@ -350,8 +362,7 @@ def merge_overlap_objects(cfg, objects: MapObjectList, overlap_matrix: np.ndarra
             dim=0
         )
         if ratio > cfg.merge_overlap_thresh:
-            if visual_sim > cfg.merge_visual_sim_thresh and \
-                text_sim > cfg.merge_text_sim_thresh:
+            if visual_sim > cfg.merge_visual_sim_thresh and text_sim > cfg.merge_text_sim_thresh:
                 if kept_objects[j]:
                     # Then merge object i into object j
                     objects[j] = merge_obj2_into_obj1(cfg, objects[j], objects[i], run_dbscan=True)
@@ -379,13 +390,13 @@ def denoise_objects(cfg, objects: MapObjectList):
 
 def filter_objects(cfg, objects: MapObjectList):
     # Remove the object that has very few points or viewed too few times
-    print("Before filtering:", len(objects))
+    LOGGER.info(f"Before filtering: {len(objects)}")
     objects_to_keep = []
     for obj in objects:
         if len(obj['pcd'].points) >= cfg.obj_min_points and obj['num_detections'] >= cfg.obj_min_detections:
             objects_to_keep.append(obj)
     objects = MapObjectList(objects_to_keep)
-    print("After filtering:", len(objects))
+    LOGGER.info(f"After filtering: {len(objects)}")
     
     return objects
 
@@ -393,9 +404,9 @@ def merge_objects(cfg, objects: MapObjectList):
     if cfg.merge_overlap_thresh > 0:
         # Merge one object into another if the former is contained in the latter
         overlap_matrix = compute_overlap_matrix(cfg, objects)
-        print("Before merging:", len(objects))
+        LOGGER.info(f"Before merging: {len(objects)}")
         objects = merge_overlap_objects(cfg, objects, overlap_matrix)
-        print("After merging:", len(objects))
+        LOGGER.info(f"After merging: {len(objects)}")
     
     return objects
 
@@ -434,7 +445,7 @@ def filter_gobs(
             bbox_area = (x2 - x1) * (y2 - y1)
             image_area = image.shape[0] * image.shape[1]
             if bbox_area > cfg.max_bbox_area_ratio * image_area:
-                print(f"Skipping {class_name} with area {bbox_area} > {cfg.max_bbox_area_ratio} * {image_area}")
+                LOGGER.debug(f"Skipping {class_name} with area {bbox_area} > {cfg.max_bbox_area_ratio} * {image_area}")
                 continue
             
         # Skip masks with low confidence
@@ -445,7 +456,9 @@ def filter_gobs(
         idx_to_keep.append(mask_idx)
     
     for k in gobs.keys():
-        if isinstance(gobs[k], str) or k == "classes": # Captions
+        if k == "color_feats":
+            continue
+        elif isinstance(gobs[k], str) or k == "classes": # Captions
             continue
         elif isinstance(gobs[k], list):
             gobs[k] = [gobs[k][i] for i in idx_to_keep]
@@ -575,8 +588,9 @@ def gobs_to_detection_list(
             # These are for the entire 3D object
             'pcd': global_object_pcd,
             'bbox': pcd_bbox,
-            'clip_ft': to_tensor(gobs['image_feats'][mask_idx]),
-            'text_ft': to_tensor(gobs['text_feats'][mask_idx]),
+            'clip_ft': to_tensor(gobs['image_feats'][mask_idx], cfg.device),
+            'text_ft': to_tensor(gobs['text_feats'][mask_idx], cfg.device),
+            'color_ft': gobs['color_feats'][mask_idx] if gobs['color_feats'] is not None else None,
         }
         
         if class_name in BG_CLASSES:

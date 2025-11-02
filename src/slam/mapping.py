@@ -1,15 +1,15 @@
 import torch
 import torch.nn.functional as F
 
-from openfungraph.slam.slam_classes import MapObjectList, DetectionList
-from openfungraph.utils.general_utils import Timer
-from openfungraph.utils.ious import (
+from slam.slam_classes import MapObjectList, DetectionList
+from utils.general_utils import Timer
+from utils.ious import (
     compute_iou_batch, 
     compute_giou_batch, 
     compute_3d_iou_accuracte_batch, 
     compute_3d_giou_accurate_batch,
 )
-from openfungraph.slam.utils import (
+from slam.utils import (
     merge_obj2_into_obj1, 
     compute_overlap_matrix_2set
 )
@@ -43,24 +43,33 @@ def compute_spatial_similarities(cfg, detection_list: DetectionList, objects: Ma
     
     return spatial_sim
 
-def compute_visual_similarities(cfg, detection_list: DetectionList, objects: MapObjectList) -> torch.Tensor:
-    '''
-    Compute the visual similarities between the detections and the objects
+# def compute_visual_similarities(cfg, detection_list: DetectionList, objects: MapObjectList) -> torch.Tensor:
+#     '''
+#     Compute the visual similarities between the detections and the objects
     
-    Args:
-        detection_list: a list of M detections
-        objects: a list of N objects in the map
-    Returns:
-        A MxN tensor of visual similarities
-    '''
-    det_fts = detection_list.get_stacked_values_torch('clip_ft') # (M, D)
-    obj_fts = objects.get_stacked_values_torch('clip_ft') # (N, D)
+#     Args:
+#         detection_list: a list of M detections
+#         objects: a list of N objects in the map
+#     Returns:
+#         A MxN tensor of visual similarities
+#     '''
+#     det_fts = detection_list.get_stacked_values_torch('clip_ft') # (M, D)
+#     obj_fts = objects.get_stacked_values_torch('clip_ft') # (N, D)
 
-    det_fts = det_fts.unsqueeze(-1) # (M, D, 1)
-    obj_fts = obj_fts.T.unsqueeze(0) # (1, D, N)
+#     det_fts = det_fts.unsqueeze(-1) # (M, D, 1)
+#     obj_fts = obj_fts.T.unsqueeze(0) # (1, D, N)
     
-    visual_sim = F.cosine_similarity(det_fts, obj_fts, dim=1) # (M, N)
+#     visual_sim = F.cosine_similarity(det_fts, obj_fts, dim=1) # (M, N)
     
+#     return visual_sim
+def compute_visual_similarities(cfg, detection_list, objects) -> torch.Tensor:
+    det_fts = detection_list.get_stacked_values_torch('clip_ft').to(device=cfg.device, dtype=torch.float32)  # (M,D)
+    obj_fts = objects.get_stacked_values_torch('clip_ft').to(device=cfg.device, dtype=torch.float32)         # (N,D)
+
+    det_fts = F.normalize(det_fts, dim=1)  # (M,D)
+    obj_fts = F.normalize(obj_fts, dim=1)  # (N,D)
+
+    visual_sim = det_fts @ obj_fts.T       # (M,N) on GPU if device=cuda
     return visual_sim
 
 def aggregate_similarities(cfg, spatial_sim: torch.Tensor, visual_sim: torch.Tensor) -> torch.Tensor:
@@ -73,6 +82,12 @@ def aggregate_similarities(cfg, spatial_sim: torch.Tensor, visual_sim: torch.Ten
     Returns:
         A MxN tensor of aggregated similarities
     '''
+    if torch.is_tensor(visual_sim):
+        device = visual_sim.device
+        spatial_sim = spatial_sim.to(device) if torch.is_tensor(spatial_sim) else spatial_sim
+    else:
+        device = spatial_sim.device
+
     if cfg.match_method == "sim_sum":
         sims = (1 + cfg.phys_bias) * spatial_sim + (1 - cfg.phys_bias) * visual_sim # (M, N)
     else:
@@ -86,6 +101,9 @@ def merge_detections_to_objects(
     objects: MapObjectList, 
     agg_sim: torch.Tensor
 ) -> MapObjectList:
+    if torch.is_tensor(agg_sim) and agg_sim.is_cuda:
+        agg_sim = agg_sim.cpu()
+
     # Iterate through all detections and merge them into objects
     for i in range(agg_sim.shape[0]):
         # If not matched to any object, add it as a new object
