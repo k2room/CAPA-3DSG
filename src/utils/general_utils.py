@@ -110,3 +110,8 @@ def measure_time(func):
 def save_hydra_config(hydra_cfg, exp_out_path):
     with open(exp_out_path / "config_params.json", "w") as f:
         json.dump(cfg_to_dict(hydra_cfg), f, indent=2)
+
+def read_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data

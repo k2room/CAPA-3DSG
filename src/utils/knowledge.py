@@ -96,11 +96,12 @@ def curate_tags(raw_tags, knowledge, cfg) -> list[str]:
     # parts expansion conditioned on presence of parent in current tags
     cur_norm = {norm(t) for t in kept}
     parts_to_add = []
-    for parent_norm, parts in add_part_map.items():
-        if any(parent_norm in t for t in cur_norm):
-            for p in parts:
-                ps = parent_norm+" "+str(p).strip()
-                if ps:
-                    parts_to_add.append(ps)
+    if cfg.use_part_knowledge:
+        for parent_norm, parts in add_part_map.items():
+            if any(parent_norm in t for t in cur_norm):
+                for p in parts:
+                    ps = parent_norm+" "+str(p).strip()
+                    if ps:
+                        parts_to_add.append(ps)
 
     return out, parts_to_add
