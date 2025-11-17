@@ -172,7 +172,7 @@ def main(cfg: DictConfig):
         LOGGER.info("API REQUESTING...")
         resp = client.responses.create(
             model=OPENAI_CHAT_MODEL,
-            instructions=GPTprompt().system_prompt,
+            instructions=GPTprompt(config=cfg).system_prompt_func,
             input= initial_graph,
             reasoning={"effort":"high"},
             text={
@@ -361,6 +361,7 @@ def main(cfg: DictConfig):
 
         # Generate edge pickle file
         edges = []
+        edges_desc = []
         for rel in func_rels:
             pair = rel.get("pair", [])
             if not (isinstance(pair, list) and len(pair) == 2):
@@ -369,8 +370,17 @@ def main(cfg: DictConfig):
             e = _as_edge(pair[0], pair[1], lab)
             if e is not None:
                 edges.append(e)
-        # unique
-        edges = list({(e[0], e[1], e[2], e[3]) for e in edges})
+                reason = rel.get("reason", "")
+                score = rel.get("score", -1.0)
+                edges_desc.append((e, reason, score))
+        
+        edge_meta = {}
+        for e, reason, score in edges_desc:
+            # key: the edge tuple; val: (reason, score)
+            edge_meta[(e[0], e[1], e[2], e[3])] = (reason, float(score))
+        
+        # unique + deterministic order
+        edges = sorted(edge_meta.keys())
 
         edge_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "cfslam_funcgraph_edges.pkl"
         with open(edge_path, "wb") as f:
@@ -380,10 +390,26 @@ def main(cfg: DictConfig):
         # Save functional 3D scene graph json file
         sg_dir = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "scene_graph"
         sg_dir.mkdir(parents=True, exist_ok=True)
+        # sg_out = {
+        #     "object": {},
+        #     "part": {},
+        #     "functional_relation": [{"pair": [f"{'obj_'+str(e[0])}", (f'part_{e[1]}' if e[1]!=-1 else f"obj_{e[2]}")], "label": e[3]} for e in edges],
+        # }
+        func_rel = []
+        for (oi, pj, ok, lab) in edges:
+            a = f"obj_{oi}"
+            b = f"part_{pj}" if pj != -1 else f"obj_{ok}"
+            reason, score = edge_meta.get((oi, pj, ok, lab), ("", -1.0))
+            func_rel.append({
+                "pair":  [a, b],
+                "label": lab,
+                "reason": reason,
+                "score": float(score),
+            })
         sg_out = {
-            "object": {},
-            "part": {},
-            "functional_relation": [{"pair": [f"{'obj_'+str(e[0])}", (f'part_{e[1]}' if e[1]!=-1 else f"obj_{e[2]}")], "label": e[3]} for e in edges],
+            "object": {},     
+            "part":   {},
+            "functional_relation": func_rel
         }
 
         # fill nodes from current PKL state

@@ -194,8 +194,9 @@ def aggregate_similarities_wc(
     w_vs = 1.0 - pb
     w_cl = float(cfg.w_color)
     sims = w_sp * spatial_sim + w_vs * visual_sim
-    if color_sim is not None and w_cl == 0.0:
+    if color_sim is not None or w_cl == 0.0:
         LOGGER.debug(f"Check color_sim or w_color={w_cl}")
+    else:
         sims = sims + w_cl * color_sim
     return sims
 
@@ -221,6 +222,7 @@ def main(cfg : DictConfig):
     # Load gsa_classes_{}.json file and create gsa_classes_{}_colors.json file
     classes, class_colors = create_or_load_colors(cfg, cfg.color_file_name)
 
+    LOGGER.info(f"Device: {cfg.device} avilable: {torch.cuda.is_available()}")
     objects = MapObjectList(device=cfg.device)
     
     if not cfg.skip_bg:
@@ -300,8 +302,8 @@ def main(cfg : DictConfig):
             continue
             
         if cfg.use_contain_number:
-            xyxy = fg_detection_list.get_stacked_values_torch('xyxy', 0)
-            contain_numbers = compute_2d_box_contained_batch(xyxy, cfg.contain_area_thresh)
+            xyxy = fg_detection_list.get_stacked_values_torch('xyxy', 0).to(cfg.device)
+            contain_numbers = compute_2d_box_contained_batch(xyxy, cfg.contain_area_thresh).to(cfg.device)
             for i in range(len(fg_detection_list)):
                 fg_detection_list[i]['contain_number'] = [contain_numbers[i]]
             
@@ -328,7 +330,7 @@ def main(cfg : DictConfig):
         # Compute the contain numbers for each detection
         if cfg.use_contain_number:
             # Get the contain numbers for all objects
-            contain_numbers_objects = torch.Tensor([obj['contain_number'][0] for obj in objects])
+            contain_numbers_objects = torch.Tensor([obj['contain_number'][0] for obj in objects], device=cfg.device)
             detection_contained = contain_numbers > 0 # (M,)
             object_contained = contain_numbers_objects > 0 # (N,)
             detection_contained = detection_contained.unsqueeze(1) # (M, 1)

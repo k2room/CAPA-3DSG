@@ -156,7 +156,7 @@ def main(cfg: DictConfig):
     cfg = copy.deepcopy(results['cfg'])
 
     if cfg.dataset == 'FunGraph3D' or cfg.dataset == 'SceneFun3Ddev' or cfg.dataset == 'SceneFun3Dtest':
-        parts_interest = ["knob", "button", "handle"]
+        parts_interest = ["knob", "button", "handle", "switch", "foucet", "panel", "strip"]
         LOGGER.info(f"Generate initial 3DSG: only focus to few parts of interest: {parts_interest}")
     else:
         # TODO: need to expand using knowledge
@@ -202,9 +202,6 @@ def main(cfg: DictConfig):
                             tag = True
         if tag:
             rigid_inter_id_candidate.append(inter_idx)
-
-    LOGGER.info(f"rigid_inter_id_candidate: {len(rigid_inter_id_candidate)}")
-    LOGGER.info(f"part_inter_id_candidate: {len(part_inter_id_candidate)}")
 
     LOGGER.info("Generating initial 3D scene graph...")
     # Generate Initial 3D Scene Graph
