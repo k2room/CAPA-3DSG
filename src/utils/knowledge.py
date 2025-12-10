@@ -4,7 +4,7 @@ from pathlib import Path
 import pickle
 import gzip
 import json
-
+from typing import List, Tuple
 import cv2
 import numpy as np
 import torch
@@ -44,26 +44,26 @@ def load_knowledge(cfg):
         "ram_add_part": dict(data.get("ram_add_part", {})),
     }
 
-def curate_tags(raw_tags, knowledge, cfg) -> list[str]:
+def curate_tags(raw_tags, knowledge, cfg) -> Tuple[List[str], List[str]]:
     """
         Apply remove/add/parts expansion to RAM tags, de-duplicating while preserving order
         - Remove tags in ram_remove (exact match on normalized tag)
         - Remove tags containing any ram_remove_keyword (substring match)
-        - Always add ram_add_obj and small_object
-
-        - If a parent object from ram_add_part exists in current tags, add its parts
-        - 
     """
     def norm(s): return str(s).strip().lower()
     
+    bg_norm = set()
+    if getattr(cfg, "skip_bg", False):
+        bg_norm = {str(x).strip().lower() for x in getattr(cfg, "bg_classes", [])}
+
     # normalize knowledge
     rm_exact = {norm(x) for x in knowledge.get("ram_remove", []) if str(x).strip()}
     rm_sub   = [norm(x) for x in knowledge.get("ram_remove_keyword", []) if str(x).strip()]
-    add_obj  = [str(x).strip() for x in (knowledge.get("ram_add_obj", []) + knowledge.get("small_object", [])) if str(x).strip()]
+    add_obj  = [str(x).strip() for x in knowledge.get("ram_add_obj", []) if str(x).strip()]
+    small_obj  = [str(x).strip() for x in knowledge.get("small_object", []) if str(x).strip()]
     add_part_map = {norm(k): [str(y).strip() for y in v] for k, v in knowledge.get("ram_add_part", {}).items()}
 
     # filter by remove
-    # kept = [t for t in raw_tags if t and norm(t) not in rm]
     kept = []
     for t in raw_tags:
         if not t:
@@ -86,11 +86,12 @@ def curate_tags(raw_tags, knowledge, cfg) -> list[str]:
         if not tt:
             continue
         # optionally skip BG early if desired
-        if getattr(cfg, "skip_bg", False) and nl in {str(x).lower() for x in getattr(cfg, "bg_classes", [])}:
+        if bg_norm and nl in bg_norm:
             continue
         if nl not in seen:
             seen.add(nl)
             out.append(tt)
+    out.extend(small_obj)
 
 
     # parts expansion conditioned on presence of parent in current tags
@@ -100,8 +101,9 @@ def curate_tags(raw_tags, knowledge, cfg) -> list[str]:
         for parent_norm, parts in add_part_map.items():
             if any(parent_norm in t for t in cur_norm):
                 for p in parts:
-                    ps = parent_norm+" "+str(p).strip()
+                    ps = parent_norm+":"+str(p).strip()
                     if ps:
                         parts_to_add.append(ps)
+    parts_to_add.extend(small_obj)
 
     return out, parts_to_add

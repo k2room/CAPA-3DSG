@@ -7,9 +7,6 @@ Fast, training-free color features for 2D masks.
 - robust medians for a*, b*, r, g (optional)
 - HSV-based gating to drop low-chroma / specular pixels
 
-Usage:
-    feats = extract_color_features(cfg, img_rgb_u8=image_rgb, masks=masks_bool, params=dict(...))
-
 Notes:
     - image_rgb must be uint8 RGB (0..255)
     - masks: (N, H, W) bool/uint8
@@ -132,7 +129,7 @@ def _mask_and_gate(mask: np.ndarray, h: np.ndarray, s: np.ndarray, v: np.ndarray
     return (mask.astype(bool) & gate)
 
 # ---------------------------- public API ----------------------------
-
+# Extract color feature for a single mask. Recommneded to use extract_color_features() for multiple masks.
 def extract_color_feature_for_mask(
     cfg: Optional["DictConfig"],
     img_rgb_u8: np.ndarray,
@@ -365,7 +362,7 @@ def _dist_to_sim(d: float, mapping: str = "inv", gamma: float = 3.0) -> float:
         return float(np.exp(-gamma * max(d, 0.0)))
     return float(1.0 / (1.0 + max(d, 0.0)))
 
-def compute_texture_sim(
+def compute_color_sim(
     det_color_feats: list,
     obj_color_feats: list,
     weights=None,

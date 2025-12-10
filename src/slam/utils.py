@@ -362,11 +362,15 @@ def merge_overlap_objects(cfg, objects: MapObjectList, overlap_matrix: np.ndarra
             dim=0
         )
         if ratio > cfg.merge_overlap_thresh:
+            LOGGER.debug(f"{objects[i]['class_name']} and {objects[j]['class_name']} with overlap ratio {ratio:.3f}")
             if visual_sim > cfg.merge_visual_sim_thresh and text_sim > cfg.merge_text_sim_thresh:
                 if kept_objects[j]:
+                    LOGGER.debug(f"Merge {objects[i]['class_name']} and {objects[j]['class_name']} with overlap ratio {ratio:.3f}, visual sim {visual_sim:.3f}, text sim {text_sim:.3f}")
                     # Then merge object i into object j
                     objects[j] = merge_obj2_into_obj1(cfg, objects[j], objects[i], run_dbscan=True)
                     kept_objects[i] = False
+            else:
+                LOGGER.debug(f"Not merging {objects[i]['class_name']} and {objects[j]['class_name']} despite overlap ratio {ratio:.3f}, visual sim {visual_sim:.3f}, text sim {text_sim:.3f}")
         else:
             break
     
@@ -451,6 +455,7 @@ def filter_gobs(
         # Skip masks with low confidence
         if gobs['confidence'] is not None:
             if gobs['confidence'][mask_idx] < cfg.mask_conf_threshold:
+                LOGGER.debug(f"Skipping {class_name} with confidence {gobs['confidence'][mask_idx]} < {cfg.mask_conf_threshold}")
                 continue
         
         idx_to_keep.append(mask_idx)
@@ -523,7 +528,7 @@ def gobs_to_detection_list(
     if not part_reg:
         gobs = filter_gobs(cfg, gobs, image, BG_CLASSES)
     else:
-        gobs = filter_gobs(cfg, gobs, image, BG_CLASSES, ["drawer", "door", "oven", "closet", "window", "remote", "radiator", "bathhub", "sink"])
+        gobs = filter_gobs(cfg, gobs, image, BG_CLASSES, ["drawer", "door", "oven", "closet", "window", "radiator", "bathhub", "sink"])
     
     if len(gobs['xyxy']) == 0:
         return fg_detection_list, bg_detection_list
