@@ -3,6 +3,45 @@
 
 We introduce CAPA-3DSG, a novel framework for Context-Aware Part-Affordance 3D Scene Graph Generation with Open Vocabulary. Our approach enables fine-grained reasoning over object parts and their affordances while generalizing to unseen categories through open-vocabulary learning, bridging the gap between part-level semantics and contextual scene understanding.
 
+# Run
+```bash 
+export CUDA_VISIBLE_DEVICES=0
+
+export OPENAI_API_KEY=
+
+chmod +x run_scene_0.sh
+bash run_scene_0.sh
+
+python scripts/2D_detection.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0
+
+python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0 mask_conf_threshold=0.30 max_bbox_area_ratio=0.90 merge_overlap_thresh=0.2 merge_visual_sim_thresh=0.6 merge_text_sim_thresh=0.8
+
+python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0 mask_conf_threshold=0.15 max_bbox_area_ratio=0.15 merge_overlap_thresh=0.5 merge_visual_sim_thresh=0.75 merge_text_sim_thresh=0.7 part_reg=True
+
+python scripts/gen_init_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0
+
+python scripts/gen_full_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0
+
+python scripts/gen_full_graph.py scene_id=422826/42897541 dataset=SceneFun3D save_folder_name=capa_1
+
+
+python eval/eval_node_CLIP.py --dataset FunGraph3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D --scene 13bathroom --video video0  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/part/pcd_saves/full_pcd_ram_update.pkl.gz
+
+python eval/eval_node_CLIP.py --dataset SceneFun3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph --split dev --scene 420683 --video 42445135  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/420683/42445135/capa_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/420683/42445135/capa_1/part/pcd_saves/full_pcd_ram_update.pkl.gz
+
+python eval/eval_all_SBERT.py --dataset FunGraph3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D --scene 13bathroom --video video0  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/part/pcd_saves/full_pcd_ram_update.pkl.gz --edge_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/cfslam_funcgraph_edges.pkl
+
+422826/42897541
+python eval/eval_all_SBERT.py --dataset SceneFun3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph --split test --scene 422826 --video 42897541  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/test/422826/42897541/capa_6/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/test/422826/42897541/capa_6/part/pcd_saves/full_pcd_ram_update.pkl.gz --edge_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/test/422826/42897541/capa_6/cfslam_funcgraph_edges.pkl
+
+python eval/eval_all_SBERT.py --dataset SceneFun3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph --split dev --scene 420683 --video 42445135  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/420683/42445135/CAPA_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/420683/42445135/CAPA_1/part/pcd_saves/full_pcd_ram_update.pkl.gz --edge_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/420683/42445135/CAPA_1/cfslam_funcgraph_edges.pkl
+
+421254/42444754
+python eval/eval_all_SBERT.py --dataset SceneFun3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph --split dev --scene 421254 --video 42444754  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/CAPA_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/CAPA_1/part/pcd_saves/full_pcd_ram_update.pkl.gz --edge_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/CAPA_1/cfslam_funcgraph_edges.pkl --debug True
+
+python eval/eval_all_SBERT.py --dataset SceneFun3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph --split dev --scene 421254 --video 42444754  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/gpt520250807/full_pcd_ram_withbg_allclasses_overlap_maskconf0_updated.3_bbox0.9_simsum1.2_dbscan.1_post.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/gpt520250807/full_pcd_ram_withbg_allclasses_overlap_maskconf0_updated.15_bbox0.1_simsum1.2_dbscan.1_parts_post.pkl.gz --edge_file //home/main/workspace/k2room2/gpuserver00_storage/CAPA/SceneFun3D_Graph/dev/421254/42444754/gpt520250807/cfslam_funcgraph_edges.pkl --debug True
+```
+
 # Setting
 ## Create conda environment
 ```
@@ -14,7 +53,7 @@ conda install -y -c pytorch -c nvidia pytorch==2.0.1 torchvision==0.15.2 torchau
 
 conda install -y -c pytorch faiss-cpu=1.7.4 mkl=2021 blas=1.0=mkl
 
-conda install -y -c nvidia cuda-toolkit=11.8 cuda-nvcc=11.8
+conda install -y -c nvidia cuda-toolkit=11.8 cuda-nvcc=11.8 pyyaml
 
 conda install -y https://anaconda.org/pytorch3d/pytorch3d/0.7.4/download/linux-64/pytorch3d-0.7.4-py310_cu118_pyt201.tar.bz2
 
@@ -26,6 +65,21 @@ pip install --upgrade-strategy only-if-needed tyro timm==1.0.17 open_clip_torch 
 
 # for RAM
 pip install --upgrade-strategy only-if-needed "transformers==4.35.2" "tokenizers==0.14.1" "huggingface-hub==0.17.3" "accelerate==0.24.1" "safetensors==0.4.2" 
+
+# 이후 SBERT로 인해 아래 버전 시도 중 (OFG에서) 
+pip install --upgrade-strategy only-if-needed "transformers==4.49.0"
+# 아래 오류 발생하긴했지만 설치는 됨
+# ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is 
+# the source of the following dependency conflicts.
+# llava 1.2.2.post1 requires accelerate==0.21.0, but you have accelerate 1.11.0 which is incompatible.
+# llava 1.2.2.post1 requires tokenizers==0.15.1, but you have tokenizers 0.21.4 which is incompatible.
+# llava 1.2.2.post1 requires transformers==4.37.2, but you have transformers 4.49.0 which is incompatible.
+
+# 그리고 timm : 0.6.13 -> 1.0.17
+# llava 1.2.2.post1 requires timm==0.6.13, but you have timm 1.0.17 which is incompatible.
+# 다시 원래 버전으로 돌아감. 11/08
+# pip install --upgrade-strategy only-if-needed "transformers==4.35.2" "tokenizers==0.14.1" "huggingface-hub==0.17.3" "accelerate==0.24.1" "safetensors==0.4.2"
+
 
 # check path by 'conda env list'
 # (e.g.) export CUDA_HOME=/home/k2room/.conda/envs/capa

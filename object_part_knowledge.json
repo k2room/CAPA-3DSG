@@ -1,20 +1,20 @@
 {
-    "ram_add_obj": ["door", "window", "drawer", "closet", "chest", "cabinet", "dresser", "radiator", "light", "wardrobe"
+    "ram_add_obj": ["door", "window", "drawer", "closet", "chest", "cabinet", "dresser", "radiator", "light", "wardrobe", "faucet", "trashcan"
     ],
-    "ram_remove_keyword" : ["appliance", "room", "house", "home", "wooden", "wood", "grass" 
+    "ram_remove_keyword" : ["appliance", "room", "house", "home", "wooden", "wood", "grass", "floor"
     ],
     "ram_remove": [
-        "corner", "indoor", "area", "interior", "space",
-        "lobby", "kitchen", "office", "building", "doorway", "apartment", "hallway", "aquarium", "dormitory", "bedroom", "bathroom", "living room",
+        "corner", "indoor", "area", "interior", "space", "poster",
+        "lobby", "kitchen", "office", "building", "doorway", "apartment", "hallway", "aquarium", "dormitory", "bedroom", "bathroom", "livingroom",
         "blue", "green", "red", "yellow", "white", "black", "brown", "pink", "purple", "orange", "gray", "grey", "silver", "gold",
-        "shadow", "shade", "stall", "image", "city", "skylight",  "carpet", "bureau", 
+        "shadow", "shade", "stall", "image", "city", "skylight", "bureau", 
         "modern", "salon", "tile","wall paper", "wallpaper", "polka dot", 
-        "mattress", "carpet", "plain", "sheet", "subway", "sun", "glass wall", "glass floor", "wall lamp", "glass door",
+        "mattress", "plain", "sheet", "subway", "sun",
         "screen door", "hard", "ceiling", "close-up", "basement", "cement", "molding", "socket",
-        "hardwood", "carpet", "rug", "heater", "concrete", "wall clock", "corridor", 
+        "hardwood", "carpet", "rug", "heater", "concrete", "corridor", 
         "kitchenette", "furniture", "hassock", "armchair"
     ],
-    "small_object": ["remote", "electric outlet", "trashcan", "wire"],
+    "small_object": ["remote_control", "electric_outlet", "wall_plug", "wire", "switch_panel"],
     "ram_add_part": {
         "door": ["handle", "knob"],
         "window": ["handle"],
@@ -24,10 +24,9 @@
         "dresser": ["handle", "knob"],
         "radiator": ["body", "valve"],
         "trashcan": ["lid", "body", "liner"],
-        "blender": ["button", "dial", "lid", "body", "spout", "handle"],
+        "blender": ["button", "dial", "lid", "spout", "handle"],
         "pot": ["lid", "handle", "body"],
         "kettle": ["lid", "handle", "spout", "body"],
-        "outlet": ["cover", "plug", "socket"],
         "handbag": ["strap", "handle", "pocket", "zipper"],
         "basket": ["body", "handle", "lid"],
         "bottle": ["lid", "spout", "body"],
@@ -45,7 +44,7 @@
         "hammer": ["head", "handle"],
         "hat": ["visor", "crown"],
         "scissors": ["blade", "handle"],
-        "remote": ["button", "body"],
+        "remote_control": ["button", "body"],
         "recliner": ["seat", "armrest", "footrest", "lever"],        
         "chair": ["leg", "backrest", "seat", "armrest", "wheel"],
         "bench": ["leg", "backrest", "seat", "armrest"],
@@ -56,7 +55,7 @@
         "laptop": ["keyboard", "touchpad", "button"],
         "computer" : ["keyboard", "mouse_(computer_equipment),", "button"],
         "microwave": ["handle", "keypad", "button", "dial"],
-        "oven": ["handle", "knob", "button"],
+        "oven": ["handle", "dial", "knob", "button"],
         "stove": ["dial", "button", "burner"],
         "refrigerator": ["door", "handle"],
         "toaster": ["lever", "slot"],
@@ -67,7 +66,6 @@
         "telephone": ["receiver", "button", "keypad"],
         "picture": ["frame"],
         "sofa": ["seat", "backrest", "armrest"],
-        "bed": ["headboard", "footboard", "mattress"],
         "toilet": ["tank", "bowl", "seat", "lid", "button", "lever"],
         "sink": ["basin", "faucet", "drain"],
         "bathtub": ["faucet", "basin"],
@@ -77,17 +75,17 @@
         "faucet": ["lever", "spout"],
         "desk": ["leg", "top" ],
         "soap": ["bottle", "pump", "spout"],
-        "toothbrush": ["bristles", "body"],
-        "charger": ["plug", "cable", "body", "adapter"],
+        "toothbrush": ["bristles", "handle"],
+        "charger": ["plug", "cable", "adapter"],
         "broom": ["bristles", "handle"],
         "detergent": ["bottle", "pump", "spout"],
-        "dish brush": ["head", "handle"],
-        "dish washer": ["door", "button", "handle", "body", "dial"],
+        "dish_brush": ["head", "handle"],
+        "dish_washer": ["door", "button", "handle", "dial"],
         "dustpan": ["handle", "head"],
-        "rice cooker": ["lid", "body", "button", "handle"],
+        "rice_cooker": ["lid", "button", "handle"],
         "mop": ["head", "handle"],
-        "wardrobe": ["door", "handle"],
-        "coffee machine": ["button", "body", "plug"],
-        "washing machine": ["door", "button", "handle", "body", "dial"]
+        "wardrobe": ["knob", "handle"],
+        "coffee_machine": ["button", "plug"],
+        "washing_machine": ["door", "button", "handle", "dial"]
     }
 }
