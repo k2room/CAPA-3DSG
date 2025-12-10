@@ -2,7 +2,7 @@
 Open-vocabulary 2D object/part detection in each 2D image.
 - use CAPA.yaml for configuration (Hydra).
 - example:
-    $ python scripts/2D_detection.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_1
+    $ python scripts/2D_detection.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa
 """
 # ===== imports =====
 import os, sys, json, gzip, pickle, warnings, logging
@@ -74,7 +74,7 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     - absolutize checkpoints
     - flatten detector thresholds to top-level keys (box_threshold, etc.)
     """
-    if not cfg.get("scene_id") or not cfg.get("dataset"):
+    if cfg.get("scene_id") is None or cfg.get("dataset") is None :
         raise ValueError("Both `scene_id` and `dataset` are required. e.g., scene_id=0kitchen/video0 dataset=FunGraph3D")
     if str(cfg.dataset) not in cfg.ALLOWED_DATASETS:
         raise ValueError(f"`dataset` must be one of {sorted(cfg.ALLOWED_DATASETS)}; got {cfg.dataset}")
@@ -92,10 +92,11 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "SceneFun3Dtest":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
-    elif ds == "PADO":
-        cfg.dataset_root   = _resolve_path(cfg.PADO_root)
-        pado_cfg_key = "PADO_config" if "PADO_config" in cfg else "PADO_config_path"
-        cfg.dataset_config = _resolve_path(cfg[pado_cfg_key])
+    elif ds == "CAPAD":
+        cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
+        cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
+    else:
+        raise ValueError(f"Unknown dataset: {ds}")
 
     # absolutize checkpoints & knowledge
     cfg.gdino_config_path  = _resolve_path(cfg.gdino_config_path)
@@ -187,6 +188,7 @@ def get_sam_segmentation_dense(model: Any, image: np.ndarray) -> tuple[np.ndarra
 def main(cfg: DictConfig):  # [HYDRA] cfg directly
     LOGGER.info("START main()")
     _process_cfg(cfg)
+    LOGGER.info(f"Folder: {cfg.save_folder_name} | 2D Detection")
 
     # Initialize the dataset
     dataset = get_dataset(
@@ -324,6 +326,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
                 ram_out = inference_ram(raw_image, tagging_model)[0]
                 raw_tags = [t.strip() for t in ram_out.split(" | ")]
 
+                # small objects are included in part_classes for NMS and Fusion
                 obj_tags, part_tags = curate_tags(raw_tags, knowledge, cfg)
                 obj_classes.update(obj_tags)
                 part_classes.update(part_tags)
@@ -425,6 +428,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
                 )
                 image_crops = list(detections.image_crops) if detections.image_crops is not None else []
                 image_feats = list(detections.image_feats) if detections.image_feats is not None else []
+
                 # keep text_feats as class bank(C,D) + gather on demand
                 if getattr(detections, "text_feats", None) is not None:
                     text_feats = list(detections.text_feats[detections.class_id])
@@ -438,7 +442,7 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             if cfg.use_color_feat and (len(detections.class_id) > 0) and (detections.mask is not None):
                 part_idx = np.flatnonzero(is_part)
                 if part_idx.size > 0:
-                    LOGGER.debug(f"Extracting texture features for {part_idx.size} parts...")
+                    LOGGER.debug(f"Extracting color features for {part_idx.size} parts...")
                     masks_u8 = detections.mask[part_idx].astype(np.uint8) # (N, H, W) only for parts
                     color_feats = extract_color_features(
                         cfg,
@@ -486,25 +490,8 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             "text_feats":  text_feats, 
             "color_feats": color_feats,                 # [For each mask, Dict with keys:{Hab, Hrg, Hopp, med, Hcn}]
         }            
-        # results = {
-        #     "xyxy":        detections.xyxy,
-        #     "confidence":  detections.confidence,
-        #     "class_id":    detections.class_id,
-        #     "mask":        detections.mask,
-        #     "classes":     classes,
-        #     "image_crops": image_crops,
-        #     "image_feats": image_feats,
-        #     "text_feats":  text_feats, 
-        #     "is_part":     is_part,
-        # }
+
         LOGGER.debug(f"\t= {int(np.sum(is_obj))} objects + {int(np.sum(is_part))} parts")
-
-        # if cfg.tagger == "ram":
-        #     results["tagging_caption"] = "NA"
-        #     results["tagging_text_prompt"] = raw_tags
-
-        # with gzip.open(str(detections_save_path), "wb") as f:
-        #     pickle.dump(results, f)
 
         with gzip.open(str(obj_detections_save_path), "wb") as f:
             pickle.dump(obj_results, f)
@@ -512,19 +499,19 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
             pickle.dump(part_results, f)
 
     # save global classes
-    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / f"gsa_classes_{save_name}.json"
+    classes_json = Path(cfg.dataset_root) / str(cfg.scene_id) / cfg.save_folder_name / f"gsa_classes_{save_name}.json"
     os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
     with open(str(classes_json), "w") as f:
         json.dump(list(global_classes), f)
     LOGGER.info(f"Saved classes to: {classes_json}")
 
-    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'object' / f"gsa_classes_{save_name}_obj.json"
+    classes_json = Path(cfg.dataset_root) / str(cfg.scene_id) / cfg.save_folder_name / 'object' / f"gsa_classes_{save_name}_obj.json"
     os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
     with open(str(classes_json), "w") as f:
         json.dump(list(obj_classes), f)
     LOGGER.info(f"Saved object classes")
 
-    classes_json = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'part' / f"gsa_classes_{save_name}_part.json"
+    classes_json = Path(cfg.dataset_root) / str(cfg.scene_id) / cfg.save_folder_name / 'part' / f"gsa_classes_{save_name}_part.json"
     os.makedirs(os.path.dirname(str(classes_json)), exist_ok=True)
     with open(str(classes_json), "w") as f:
         json.dump(list(part_classes), f)

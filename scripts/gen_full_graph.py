@@ -16,11 +16,13 @@ import os
 import pickle
 import re
 import sys
+import time
 from pathlib import Path
 from typing import Dict, Any, Optional
 from utils.general_utils import read_json
 from prompts.gpt import GPTprompt
 from slam.slam_classes import MapObjectList
+from time import sleep
 
 # ===== hydra / omegaconf =====
 import hydra
@@ -85,12 +87,13 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
         cfg.mode = "func" # functional relation only for SceneFun3D
-    elif ds == "PADO":
-        cfg.dataset_root   = _resolve_path(cfg.PADO_root)
-        pado_cfg_key = "PADO_config" if "PADO_config" in cfg else "PADO_config_path"
-        cfg.dataset_config = _resolve_path(cfg[pado_cfg_key])
+    elif ds == "CAPAD":
+        cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
+        cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
         cfg.mode = "full"
-    
+    else:
+        raise ValueError(f"Unknown dataset: {ds}")
+
     OmegaConf.set_struct(cfg, prev_struct)
 
 def _idx_from(node_id: str, prefix: str) -> Optional[int]:
@@ -132,8 +135,21 @@ def main(cfg: DictConfig):
     if initial_graph is None or len(initial_graph) == 0:
         LOGGER.error(f"Initial 3D Scene Graph file not found: {sg_init_path}")
     
-    if cfg.mode == "func":
+    if cfg.dataset == "FunGraph3D" or cfg.dataset.startswith("SceneFun3D"):
         spatial_relation = initial_graph.pop("spatial_relation", None)
+
+        if "object" in initial_graph and isinstance(initial_graph["object"], dict):
+            for obj_id, obj in initial_graph["object"].items():
+                if "center" in obj:
+                    obj["center"] = [round(float(num), 2) for num in obj["center"]]
+                obj.pop("extent", None)
+
+        if "part" in initial_graph and isinstance(initial_graph["part"], dict):
+            for part_id, part in initial_graph["part"].items():
+                if "center" in part:
+                    part["center"] = [round(float(num), 2) for num in part["center"]]
+                part.pop("extent", None)
+
         initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
     else:
         initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
@@ -168,12 +184,14 @@ def main(cfg: DictConfig):
         part_results = pickle.load(f)
     
     if cfg.mode == "func":
+        prompts = GPTprompt(config=cfg)
         LOGGER.info("Generating Functional 3D Scene Graph without Spatial Relations")
-        LOGGER.info("API REQUESTING...")
+        LOGGER.info("API REQUESTING... (Local Functional Relations)")
         resp = client.responses.create(
             model=OPENAI_CHAT_MODEL,
-            instructions=GPTprompt(config=cfg).system_prompt_func,
+            instructions=prompts.system_func_local,
             input= initial_graph,
+            background=True,
             reasoning={"effort":"high"},
             text={
                 "verbosity":"high",
@@ -264,25 +282,212 @@ def main(cfg: DictConfig):
             }
         )
 
-        # llm_result = resp.output_text.strip().replace("'", "\'")
+        LOGGER.info("API REQUESTING... (Remote Functional Relations)")
+        resp2 = client.responses.create(
+            model=OPENAI_CHAT_MODEL,
+            instructions=prompts.system_func_remote,
+            input= initial_graph,
+            background=True,
+            reasoning={"effort":"high"},
+            text={
+                "verbosity":"high",
+                "format": {
+                    "type": "json_schema",
+                    "name": "3D_Scene_Graph",
+                    "strict": True,
+                    # ------------ SCHEMA ------------ 
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            # ------------ for Objects ------------ 
+                            "objects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern":"^(obj|part)_\\d+$"
+                                            },
+                                        "label": {"type": "string"},
+                                        "connected_parts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern":"^part_\\d+$"
+                                                }
+                                        }
+                                    },
+                                    "required": ["id", "label", "connected_parts"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Parts ------------ 
+                            "parts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern":"^part_\\d+$"
+                                            },
+                                        "label":   {"type": "string"}
+                                    },
+                                    "required": ["id", "label"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Functional Relations ------------ 
+                            "functional_relations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern":"^(obj|part)_\\d+$",
+                                                },
+                                            "minItems": 2, 
+                                            "maxItems": 2
+                                        },
+                                        "label": {"type": "string"},
+                                        "reason": {
+                                            "type": "string",
+                                            "description": "Reason for inferring the relations"
+                                            },
+                                        "score": {
+                                            "type": "number",
+                                            "description": "Confidence score of the inferred relation",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0,
+                                            "multipleOf": 0.1
+                                            },
+                                    },
+                                    "required": ["pair", "label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            }
+                        },
+                        "required": ["objects", "parts", "functional_relations"],
+                        "additionalProperties": False
+                    }
+                }   
+            }
+        )
+
+
+        logging.getLogger("openai").setLevel(logging.WARNING)
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
+        jobs = {"local": resp.id, "remote": resp2.id}
+        results = {}
+        prev_status = {}  # name -> last_status
+        
+        timeout = 1200  # seconds
+        start_time = time.time()
+
+        while jobs:
+            for name, job_id in list(jobs.items()):
+                r = client.responses.retrieve(job_id)
+                s = getattr(r, "status", None)
+
+                if prev_status.get(name) != s:
+                    LOGGER.info(f"[{name}] status changed: {prev_status.get(name)} -> {s}")
+                    prev_status[name] = s
+
+                if s in {"completed", "succeeded"}:
+                    results[name] = r
+                    del jobs[name]
+                elif s in {"failed", "errored", "cancelled", "incomplete"}:
+                    LOGGER.error(f"[{name}] job failed with status={s}")
+                    raise RuntimeError(f"{name} job failed: {s}") 
+                
+                if time.time() - start_time > timeout:
+                    LOGGER.error(f"[{name}] job timeout after {timeout} seconds")
+                    raise TimeoutError(f"{name} job timeout")
+            sleep(5)
+
+        resp  = results["local"]
+        resp2 = results["remote"]
+
+        
         try:
             # llm_result = json.loads(llm_result)
-            llm_result = json.loads(resp.output_text)
-            LOGGER.info("Successfully parsed LLM response as JSON.")
+            llm_result_local = json.loads(resp.output_text)
+            LOGGER.info("Successfully parsed LLM response as JSON - Local Functional Relations")
+            llm_result_remote = json.loads(resp2.output_text)
+            LOGGER.info("Successfully parsed LLM response as JSON - Remote Functional Relations")
         except Exception as e:
             LOGGER.error("Failed to parse LLM response as JSON.")
             LOGGER.error(f"Response: {resp}")
+            LOGGER.error(f"Response: {resp2}")
             raise e
         
         try:
             LOGGER.debug(f"reasoning: {resp.reasoning}")
             LOGGER.debug(f"usage: {resp.usage}")
+            LOGGER.debug(f"reasoning: {resp2.reasoning}")
+            LOGGER.debug(f"usage: {resp2.usage}")
         except Exception:
             pass
 
-        objs = llm_result["objects"]
-        parts = llm_result["parts"]
-        func_rels = llm_result["functional_relations"]
+
+        objs  = llm_result_local.get("objects")
+        parts = llm_result_local.get("parts")
+        func_rels_local = llm_result_local["functional_relations"]
+        func_rels_remote = llm_result_remote["functional_relations"]
+
+        owner = {}
+        for obj in objs:
+            cps = obj.get("connected_parts", [])
+            if isinstance(cps, list):
+                for pid in cps:
+                    if isinstance(pid, str) and pid.startswith("part_"):
+                        owner[pid] = obj.get("id")
+
+        func_rels = []
+        _seen_pairs = set()   # (tuple(pair), label)
+
+        def _push_relation(rel):
+            pair = rel.get("pair", [])
+            lab  = rel.get("label", "")
+            if not (isinstance(pair, list) and len(pair) == 2):
+                return
+            key = (tuple(pair), lab)
+            if key not in _seen_pairs:
+                _seen_pairs.add(key)
+                func_rels.append(rel)
+
+        # Add local functional relations
+        for r in func_rels_local:
+            _push_relation(r)
+
+        # Add remote functional relations, and propagate part-object to object-object
+        for r in func_rels_remote:
+            _push_relation(r)
+            pair = r.get("pair", [])
+            if not (isinstance(pair, list) and len(pair) == 2):
+                continue
+            a, b = pair[0], pair[1]
+            if isinstance(a, str) and a.startswith("part_") and isinstance(b, str) and b.startswith("obj_"):
+                parent = owner.get(a)
+                if parent and parent != b:
+                    rr = dict(r)
+                    rr["pair"]   = [parent, b]
+                    rr["reason"] = (r.get("reason","") + " (propagated from part→object)").strip()
+                    rr["score"]  = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
+                    _push_relation(rr)
+            elif isinstance(a, str) and a.startswith("obj_") and isinstance(b, str) and b.startswith("part_"):
+                parent = owner.get(b)
+                if parent and parent != a:
+                    rr = dict(r)
+                    rr["pair"]   = [a, parent]
+                    rr["reason"] = (r.get("reason","") + " (propagated from object→part)").strip()
+                    rr["score"]  = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
+                    _push_relation(rr)
 
         # update full_pcd_ram_update.pkl.gz and save to full_pcd_ram_llm.pkl.gz for both objects and parts
         # generate edge pickle file to evaluation

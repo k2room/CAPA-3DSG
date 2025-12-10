@@ -2,7 +2,7 @@
 Generate initial scene graph from the fused 3D objects and parts.
 - use CAPA_slam.yaml for configuration (Hydra).
 - example:
-    $ python scripts/gen_init_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=
+    $ python scripts/gen_init_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa
 """
 
 import copy, re, json
@@ -69,10 +69,11 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "SceneFun3Dtest":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
-    elif ds == "PADO":
-        cfg.dataset_root   = _resolve_path(cfg.PADO_root)
-        pado_cfg_key = "PADO_config" if "PADO_config" in cfg else "PADO_config_path"
-        cfg.dataset_config = _resolve_path(cfg[pado_cfg_key])
+    elif ds == "CAPAD":
+        cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
+        cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
+    else:
+        raise ValueError(f"Unknown dataset: {ds}")
     
     OmegaConf.set_struct(cfg, prev_struct)
 
@@ -107,6 +108,7 @@ def compute_overlap_ratio(source, target, distance_threshold=0.02):
 def main(cfg: DictConfig):  
     LOGGER.info("START main()")
     _process_cfg(cfg)
+    LOGGER.info(f"Folder: {cfg.save_folder_name} | Generate Initial 3D Scene Graph")
 
     if cfg.use_color_feat:
         LOGGER.info("Load pkl with color features")
@@ -155,13 +157,11 @@ def main(cfg: DictConfig):
     # Run the post-processing filtering and merging in instructed to do so
     cfg = copy.deepcopy(results['cfg'])
 
-    if cfg.dataset == 'FunGraph3D' or cfg.dataset == 'SceneFun3Ddev' or cfg.dataset == 'SceneFun3Dtest':
-        parts_interest = ["knob", "button", "handle", "switch", "foucet", "panel", "strip"]
-        LOGGER.info(f"Generate initial 3DSG: only focus to few parts of interest: {parts_interest}")
-    else:
-        # TODO: need to expand using knowledge
-        parts_interest = ["knob", "button", "handle", "lid", "dial", "lever", "switch"]
-        LOGGER.info(f"Generate initial 3DSG: focus to more parts of interest: {parts_interest}")
+    # Add parts that can be local connected to objects 
+    parts_interest = [
+        "knob", "button", "handle", "lid", "dial", "lever", "switch", "faucet", "panel", "hole", "top", "body", "rim", 
+        "seat", "armrest", "footrest", "backrest", "screen", "spout", "curtain", "rod", "valve", "head"
+        ]
 
     rigid_inter_id_candidate = []
     part_inter_id_candidate = []
@@ -189,7 +189,7 @@ def main(cfg: DictConfig):
                     # fusion based on inter objects: 1 object many parts and object must be big enough
                     obj_box_extent = obj_inter['bbox'].extent
                     part_box_extent = part['bbox'].extent
-                    if (iou > 0.7 and obj_box_extent.mean() > 2 * part_box_extent.mean()) or (iou > 0.0 and obj_class_inter in part_class):
+                    if (iou > 0.7 and obj_box_extent.mean() > 2 * part_box_extent.mean()) or (iou > 0.1 and obj_class_inter in part_class):
                         LOGGER.debug(f"{obj_class_inter}, {part_class} {iou}")
                         if 'connected_parts' not in obj_inter:
                             obj_inter['connected_parts'] = []

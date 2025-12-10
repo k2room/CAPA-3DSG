@@ -2,8 +2,8 @@
 3D Fusion using the detected objects/parts from each frame.
 - use CAPA_slam.yaml for configuration (Hydra).
 - example:
-    $ python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_1 mask_conf_threshold=0.30 max_bbox_area_ratio=0.90 merge_overlap_thresh=0.2 merge_visual_sim_thresh=0.6 merge_text_sim_thresh=0.8
-    $ python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_1 mask_conf_threshold=0.15 max_bbox_area_ratio=0.15 merge_overlap_thresh=0.5 merge_visual_sim_thresh=0.75 merge_text_sim_thresh=0.7 part_reg=True
+    $ python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa mask_conf_threshold=0.30 max_bbox_area_ratio=0.90 merge_overlap_thresh=0.2 merge_visual_sim_thresh=0.6 merge_text_sim_thresh=0.8
+    $ python scripts/3D_fusion.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa mask_conf_threshold=0.15 max_bbox_area_ratio=0.15 merge_overlap_thresh=0.5 merge_visual_sim_thresh=0.75 merge_text_sim_thresh=0.7 part_reg=True
 """
 # ===== imports =====
 import copy
@@ -32,7 +32,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 from dataloader.datasets_common import get_dataset
 from utils.vis import OnlineObjectRenderer
 from utils.ious import compute_2d_box_contained_batch
-from utils.color_extraction import compute_texture_sim 
+from utils.color_extraction import compute_color_sim 
 from slam.slam_classes import MapObjectList
 from slam.utils import (
     create_or_load_colors,
@@ -90,44 +90,23 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "SceneFun3Dtest":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
-    elif ds == "PADO":
-        cfg.dataset_root   = _resolve_path(cfg.PADO_root)
-        pado_cfg_key = "PADO_config" if "PADO_config" in cfg else "PADO_config_path"
-        cfg.dataset_config = _resolve_path(cfg[pado_cfg_key])
+    elif ds == "CAPAD":
+        cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
+        cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
+    else:
+        raise ValueError(f"Unknown dataset: {ds}")
     
     dataset_cfg = OmegaConf.load(cfg.dataset_config)
-    if cfg.image_height is None:
+    if ds == "CAPAD":
+        cfg.image_height = 1440
+        cfg.image_width = 1920
+    else:
+        if cfg.image_height is None:
             cfg.image_height = dataset_cfg.camera_params.image_height
-    if cfg.image_width is None:
-        cfg.image_width = dataset_cfg.camera_params.image_width
+        if cfg.image_width is None:
+            cfg.image_width = dataset_cfg.camera_params.image_width
 
     OmegaConf.set_struct(cfg, prev_struct)
-
-def compute_match_batch(cfg, spatial_sim: torch.Tensor, visual_sim: torch.Tensor) -> torch.Tensor:
-    '''
-    Compute object association based on spatial and visual similarities
-    
-    Args:
-        spatial_sim: a MxN tensor of spatial similarities
-        visual_sim: a MxN tensor of visual similarities
-    Returns:
-        A MxN tensor of binary values, indicating whether a detection is associate with an object. 
-        Each row has at most one 1, indicating one detection can be associated with at most one existing object.
-        One existing object can receive multiple new detections
-    '''
-    assign_mat = torch.zeros_like(spatial_sim)
-    if cfg.match_method == "sim_sum":
-        sims = (1 + cfg.phys_bias) * spatial_sim + (1 - cfg.phys_bias) * visual_sim # (M, N)
-        row_max, row_argmax = torch.max(sims, dim=1) # (M,), (M,)
-        for i in row_max.argsort(descending=True):
-            if row_max[i] > cfg.sim_threshold:
-                assign_mat[i, row_argmax[i]] = 1
-            else:
-                break
-    else:
-        raise ValueError(f"Unknown matching method: {cfg.match_method}")
-    
-    return assign_mat
 
 def prepare_objects_save_vis(objects: MapObjectList, downsample_size: float=0.01):
     objects_to_save = copy.deepcopy(objects)
@@ -164,7 +143,7 @@ def compute_color_similarities(cfg, detection_list, objects) -> torch.Tensor:
     mapping = getattr(cfg, "color_sim_mapping", "inv")          # 'inv' or 'exp'
     gamma   = float(getattr(cfg, "color_sim_gamma", 3.0))       # for 'exp'
 
-    S = compute_texture_sim(det_feats, obj_feats, weights=weights, mapping=mapping, gamma=gamma)
+    S = compute_color_sim(det_feats, obj_feats, weights=weights, mapping=mapping, gamma=gamma)
     if not torch.is_tensor(S):
         S = torch.tensor(S, dtype=torch.float32)
     return S.to(device=cfg.device, dtype=torch.float32)
@@ -194,7 +173,7 @@ def aggregate_similarities_wc(
     w_vs = 1.0 - pb
     w_cl = float(cfg.w_color)
     sims = w_sp * spatial_sim + w_vs * visual_sim
-    if color_sim is not None or w_cl == 0.0:
+    if color_sim is None or w_cl == 0.0:
         LOGGER.debug(f"Check color_sim or w_color={w_cl}")
     else:
         sims = sims + w_cl * color_sim
@@ -204,6 +183,8 @@ def aggregate_similarities_wc(
 def main(cfg : DictConfig):
     LOGGER.info("START main()")
     _process_cfg(cfg)
+    LOGGER.info(f"Folder: {cfg.save_folder_name} | 3D Fusion")
+    LOGGER.info(f"fusion for part: {cfg.part_reg}, use color feat: {cfg.use_color_feat}")
     
     # Initialize the dataset
     dataset = get_dataset(
@@ -343,7 +324,8 @@ def main(cfg : DictConfig):
         # Threshold sims according to cfg. Set to negative infinity if below threshold
         agg_sim[agg_sim < cfg.sim_threshold] = float('-inf')
         
-        objects = merge_detections_to_objects(cfg, fg_detection_list, objects, agg_sim)
+        # Merge the detections into the map objects: merge_obj2_into_obj1 & ema_update_color_feat
+        objects = merge_detections_to_objects(cfg, fg_detection_list, objects, agg_sim) 
         
         # Perform post-processing periodically if told so
         if cfg.denoise_interval > 0 and (idx+1) % cfg.denoise_interval == 0:
@@ -373,11 +355,12 @@ def main(cfg : DictConfig):
         name = f"full_pcd_{cfg.gsa_variant}"
         if cfg.use_color_feat:
             name += "_wc"
+
         if not cfg.part_reg:
-            pcd_save_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / \
+            pcd_save_path = Path(cfg.dataset_root) / str(cfg.scene_id) / cfg.save_folder_name / \
                 'object' / 'pcd_saves' / f"{name}.pkl.gz"
         else:
-            pcd_save_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / \
+            pcd_save_path = Path(cfg.dataset_root) / str(cfg.scene_id) / cfg.save_folder_name / \
                 'part' / 'pcd_saves' / f"{name}.pkl.gz"
         # make the directory if it doesn't exist
         pcd_save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -387,6 +370,7 @@ def main(cfg : DictConfig):
         #     pickle.dump(results, f)
         # print(f"Saved full point cloud to {pcd_save_path}")
     
+    # Post-processing: filter and merge objects in map (not newly detected ones)
     LOGGER.info("Filtering and merging objects ...")
     objects = filter_objects(cfg, objects)
     objects = merge_objects(cfg, objects)
