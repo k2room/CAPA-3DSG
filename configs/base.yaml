@@ -10,13 +10,13 @@ defaults:
   - _self_
 
 # datasets
-ALLOWED_DATASETS: ["FunGraph3D", "SceneFun3Ddev", "SceneFun3Dtest", "PADO"]
+ALLOWED_DATASETS: ["FunGraph3D", "SceneFun3Ddev", "SceneFun3Dtest", "CAPAD", "3DSSG"]
 FUNGRAPH3D_root: ${root}/gpuserver00_storage/CAPA/FunGraph3D/
 FUNGRAPH3D_config_path: ${project_root}/dataset/dataconfigs/fungraph3d/fungraph3d.yaml
 SCENEFUN3D_root: ${root}/gpuserver00_storage/CAPA/SceneFun3D_Graph/
 SCENEFUN3D_config: ${project_root}/dataset/dataconfigs/scenefun3d/scenefun3d.yaml
-PADO_root: ${root}/gpuserver00_storage/CAPA/PADO/
-PADO_config: ${project_root}/dataset/dataconfigs/pado/pado.yaml
+CAPAD_root: ${root}/gpuserver00_storage/PADO/
+CAPAD_config: ${project_root}/dataset/dataconfigs/capad/capad.yaml
 knowledge_path: ${project_root}/object_part_knowledge.json
 
 # checkpoints

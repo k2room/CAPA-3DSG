@@ -4,7 +4,7 @@ defaults:
 
 save_folder_name: ??? # set number to distinguish different runs
 detector: vlp
-dataset: ??? # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
+dataset: ??? # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | CAPAD}
 scene_id: ???
 part_reg: !!bool False    # True for part, False for object
 use_color_feat: !!bool True
@@ -13,8 +13,8 @@ use_color_feat: !!bool True
 start: 0
 end: -1
 stride: 1
-image_height: null # if null, it will be determined by dataconfig
-image_width: null # if null, it will be determined by dataconfig
+image_height: null
+image_width: null
 
 # Input detections
 gsa_variant: ram
@@ -69,7 +69,7 @@ bg_classes: [ "wall", "floor", "ceiling" ]
 
 # Selection criteria of the fused object point cloud
 obj_min_points: 0
-obj_min_detections: 9
+obj_min_detections: 6
 
 # For merge_overlap_objects() function
 merge_overlap_thresh: 1.0 # -1 means do not perform the merge_overlap_objects()

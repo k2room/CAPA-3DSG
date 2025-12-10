@@ -2,7 +2,7 @@ defaults:
   - base
   - _self_
 
-dataset: ???              # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | PADO}
+dataset: ???              # {FunGraph3D | SceneFun3Ddev | SceneFun3Dtest | CAPAD}
 scene_id: ???
 save_folder_name: capa1   # set number to distinguish different runs
 tagger: ram               # {ram | none}
@@ -40,7 +40,7 @@ yolo:
 
 # vlp
 vlp:
-  score_threshold: 0.3
+  score_threshold: 0.20
   nms_threshold: 0.5
   part_nms_threshold: 0.5
 
