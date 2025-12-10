@@ -1,0 +1,68 @@
+dataset_name: capad
+
+scenefun3d:
+  config_path: dataset/dataconfigs/capad/scenefun3d.yaml
+  sequences:
+    - scene0/42445173
+    - scene1/43649409
+    - scene2/47331576
+    - scene3/47334499
+    - scene4/42444755
+    - scene5/42445078
+    - scene6/42445692
+    - scene7/42444514
+    - scene8/42444887
+    - scene9/42444490
+    - scene10/42447294
+    - scene11/42445931
+    - scene12/42897405
+    - scene13/42447329
+    - scene14/47334559
+    - scene15/42898221
+
+fungraph3d:
+  config_path: dataset/dataconfigs/capad/fungraph3d.yaml
+  sequences:
+    - scene16/video0
+    - scene17/video1
+    - scene18/video0
+    - scene19/video1
+    - scene20/video1
+    - scene21/video0
+    - scene22/video1
+    - scene23/video0
+    - scene24/video0
+    - scene25/video0
+    - scene26/video0
+    - scene27/video0
+
+
+    # - 420693/42445173
+    # - 436997/43649409
+    # - 466850/47331576
+    # - 468146/47334499
+    # - 421254/42444755
+    # - 421647/42445078
+    # - 422148/42445692
+    # - 421061/42444514
+    # - 421264/42444887
+    # - 421069/42444490
+    # - 422383/42447294
+    # - 422539/42445931
+    # - 423474/42897405
+    # - 422377/42447329
+    # - 468104/47334559
+    # - 423989/42898221
+
+    # - 2livingroom/video0
+    # - 4livingroom/video1
+    # - 7bedroom/video0
+    # - 9bedroom/video1
+    # - 11bedroom/video1
+    # - 1bathroom/video0
+    # - 8bathroom/video1
+    # - 13bathroom/video0
+    # - 0kitchen/video0
+    # - 3kitchen/video0
+    # - 5kitchen/video0
+    # - 12kithcen/video0
