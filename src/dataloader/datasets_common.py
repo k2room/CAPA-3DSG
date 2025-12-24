@@ -1026,6 +1026,7 @@ class CAPADataset(torch.utils.data.Dataset):
         load_embeddings: Optional[bool] = False,
         embedding_dir: Optional[str] = "embeddings",
         embedding_dim: Optional[int] = 512,
+        scenario_filename: str = "scenario.json",
         **kwargs,
     ):
         super().__init__()
@@ -1087,6 +1088,26 @@ class CAPADataset(torch.utils.data.Dataset):
             raise ValueError(
                 f"Global CAPA scene id {scene_id} is out of range [0, {total_scenes - 1}]."
             )
+
+        # ------------------------------------------------------------------
+        # Load scenario.json for ALL scenes
+        # ------------------------------------------------------------------
+        self.scenario_filename = scenario_filename
+
+        self.scenario: List[Optional[Dict[str, Any]]] = [None] * total_scenes
+        self.scenario_paths: List[str] = [""] * total_scenes
+
+        for sid in range(total_scenes):
+            spath = os.path.join(basedir, f"scene{sid}", self.scenario_filename)
+            self.scenario_paths[sid] = spath
+            if not os.path.isfile(spath):
+                raise FileNotFoundError(f"Missing scenario file: {spath}")
+
+            try:
+                with open(spath, "r") as f:
+                    self.scenario[sid] = json.load(f)
+            except Exception as e:
+                raise RuntimeError(f"Failed to load scenario json: {spath} ({e})")
 
         # ------------------------------------------------------------------
         # Decide which backend dataset to use for this scene_id
@@ -1157,7 +1178,6 @@ class CAPADataset(torch.utils.data.Dataset):
         self.name = "capad"
         self.num_scenefun3d_scenes = num_sf
         self.num_fungraph3d_scenes = num_fg
-        self.video_name = child_sequence
 
     def __len__(self):
         return len(self._dataset)

@@ -72,7 +72,7 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     prev_struct = OmegaConf.is_struct(cfg)
     OmegaConf.set_struct(cfg, False)
 
-    cfg.mode = "full"   # full, func
+    cfg.mode = "ca"   # ca: context-aware 3DSG, func: unified 3DSG-functional only
 
     ds = str(cfg.dataset)
     if ds == "FunGraph3D":
@@ -90,7 +90,7 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "CAPAD":
         cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
         cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
-        cfg.mode = "full"
+        cfg.mode = "ca"
     else:
         raise ValueError(f"Unknown dataset: {ds}")
 
@@ -123,38 +123,7 @@ def _as_edge(a: str, b: str, label: str) -> Optional[tuple]:
         return (bi, aj, -1, label)   # part–obj (normalize as obj–part)
     return None
 
-@hydra.main(version_base=None, config_path="../configs", config_name="CAPA")
-def main(cfg: DictConfig):  
-    LOGGER.info("START main()")
-    _process_cfg(cfg)
-
-    LOGGER.info("Loading inital 3D Scene Graph json file")
-    sg_init_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'scene_graph' / f"initial_3d_scene_graph.json"
-    initial_graph = read_json(sg_init_path)
-
-    if initial_graph is None or len(initial_graph) == 0:
-        LOGGER.error(f"Initial 3D Scene Graph file not found: {sg_init_path}")
-    
-    if cfg.dataset == "FunGraph3D" or cfg.dataset.startswith("SceneFun3D"):
-        spatial_relation = initial_graph.pop("spatial_relation", None)
-
-        if "object" in initial_graph and isinstance(initial_graph["object"], dict):
-            for obj_id, obj in initial_graph["object"].items():
-                if "center" in obj:
-                    obj["center"] = [round(float(num), 2) for num in obj["center"]]
-                obj.pop("extent", None)
-
-        if "part" in initial_graph and isinstance(initial_graph["part"], dict):
-            for part_id, part in initial_graph["part"].items():
-                if "center" in part:
-                    part["center"] = [round(float(num), 2) for num in part["center"]]
-                part.pop("extent", None)
-
-        initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
-    else:
-        initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
-    LOGGER.info("Initial Graph Loaded.")
-
+def load_node(cfg):
     LOGGER.info("Loading updated fused 3D objects file")
     """
         updated_results = {
@@ -183,7 +152,46 @@ def main(cfg: DictConfig):
     with gzip.open(part_pkl_in, "rb") as f:
         part_results = pickle.load(f)
     
+    return obj_results, part_results
+
+@hydra.main(version_base=None, config_path="../configs", config_name="CAPA")
+def main(cfg: DictConfig):  
+    LOGGER.info("START main()")
+    _process_cfg(cfg)
+
+    LOGGER.info("Loading inital 3D Scene Graph json file")
+    sg_init_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'scene_graph' / f"initial_3d_scene_graph.json"
+    initial_graph = read_json(sg_init_path)
+
+    if initial_graph is None or len(initial_graph) == 0:
+        LOGGER.error(f"Initial 3D Scene Graph file not found: {sg_init_path}")
+
     if cfg.mode == "func":
+        LOGGER.info("Generating Functional 3D Scene Graph")
+        if cfg.dataset == "FunGraph3D" or cfg.dataset.startswith("SceneFun3D"):
+
+            # Preprocess initial graph: remove spatial relations & clean up object/part centers/extents
+            spatial_relation = initial_graph.pop("spatial_relation", None)
+
+            if "object" in initial_graph and isinstance(initial_graph["object"], dict):
+                for obj_id, obj in initial_graph["object"].items():
+                    if "center" in obj:
+                        obj["center"] = [round(float(num), 2) for num in obj["center"]]
+                    obj.pop("extent", None)
+
+            if "part" in initial_graph and isinstance(initial_graph["part"], dict):
+                for part_id, part in initial_graph["part"].items():
+                    if "center" in part:
+                        part["center"] = [round(float(num), 2) for num in part["center"]]
+                    part.pop("extent", None)
+
+            initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
+        else:
+            initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
+        LOGGER.info("Initial Graph Loaded.")
+
+        obj_results, part_results = load_node(cfg)
+
         prompts = GPTprompt(config=cfg)
         LOGGER.info("Generating Functional 3D Scene Graph without Spatial Relations")
         LOGGER.info("API REQUESTING... (Local Functional Relations)")
@@ -477,7 +485,7 @@ def main(cfg: DictConfig):
                 if parent and parent != b:
                     rr = dict(r)
                     rr["pair"]   = [parent, b]
-                    rr["reason"] = (r.get("reason","") + " (propagated from part→object)").strip()
+                    rr["reason"] = (r.get("reason","") + " (propagated from part to object)").strip()
                     rr["score"]  = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
                     _push_relation(rr)
             elif isinstance(a, str) and a.startswith("obj_") and isinstance(b, str) and b.startswith("part_"):
@@ -485,7 +493,7 @@ def main(cfg: DictConfig):
                 if parent and parent != a:
                     rr = dict(r)
                     rr["pair"]   = [a, parent]
-                    rr["reason"] = (r.get("reason","") + " (propagated from object→part)").strip()
+                    rr["reason"] = (r.get("reason","") + " (propagated from object to part)").strip()
                     rr["score"]  = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
                     _push_relation(rr)
 
@@ -595,11 +603,7 @@ def main(cfg: DictConfig):
         # Save functional 3D scene graph json file
         sg_dir = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "scene_graph"
         sg_dir.mkdir(parents=True, exist_ok=True)
-        # sg_out = {
-        #     "object": {},
-        #     "part": {},
-        #     "functional_relation": [{"pair": [f"{'obj_'+str(e[0])}", (f'part_{e[1]}' if e[1]!=-1 else f"obj_{e[2]}")], "label": e[3]} for e in edges],
-        # }
+
         func_rel = []
         for (oi, pj, ok, lab) in edges:
             a = f"obj_{oi}"
@@ -645,10 +649,30 @@ def main(cfg: DictConfig):
         LOGGER.info(f"[SceneGraph] Saved: {sg_path}")
 
 
-    elif cfg.mode == "full":
-        LOGGER.info("Generating Full 3D Scene Graph with Spatial and Functional Relations")
+    elif cfg.mode == "ca":
+        LOGGER.info("Generating Context-aware 3D Scene Graph with Spatial and Functional Relations")
         # TODO: implement full graph generation
-        pass
+        # Load scenario.json
+        # Filtering obj/edge node based on scenarios
+        # generate func_local, func_remote, spatial relations and affordance for each node
+        scenario_path = (Path(cfg.dataset_root) / cfg.scene_id).parent / "scenario.json"
+        if not scenario_path.exists():
+            LOGGER.error(f"Scenario file not found: {scenario_path}")
+            raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
+        scenario = read_json(scenario_path)
+        LOGGER.info(f"Scenario loaded from: {scenario_path}")
+
+        instruntions = []
+        for i in scenario["scenario"].keys():
+            sdata = scenario["scenario"][i]
+            for j in sdata["route"].keys():
+                instruntions.append([sdata["scenario_goal"], sdata["route"][j]["instruction"]])
+        
+        print(instruntions)
+    
+    
+    
+    
     else:
         LOGGER.error(f"Unknown mode: {cfg.mode}")
 
