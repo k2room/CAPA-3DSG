@@ -3,14 +3,71 @@ set -o pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-DATASET="FunGraph3D"
+DATASET="CAPAD"
 SAVE="CAPA_1"
 
-# SCENES=("0kitchen/video0" "1bathroom/video0" "2livingroom/video0" "3kitchen/video0" "4livingroom/video1" "5kitchen/video0" "6kitchen/video1" "7bedroom/video0")
-SCENES=("1bathroom/video0" "4livingroom/video1")
 
-# OBJ_FUSION_OPTS="mask_conf_threshold=0.30 max_bbox_area_ratio=0.90 merge_overlap_thresh=0.2 merge_visual_sim_thresh=0.6 merge_text_sim_thresh=0.8"
-# PART_FUSION_OPTS="mask_conf_threshold=0.15 max_bbox_area_ratio=0.15 merge_overlap_thresh=0.5 merge_visual_sim_thresh=0.75 merge_text_sim_thresh=0.7 part_reg=True"
+# scene0/42445173
+# scene1/43649409
+# scene2/47331576
+# scene3/47334499
+# scene4/42444755
+# scene5/42445078
+# scene6/42445692
+# scene7/42444514
+# scene8/42444887
+# scene9/42444490
+# scene10/42447294
+# scene11/42445931
+# scene12/42897405
+# scene13/42447329
+# scene14/47334559
+# scene15/42898221
+# scene16/video0
+# scene17/video1
+# scene18/video0
+# scene19/video1
+# scene20/video1
+# scene21/video0
+# scene22/video1
+# scene23/video0
+# scene24/video0
+# scene25/video0
+# scene26/video0
+# scene27/video0
+
+
+SCENES=( 
+    # "scene0/42445173"
+    # "scene1/43649409"
+    # "scene2/47331576"
+    # "scene3/47334499"
+    # "scene4/42444755"
+    # "scene5/42445078"
+    # "scene6/42445692"
+    # "scene7/42444514"
+    # "scene8/42444887"
+    # "scene9/42444490"
+    # "scene10/42447294"
+    # "scene11/42445931"
+    # "scene12/42897405"
+    # "scene13/42447329"
+    # "scene14/47334559"
+    # "scene15/42898221"
+    "scene16/video0"
+    # "scene17/video1"
+    # "scene18/video0"
+    # "scene19/video1"
+    # "scene20/video1"
+    # "scene21/video0"
+    # "scene22/video1"        
+    # "scene23/video0"
+    # "scene24/video0"
+    # "scene25/video0"
+    # "scene26/video0"
+    # "scene27/video0"
+    )
+
 OBJ_FUSION_OPTS="mask_conf_threshold=0.30 max_bbox_area_ratio=0.90 merge_overlap_thresh=0.90 merge_visual_sim_thresh=0.75 merge_text_sim_thresh=0.70"
 PART_FUSION_OPTS="mask_conf_threshold=0.15 max_bbox_area_ratio=0.15 merge_overlap_thresh=0.70 merge_visual_sim_thresh=0.70 merge_text_sim_thresh=0.70 part_reg=True"
 
