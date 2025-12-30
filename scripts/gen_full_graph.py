@@ -650,11 +650,11 @@ def main(cfg: DictConfig):
 
 
     elif cfg.mode == "ca":
-        LOGGER.info("Generating Context-aware 3D Scene Graph with Spatial and Functional Relations")
-        # TODO: implement full graph generation
-        # Load scenario.json
-        # Filtering obj/edge node based on scenarios
-        # generate func_local, func_remote, spatial relations and affordance for each node
+        LOGGER.info("Generating Context-aware 3D Scene Graph with Spatial, Functional Relations, and Affordances")
+
+        # -----------------------------
+        # Load scenario instructions
+        # -----------------------------
         scenario_path = (Path(cfg.dataset_root) / cfg.scene_id).parent / "scenario.json"
         if not scenario_path.exists():
             LOGGER.error(f"Scenario file not found: {scenario_path}")
@@ -662,13 +662,629 @@ def main(cfg: DictConfig):
         scenario = read_json(scenario_path)
         LOGGER.info(f"Scenario loaded from: {scenario_path}")
 
-        instruntions = []
+        instructions = []
         for i in scenario["scenario"].keys():
             sdata = scenario["scenario"][i]
             for j in sdata["route"].keys():
-                instruntions.append([sdata["scenario_goal"], sdata["route"][j]["instruction"]])
-        
-        print(instruntions)
+                instructions.append([sdata["scenario_goal"], sdata["route"][j]["instruction"]])
+
+        prompts = GPTprompt(config=cfg)
+
+        sg_dir = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "scene_graph"
+        sg_dir.mkdir(parents=True, exist_ok=True)
+
+        merged_all = []
+
+        for step_idx, (goal, inst) in enumerate(instructions):
+            # Combine goal + step instruction as a single instruction string
+            instruction = str(inst)
+            if goal:
+                instruction = (str(goal).rstrip(".") + ". " + instruction).strip()
+
+            # graph_in = dict(initial_graph)
+            # graph_in["instruction"] = instruction
+            # graph_str = json.dumps(graph_in, ensure_ascii=False, separators=(",", ":"))
+                        # -----------------------------
+            # Prepare per-agent input graphs (CA mode)
+            # -----------------------------
+            nd = 3  # decimal precision (same as mode=func)
+
+            # (A) local / remote input: no spatial_relation, no extent, rounded centers (+ instruction)
+            graph_func = {"object": {}, "part": {}, "instruction": instruction}
+
+            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("object"), dict):
+                for oid, obj in initial_graph["object"].items():
+                    if not isinstance(obj, dict):
+                        continue
+                    o = {
+                        "label": obj.get("label", ""),
+                        "connected_parts": obj.get("connected_parts", []) if isinstance(obj.get("connected_parts"), list) else [],
+                    }
+                    if isinstance(obj.get("center"), list):
+                        o["center"] = [round(float(x), nd) for x in obj["center"]]
+                    graph_func["object"][oid] = o
+
+            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("part"), dict):
+                for pid, part in initial_graph["part"].items():
+                    if not isinstance(part, dict):
+                        continue
+                    p = {"label": part.get("label", "")}
+                    if isinstance(part.get("center"), list):
+                        p["center"] = [round(float(x), nd) for x in part["center"]]
+                    graph_func["part"][pid] = p
+
+            graph_str_func = json.dumps(graph_func, ensure_ascii=False, separators=(",", ":"))
+
+            # (B) spatial input: keep center+extent, include spatial_relation prior candidates, no functional relations
+            graph_spatial = {"object": {}, "part": {}, "instruction": instruction}
+
+            if isinstance(initial_graph, dict) and ("spatial_relation" in initial_graph):
+                graph_spatial["spatial_relation"] = initial_graph.get("spatial_relation")
+
+            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("object"), dict):
+                for oid, obj in initial_graph["object"].items():
+                    if not isinstance(obj, dict):
+                        continue
+                    o = {
+                        "label": obj.get("label", ""),
+                        "connected_parts": obj.get("connected_parts", []) if isinstance(obj.get("connected_parts"), list) else [],
+                    }
+                    if isinstance(obj.get("center"), list):
+                        o["center"] = [round(float(x), nd) for x in obj["center"]]
+                    if isinstance(obj.get("extent"), list):
+                        o["extent"] = [round(float(x), nd) for x in obj["extent"]]
+                    graph_spatial["object"][oid] = o
+
+            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("part"), dict):
+                for pid, part in initial_graph["part"].items():
+                    if not isinstance(part, dict):
+                        continue
+                    p = {"label": part.get("label", "")}
+                    if isinstance(part.get("center"), list):
+                        p["center"] = [round(float(x), nd) for x in part["center"]]
+                    if isinstance(part.get("extent"), list):
+                        p["extent"] = [round(float(x), nd) for x in part["extent"]]
+                    graph_spatial["part"][pid] = p
+
+            graph_str_spatial = json.dumps(graph_spatial, ensure_ascii=False, separators=(",", ":"))
+
+            # (C) affordance input: no relation info (reuse func-style input)
+            graph_str_aff = graph_str_func
+
+
+            LOGGER.info(f"[CA] API REQUESTING... step={step_idx} (Local / Remote / Spatial / Affordance)")
+
+            # -----------------------------
+            # (1) Local functional relations
+            # -----------------------------
+            LOGGER.info("API REQUESTING... (Local Functional Relations)")
+            resp = client.responses.create(
+                model=OPENAI_CHAT_MODEL,
+                instructions=prompts.system_prompt_local,
+                input=graph_str_func,
+                background=True,
+                reasoning={"effort": "high"},
+                text={
+                    "verbosity": "high",
+                    "format": {
+                        "type": "json_schema",
+                        "name": "CA3DSG_local",
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                # ------------ for Objects ------------ 
+                                "objects": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string", 
+                                                "pattern":"^(obj|part)_\\d+$"
+                                            },
+                                            "label": {"type": "string"},
+                                            "connected_parts": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string",
+                                                    "pattern": "^part_\\d+$"
+                                                },
+                                            },
+                                        },
+                                        "required": ["id", "label", "connected_parts"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                # ------------ for Parts ------------
+                                "parts": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string", 
+                                                "pattern": "^part_\\d+$"
+                                                },
+                                            "label": {"type": "string"},
+                                        },
+                                        "required": ["id", "label"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                # ------------ for Functional Relations ------------ 
+                                "functional_relations": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "pair": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string", 
+                                                    "pattern": "^(obj|part)_\\d+$"
+                                                    },
+                                                "minItems": 2,
+                                                "maxItems": 2,
+                                            },
+                                            "label": {"type": "string"},
+                                            "reason": {"type": "string"},
+                                            "score": {
+                                                "type": "number",
+                                                "minimum": 0.0,
+                                                "maximum": 1.0,
+                                                "multipleOf": 0.1,
+                                            },
+                                        },
+                                        "required": ["pair", "label", "reason", "score"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                            },
+                            "required": ["objects", "parts", "functional_relations"],
+                            "additionalProperties": False,
+                        },
+                    },
+                },
+            )
+
+            # -----------------------------
+            # (2) Remote functional relations
+            # -----------------------------
+            LOGGER.info("API REQUESTING... (Remote Functional Relations)")
+            resp2 = client.responses.create(
+                model=OPENAI_CHAT_MODEL,
+                instructions=prompts.system_prompt_remote,
+                input=graph_str_func,
+                background=True,
+                reasoning={"effort": "high"},
+                text={
+                    "verbosity": "high",
+                    "format": {
+                        "type": "json_schema",
+                        "name": "CA3DSG_remote",
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "objects": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string", "pattern": "^obj_\\d+$"},
+                                            "label": {"type": "string"},
+                                            "connected_parts": {
+                                                "type": "array",
+                                                "items": {"type": "string", "pattern": "^part_\\d+$"},
+                                            },
+                                        },
+                                        "required": ["id", "label", "connected_parts"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                "parts": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string", "pattern": "^part_\\d+$"},
+                                            "label": {"type": "string"},
+                                        },
+                                        "required": ["id", "label"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                "remote_relations": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "pair": {
+                                                "type": "array",
+                                                "items": {"type": "string", "pattern": "^(obj|part)_\\d+$"},
+                                                "minItems": 2,
+                                                "maxItems": 2,
+                                            },
+                                            "label": {"type": "string"},
+                                            "reason": {"type": "string"},
+                                            "score": {
+                                                "type": "number",
+                                                "minimum": 0.0,
+                                                "maximum": 1.0,
+                                                "multipleOf": 0.1,
+                                            },
+                                        },
+                                        "required": ["pair", "label", "reason", "score"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                            },
+                            "required": ["objects", "parts", "remote_relations"],
+                            "additionalProperties": False,
+                        },
+                    },
+                },
+            )
+
+            # -----------------------------
+            # (3) Spatial relations (object–object only)
+            # -----------------------------
+            LOGGER.info("API REQUESTING... (Spatial Relations)")
+            resp3 = client.responses.create(
+                model=OPENAI_CHAT_MODEL,
+                instructions=prompts.system_prompt_spatial,
+                input=graph_str_spatial,
+                background=True,
+                reasoning={"effort": "high"},
+                text={
+                    "verbosity": "high",
+                    "format": {
+                        "type": "json_schema",
+                        "name": "CA3DSG_spatial",
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "objects": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string", "pattern": "^obj_\\d+$"},
+                                            "label": {"type": "string"},
+                                            "connected_parts": {
+                                                "type": "array",
+                                                "items": {"type": "string", "pattern": "^part_\\d+$"},
+                                            },
+                                        },
+                                        "required": ["id", "label", "connected_parts"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                "parts": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string", "pattern": "^part_\\d+$"},
+                                            "label": {"type": "string"},
+                                        },
+                                        "required": ["id", "label"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                "spatial_relations": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "pair": {
+                                                "type": "array",
+                                                "items": {"type": "string", "pattern": "^obj_\\d+$"},
+                                                "minItems": 2,
+                                                "maxItems": 2,
+                                            },
+                                            "label": {
+                                                "type": "array",
+                                                "items": {"type": "string"},
+                                                "minItems": 1,
+                                                "maxItems": 5,
+                                            },
+                                            "scores": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "number",
+                                                    "minimum": 0.0,
+                                                    "maximum": 1.0,
+                                                    "multipleOf": 0.1,
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 5,
+                                            },
+                                        },
+                                        "required": ["pair", "label", "scores"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                            },
+                            "required": ["objects", "parts", "spatial_relations"],
+                            "additionalProperties": False,
+                        },
+                    },
+                },
+            )
+
+            # -----------------------------
+            # (4) Affordances (open-vocabulary)
+            # -----------------------------
+            LOGGER.info("API REQUESTING... (Affordance)")
+            resp4 = client.responses.create(
+                model=OPENAI_CHAT_MODEL,
+                instructions=prompts.system_prompt_affordance,
+                input=graph_str_aff,
+                background=True,
+                reasoning={"effort": "high"},
+                text={
+                    "verbosity": "high",
+                    "format": {
+                        "type": "json_schema",
+                        "name": "CA3DSG_affordance",
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "affordance": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string", "pattern": "^(obj|part)_\\d+$"},
+                                            "verb": {
+                                                "type": "array",
+                                                "items": {"type": "string"},
+                                                "minItems": 0
+                                            },
+                                        },
+                                        "required": ["id", "verb"],
+                                        "additionalProperties": False,
+                                    },
+                                }
+                            },
+                            "required": ["affordance"],
+                            "additionalProperties": False,
+                        },
+                    },
+                },
+            )
+
+
+            # -----------------------------
+            # Wait all 4 jobs
+            # -----------------------------
+            logging.getLogger("openai").setLevel(logging.WARNING)
+            logging.getLogger("httpx").setLevel(logging.WARNING)
+            logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+            jobs = {"local": resp.id, "remote": resp2.id, "spatial": resp3.id, "aff": resp4.id}
+            results = {}
+            prev_status = {}
+
+            timeout = 1200  # seconds
+            start_time = time.time()
+
+            while jobs:
+                for name, job_id in list(jobs.items()):
+                    r = client.responses.retrieve(job_id)
+                    s = getattr(r, "status", None)
+
+                    if prev_status.get(name) != s:
+                        LOGGER.info(f"[{name}] status changed: {prev_status.get(name)} -> {s}")
+                        prev_status[name] = s
+
+                    if s in {"completed", "succeeded"}:
+                        results[name] = r
+                        del jobs[name]
+                    elif s in {"failed", "errored", "cancelled", "incomplete"}:
+                        LOGGER.error(f"[{name}] job failed with status={s}")
+                        raise RuntimeError(f"{name} job failed: {s}")
+
+                    if time.time() - start_time > timeout:
+                        LOGGER.error(f"[{name}] job timeout after {timeout} seconds")
+                        raise TimeoutError(f"{name} job timeout")
+
+                sleep(5)
+
+            resp = results["local"]
+            resp2 = results["remote"]
+            resp3 = results["spatial"]
+            resp4 = results["aff"]
+
+            try:
+                llm_local = json.loads(resp.output_text)
+                llm_remote = json.loads(resp2.output_text)
+                llm_spatial = json.loads(resp3.output_text)
+                llm_aff = json.loads(resp4.output_text)
+            except Exception as e:
+                LOGGER.error("Failed to parse LLM response as JSON.")
+                LOGGER.error(f"Response(local): {resp}")
+                LOGGER.error(f"Response(remote): {resp2}")
+                LOGGER.error(f"Response(spatial): {resp3}")
+                LOGGER.error(f"Response(aff): {resp4}")
+                raise e
+
+            # -----------------------------
+            # Merge 4 agent outputs
+            # - keep nodes that appear in >=2 results
+            # - vote label if mismatch
+            # -----------------------------
+            def _nodes_from_graph(g):
+                nodes = {}
+                for o in g.get("objects", []):
+                    oid = o.get("id")
+                    lab = o.get("label")
+                    if isinstance(oid, str) and isinstance(lab, str):
+                        nodes[oid] = lab
+                for p in g.get("parts", []):
+                    pid = p.get("id")
+                    lab = p.get("label")
+                    if isinstance(pid, str) and isinstance(lab, str):
+                        nodes[pid] = lab
+                return nodes
+
+            nodes_local = _nodes_from_graph(llm_local)
+            nodes_remote = _nodes_from_graph(llm_remote)
+            nodes_spatial = _nodes_from_graph(llm_spatial)
+
+            nodes_aff = {}
+            for it in llm_aff.get("affordance", []):
+                if isinstance(it, list) and len(it) >= 2:
+                    nid, nlab = it[0], it[1]
+                    if isinstance(nid, str) and isinstance(nlab, str):
+                        nodes_aff[nid] = nlab
+
+            node_sources = [nodes_local, nodes_remote, nodes_spatial, nodes_aff]
+
+            presence = {}
+            for src in node_sources:
+                for nid in src.keys():
+                    presence[nid] = presence.get(nid, 0) + 1
+
+            keep_ids = set([nid for nid, c in presence.items() if c >= 2])
+
+            def _vote_label(nid: str) -> str:
+                votes = {}
+                for src in node_sources:
+                    lab = src.get(nid)
+                    if isinstance(lab, str) and lab:
+                        votes[lab] = votes.get(lab, 0) + 1
+                if not votes:
+                    return ""
+                best = max(votes.values())
+                cands = [lab for lab, c in votes.items() if c == best]
+                if len(cands) == 1:
+                    return cands[0]
+                llab = nodes_local.get(nid)
+                if llab in cands:
+                    return llab
+                return sorted(cands)[0]
+
+            # prefer local for connected_parts, else initial graph
+            local_obj = {o.get("id"): o for o in llm_local.get("objects", []) if isinstance(o, dict)}
+            init_obj = initial_graph.get("object", {}) if isinstance(initial_graph, dict) else {}
+
+            obj_ids = [nid for nid in keep_ids if isinstance(nid, str) and nid.startswith("obj_")]
+            part_ids = [nid for nid in keep_ids if isinstance(nid, str) and nid.startswith("part_")]
+
+            obj_ids = sorted(
+                obj_ids,
+                key=lambda x: _idx_from(x, "obj") if _idx_from(x, "obj") is not None else 10**9,
+            )
+            part_ids = sorted(
+                part_ids,
+                key=lambda x: _idx_from(x, "part") if _idx_from(x, "part") is not None else 10**9,
+            )
+
+            merged_objects = []
+            for oid in obj_ids:
+                cps = []
+                if oid in local_obj and isinstance(local_obj[oid].get("connected_parts"), list):
+                    cps = local_obj[oid]["connected_parts"]
+                elif isinstance(init_obj, dict) and oid in init_obj and isinstance(init_obj[oid].get("connected_parts"), list):
+                    cps = init_obj[oid]["connected_parts"]
+
+                cps = sorted(
+                    set([pid for pid in cps if isinstance(pid, str) and pid.startswith("part_") and pid in keep_ids]),
+                    key=lambda x: _idx_from(x, "part") if _idx_from(x, "part") is not None else 10**9,
+                )
+                merged_objects.append({"id": oid, "label": _vote_label(oid), "connected_parts": cps})
+
+            merged_parts = [{"id": pid, "label": _vote_label(pid)} for pid in part_ids]
+
+            # filter relations by kept nodes
+            merged_func = []
+            _seen = set()
+            for r in llm_local.get("functional_relations", []):
+                pair = r.get("pair", [])
+                lab = r.get("label", "")
+                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
+                    k = (tuple(pair), lab)
+                    if k not in _seen:
+                        _seen.add(k)
+                        merged_func.append(r)
+
+            merged_remote = []
+            _seen = set()
+            for r in llm_remote.get("remote_relations", []):
+                pair = r.get("pair", [])
+                lab = r.get("label", "")
+                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
+                    k = (tuple(pair), lab)
+                    if k not in _seen:
+                        _seen.add(k)
+                        merged_remote.append(r)
+
+            merged_spatial = []
+            _seen = set()
+            for r in llm_spatial.get("spatial_relations", []):
+                pair = r.get("pair", [])
+                lab = r.get("label", [])
+                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
+                    k = (tuple(pair), tuple(lab) if isinstance(lab, list) else str(lab))
+                    if k not in _seen:
+                        _seen.add(k)
+                        merged_spatial.append(r)
+
+            # affordance: keep only kept nodes, and inherit part affordances to objects
+            aff_map = {}
+            for it in llm_aff.get("affordance", []):
+                if not (isinstance(it, list) and len(it) == 3):
+                    continue
+                nid, _nlab, verbs = it[0], it[1], it[2]
+                if nid not in keep_ids:
+                    continue
+                if isinstance(verbs, list):
+                    for v in verbs:
+                        if isinstance(v, str) and v:
+                            aff_map.setdefault(nid, set()).add(v)
+
+            owner = {}
+            for o in merged_objects:
+                for pid in o.get("connected_parts", []):
+                    owner[pid] = o.get("id")
+
+            for pid, oid in owner.items():
+                if pid in aff_map:
+                    aff_map.setdefault(oid, set()).update(aff_map[pid])
+
+            merged_aff = []
+            for nid in obj_ids + part_ids:
+                verbs = aff_map.get(nid, set())
+                if verbs:
+                    merged_aff.append([nid, _vote_label(nid), sorted(verbs)])
+
+            merged_graph = {
+                "instruction": instruction,
+                "objects": merged_objects,
+                "parts": merged_parts,
+                "functional_relations": merged_func,
+                "remote_relations": merged_remote,
+                "spatial_relations": merged_spatial,
+                "affordance": merged_aff,
+            }
+
+            out_path = sg_dir / f"context_aware_3d_scene_graph_step{step_idx:03d}.json"
+            with open(out_path, "w") as jf:
+                json.dump(merged_graph, jf, ensure_ascii=False, indent=2)
+            LOGGER.info(f"[SceneGraph] Saved: {out_path}")
+
+            merged_all.append(merged_graph)
+
+        out_path = sg_dir / "context_aware_3d_scene_graph_all.json"
+        with open(out_path, "w") as jf:
+            json.dump(merged_all, jf, ensure_ascii=False, indent=2)
+        LOGGER.info(f"[SceneGraph] Saved: {out_path}")
+
     
     
     
