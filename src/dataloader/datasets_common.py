@@ -1567,6 +1567,190 @@ class D3SSGDataset(GradSLAMDataset):
             pose.to(self.device).type(self.dtype),
         )
 
+class ReplicaDataset(D3SSGDataset):
+    """
+    GradSLAM-style dataset for ReplicaSSG sequences.
+
+    The official ReplicaSSG loader stores scans under:
+        <dataset_root>/data/<scan_id>/sequence/
+
+    This dataset supports both:
+        - GT poses (*.pose.txt)
+        - SLAM poses (*.slam.pose.txt)
+
+    Depth files can be either:
+        - *.depth.pgm
+        - *.rendered.depth.png
+    """
+
+    def __init__(
+        self,
+        config_dict,
+        basedir,
+        sequence,
+        stride: Optional[int] = None,
+        start: Optional[int] = 0,
+        end: Optional[int] = -1,
+        desired_height: Optional[int] = 480,
+        desired_width: Optional[int] = 640,
+        load_embeddings: Optional[bool] = False,
+        embedding_dir: Optional[str] = "embeddings",
+        embedding_dim: Optional[int] = 512,
+        use_gt_pose: bool = False,
+        label_categories: Optional[str] = None,
+        **kwargs,
+    ):
+        self.use_gt_pose = use_gt_pose
+        if label_categories is None:
+            label_categories = config_dict.get("label_categories", "replica")
+        self.label_categories = str(label_categories)
+
+        data_root = os.path.join(basedir, "data")
+        if os.path.isdir(os.path.join(data_root, sequence)):
+            basedir = data_root
+
+        super().__init__(
+            config_dict,
+            basedir,
+            sequence,
+            stride=stride,
+            start=start,
+            end=end,
+            desired_height=desired_height,
+            desired_width=desired_width,
+            load_embeddings=load_embeddings,
+            embedding_dir=embedding_dir,
+            embedding_dim=embedding_dim,
+            **kwargs,
+        )
+
+        # Align rotation behavior with the official ReplicaSSG loader
+        if self.label_categories.lower() == "scannet":
+            self.camera_axis = "Left"
+        else:
+            self.camera_axis = "Up"
+
+    def get_filepaths(self):
+        """
+        Collect color / depth image paths (and optional embedding paths) for this scan.
+
+        Color pattern:
+            *.color.jpg (excluding *rendered.color.jpg)
+
+        Depth patterns (same frame prefix):
+            *.depth.pgm
+            *.depth.png
+            *.rendered.depth.png
+        """
+        all_color_paths = glob.glob(os.path.join(self.input_folder, "*.color.jpg"))
+        all_color_paths = [
+            p for p in all_color_paths if not p.endswith("rendered.color.jpg")
+        ]
+        all_color_paths = natsorted(all_color_paths)
+
+        color_paths: List[str] = []
+        depth_paths: List[str] = []
+
+        if self.label_categories.lower() == "scannet":
+            depth_exts = [".rendered.depth.png", ".depth.png", ".depth.pgm"]
+        else:
+            depth_exts = [".depth.pgm", ".depth.png", ".rendered.depth.png"]
+
+        for cp in all_color_paths:
+            base_prefix = cp.rsplit(".color.jpg", 1)[0]
+
+            depth_path = None
+            for ext in depth_exts:
+                cand = base_prefix + ext
+                if os.path.isfile(cand):
+                    depth_path = cand
+                    break
+
+            # Skip frames without a valid depth file
+            if depth_path is None:
+                continue
+
+            color_paths.append(cp)
+            depth_paths.append(depth_path)
+
+        embedding_paths = None
+        if self.load_embeddings:
+            embedding_root = os.path.join(self.input_folder, self.embedding_dir)
+            if os.path.isdir(embedding_root):
+                embedding_paths = natsorted(
+                    glob.glob(os.path.join(embedding_root, "*.pt"))
+                )
+            else:
+                embedding_paths = [None for _ in color_paths]
+
+        return color_paths, depth_paths, embedding_paths
+
+    def load_poses(self):
+        """
+        Load a 4x4 camera-to-world pose for each RGB frame.
+
+        Supported pose file names:
+            - *.pose.txt
+            - *.slam.pose.txt
+        """
+        poses: List[torch.Tensor] = []
+
+        rotate_scannet = self.label_categories.lower() == "scannet"
+        R_z_90 = np.array(
+            [
+                [0, 1, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+
+        for cp in self.color_paths:
+            base_prefix = cp.rsplit(".color.jpg", 1)[0]
+
+            if self.use_gt_pose:
+                pose_candidates = [
+                    base_prefix + ".pose.txt",
+                    base_prefix + ".slam.pose.txt",
+                ]
+            else:
+                pose_candidates = [
+                    base_prefix + ".slam.pose.txt",
+                    base_prefix + ".pose.txt",
+                ]
+
+            pose_path = None
+            for cand in pose_candidates:
+                if os.path.isfile(cand):
+                    pose_path = cand
+                    break
+
+            if pose_path is None:
+                raise FileNotFoundError(f"Pose file not found for frame: {cp}")
+
+            mat = np.loadtxt(pose_path)
+            mat = np.array(mat, dtype=np.float32)
+
+            # Support 16 values flat, 3x4, or 4x4
+            if mat.size == 16 and mat.shape != (4, 4):
+                mat = mat.reshape(4, 4)
+            elif mat.shape == (3, 4):
+                tmp = np.eye(4, dtype=np.float32)
+                tmp[:3, :4] = mat
+                mat = tmp
+
+            if mat.shape != (4, 4):
+                raise ValueError(
+                    f"Unexpected pose shape {mat.shape} in file: {pose_path}"
+                )
+
+            if rotate_scannet:
+                mat[:3, :3] = mat[:3, :3] @ R_z_90
+
+            c2w = torch.from_numpy(mat).float()
+            poses.append(c2w)
+
+        return poses
 
 
 @measure_time
@@ -1579,6 +1763,8 @@ def get_dataset(dataconfig, basedir, sequence, **kwargs):
         return SceneFun3DDataset(config_dict, basedir, sequence, **kwargs)
     elif config_dict['dataset_name'].lower() in ['capad']:
         return CAPADataset(config_dict, basedir, sequence, **kwargs)
+    elif config_dict["dataset_name"].lower() in ["replicassg"]:
+        return ReplicaDataset(config_dict, basedir, sequence, **kwargs)
 
     # TODO: add more annotated datasets     
     # elif config_dict["dataset_name"].lower() in ["replica"]:
@@ -1604,49 +1790,3 @@ def get_dataset(dataconfig, basedir, sequence, **kwargs):
     else:
         raise ValueError(f"Unknown dataset name {config_dict['dataset_name']}")
 
-
-if __name__ == "__main__":
-    cfg = load_dataset_config(
-        "/home/replica.yaml"
-    )
-    dataset = ReplicaDataset(
-        config_dict=cfg,
-        basedir="/home/Datasets/Replica",
-        sequence="office0",
-        start=0,
-        end=1900,
-        stride=100,
-        # desired_height=680,
-        # desired_width=1200,
-        desired_height=240,
-        desired_width=320,
-    )
-
-    colors, depths, poses = [], [], []
-    intrinsics = None
-    for idx in range(len(dataset)):
-        _color, _depth, intrinsics, _pose = dataset[idx]
-        colors.append(_color)
-        depths.append(_depth)
-        poses.append(_pose)
-    colors = torch.stack(colors)
-    depths = torch.stack(depths)
-    poses = torch.stack(poses)
-    colors = colors.unsqueeze(0)
-    depths = depths.unsqueeze(0)
-    intrinsics = intrinsics.unsqueeze(0).unsqueeze(0)
-    poses = poses.unsqueeze(0)
-    colors = colors.float()
-    depths = depths.float()
-    intrinsics = intrinsics.float()
-    poses = poses.float()
-
-    # create rgbdimages object
-    rgbdimages = RGBDImages(
-        colors,
-        depths,
-        intrinsics,
-        poses,
-        channels_first=False,
-        has_embeddings=False, 
-    )

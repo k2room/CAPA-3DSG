@@ -95,6 +95,9 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "CAPAD":
         cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
         cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
+    elif ds == "ReplicaSSG":
+        cfg.dataset_root   = _resolve_path(cfg.ReplicaSSG_root)
+        cfg.dataset_config = _resolve_path(cfg.ReplicaSSG_config)
     else:
         raise ValueError(f"Unknown dataset: {ds}")
 
