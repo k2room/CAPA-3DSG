@@ -1,0 +1,1962 @@
+[
+  {
+    "_id": {
+      "$oid": "67124b1a030ee18eb47b4e5c"
+    },
+    "relation_id": "1fa6d507-53ae-4dc8-aed7-8f4347d512c8",
+    "scene_id": "2livingroom",
+    "description": "part of",
+    "first_node_annot_id": "0b1b0b28-1142-45c4-8b86-bb5280026492",
+    "second_node_annot_id": "94189713-a417-4c4e-84af-0ca6397a6f52"
+  },
+  {
+    "_id": {
+      "$oid": "67124f20030ee18eb49014bb"
+    },
+    "relation_id": "62b747c5-a4f2-418e-91bf-238ae9b620a1",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "3085c5d2-b1ed-4a60-a8cb-20a150923be1",
+    "second_node_annot_id": "fb02e7db-ff70-4d40-9482-48d95be39b3a"
+  },
+  {
+    "_id": {
+      "$oid": "67124f29030ee18eb4904a9c"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "0441ff35-6b53-4006-beb6-9229f34907ec",
+    "description": "part of",
+    "first_node_annot_id": "597dde1f-aea5-4518-b956-5e7efdf7e831",
+    "second_node_annot_id": "fb02e7db-ff70-4d40-9482-48d95be39b3a"
+  },
+  {
+    "_id": {
+      "$oid": "67124f34030ee18eb49082b9"
+    },
+    "relation_id": "1e977a76-be48-4217-a5c9-c53c47044aba",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "ae3b0fc0-1e7b-4a8a-8b4c-c9e65af2cb7a",
+    "second_node_annot_id": "afb1db89-5b81-4e52-8c12-87bd59f636e0"
+  },
+  {
+    "_id": {
+      "$oid": "67124f39030ee18eb4909c4c"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "2eca0aee-7d46-4bdb-be46-ae90782954af",
+    "description": "part of",
+    "first_node_annot_id": "ba7544bc-fb6d-4820-91c5-2693261707ff",
+    "second_node_annot_id": "afb1db89-5b81-4e52-8c12-87bd59f636e0"
+  },
+  {
+    "_id": {
+      "$oid": "67124f4c030ee18eb490f754"
+    },
+    "relation_id": "f5ab29d0-2ce6-4178-bdb6-13077e55f341",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "93d32795-244b-4413-bf44-c9247579d827",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f53030ee18eb4911777"
+    },
+    "relation_id": "dc62167c-e322-4235-b912-10f0408f4efa",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "30d8f765-bba8-49dc-8c5c-0c8fa7c6dc68",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f58030ee18eb49130f1"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "c04fb176-2d90-451c-b41c-8de196ee6304",
+    "description": "part of",
+    "first_node_annot_id": "464d32dd-ddcb-4ccf-b324-b76d06188f0d",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f5c030ee18eb49141c3"
+    },
+    "relation_id": "fd997825-7c74-4e0f-9e81-5d1b6e21ef74",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "ce2eb948-76c2-4d23-8529-b7fe4417c6e8",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f61030ee18eb4915d4f"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "d963f6c3-80a0-4738-bdd2-7896950870f0",
+    "description": "part of",
+    "first_node_annot_id": "01fbe19d-a02c-4541-a437-669aabe2e788",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f68030ee18eb4917914"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "4079201a-1482-40bd-8881-99e805df0fa4",
+    "description": "part of",
+    "first_node_annot_id": "95833d6f-1bb1-4280-be1d-74722a30e18b",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f76030ee18eb491c2bb"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "6be7fbb8-6cfd-4a3f-b3ff-b9d1120e4c2b",
+    "description": "part of",
+    "first_node_annot_id": "fe2277f3-89db-4127-978d-f3eb812c3671",
+    "second_node_annot_id": "ae2be5ef-53e8-4eba-b082-ab2a3d0d5d2c"
+  },
+  {
+    "_id": {
+      "$oid": "67124f7d030ee18eb491e31f"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "4839d144-0ccf-40c1-90b0-ddb905b9e297",
+    "description": "part of",
+    "first_node_annot_id": "198a7f88-1288-4d83-a22e-79a5c92f5a41",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124f81030ee18eb491f582"
+    },
+    "relation_id": "87a28caa-64dc-402b-bf6f-93bdc68f41b3",
+    "scene_id": "10kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f7a5dadd-a40a-43c0-bec2-a19a56e9e224",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124f85030ee18eb4920884"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "25cb0523-5876-4c3d-8288-4762d7276885",
+    "description": "part of",
+    "first_node_annot_id": "36122ed7-ac7f-4d86-a735-3f91e9883871",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124f88030ee18eb4921821"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "5ac90d89-2a98-481b-90f5-f83c6c49cc97",
+    "description": "part of",
+    "first_node_annot_id": "67a2bf27-2929-4c3f-aaf6-0d792d035a00",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124f8d030ee18eb4923227"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "924003b9-2482-4328-9098-8bae87b34e1d",
+    "description": "part of",
+    "first_node_annot_id": "876f26c5-f7a6-434a-83c5-2c8258ac1098",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124f94030ee18eb492558b"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "eea8b8bb-549f-421d-945c-eedb224e791a",
+    "description": "part of",
+    "first_node_annot_id": "80d073d2-5781-4402-b256-80d645450614",
+    "second_node_annot_id": "02c5fb08-9d63-4b5d-990c-959aacacef35"
+  },
+  {
+    "_id": {
+      "$oid": "67124fa1030ee18eb492b373"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "7adf8edf-dee6-423a-81f1-d74719947f67",
+    "description": "part of",
+    "first_node_annot_id": "23590db4-43f4-4890-ab90-d674ce8af2f4",
+    "second_node_annot_id": "b21b3308-fd5f-4268-a397-a507c39b5f3a"
+  },
+  {
+    "_id": {
+      "$oid": "67124fdd030ee18eb493f76b"
+    },
+    "scene_id": "10kitchen",
+    "relation_id": "50686fb3-af8a-40ea-9a8b-27dd6eb714b8",
+    "description": "part of",
+    "first_node_annot_id": "3db9ce2d-de5a-490d-a4bb-689a7205f7fa",
+    "second_node_annot_id": "66a7fdb1-99ff-4b62-8c8f-9f2870c27db1"
+  },
+  {
+    "_id": {
+      "$oid": "67130e17030ee18eb40a3d4f"
+    },
+    "relation_id": "ceec1d9e-6e27-4d6e-93ce-01c3fbd57b85",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "10c8368a-7442-4ce9-a548-960b8bbacf26",
+    "second_node_annot_id": "fcd973a3-39c9-4e84-a75f-abc957c42981"
+  },
+  {
+    "_id": {
+      "$oid": "67130e24030ee18eb40a7c00"
+    },
+    "relation_id": "2f6fc922-f0af-4caf-a7b3-d9e4398280ba",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "21bde071-9155-4ced-9f0e-4d3ab4066b76",
+    "second_node_annot_id": "fcd973a3-39c9-4e84-a75f-abc957c42981"
+  },
+  {
+    "_id": {
+      "$oid": "67130e2b030ee18eb40a9d30"
+    },
+    "relation_id": "49e8b368-e00c-48c8-8e04-adff6fde80dd",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "df12f156-a009-44d6-9020-0839e1e20066",
+    "second_node_annot_id": "fcd973a3-39c9-4e84-a75f-abc957c42981"
+  },
+  {
+    "_id": {
+      "$oid": "67130e31030ee18eb40ab668"
+    },
+    "relation_id": "3e1e886e-1d72-4ddf-a73a-9d78da78afc8",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "a41f1593-b8ee-466e-a830-22231b56001e",
+    "second_node_annot_id": "fcd973a3-39c9-4e84-a75f-abc957c42981"
+  },
+  {
+    "_id": {
+      "$oid": "67130e3d030ee18eb40aeb3c"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "ad1afc00-7089-4e10-9d3b-be1bda1cdbaa",
+    "description": "part of",
+    "first_node_annot_id": "0aa2c320-71f1-4977-8f0d-5acd609e4743",
+    "second_node_annot_id": "497e0d19-d67a-4da0-a507-bbe96e9329d6"
+  },
+  {
+    "_id": {
+      "$oid": "67130e45030ee18eb40b0d68"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "4d5e16e5-cce8-4a9d-ac1c-4e09b0f32868",
+    "description": "part of",
+    "first_node_annot_id": "626f6834-3490-4d7d-8c01-7c1808f75a58",
+    "second_node_annot_id": "497e0d19-d67a-4da0-a507-bbe96e9329d6"
+  },
+  {
+    "_id": {
+      "$oid": "67130e4d030ee18eb40b2f11"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "4bf4888b-816d-4777-950b-0f20b5e8e934",
+    "description": "part of",
+    "first_node_annot_id": "968148bd-a8ce-4f77-88af-915d1a3cfadf",
+    "second_node_annot_id": "497e0d19-d67a-4da0-a507-bbe96e9329d6"
+  },
+  {
+    "_id": {
+      "$oid": "67130e65030ee18eb40ba463"
+    },
+    "relation_id": "1e0425c5-d528-4899-a7ad-65d440c30fa1",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "6e00881c-a983-4cd5-9bf9-ad4ace3d0319",
+    "second_node_annot_id": "3312a095-0d16-410b-aac2-4b0c41101a99"
+  },
+  {
+    "_id": {
+      "$oid": "67130e75030ee18eb40bfa0a"
+    },
+    "relation_id": "bdf576dc-4968-44e5-b487-1751383c10b9",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f9fe3c99-9aeb-43f0-b61c-50745b3d8105",
+    "second_node_annot_id": "139ec106-b936-4d61-bb37-3c4194d00f6b"
+  },
+  {
+    "_id": {
+      "$oid": "67130e7e030ee18eb40c2755"
+    },
+    "relation_id": "340090ef-9322-4cc7-98a1-978315ecbd56",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "8883dc69-12a0-45eb-ad61-1f1a9674c9e0",
+    "second_node_annot_id": "3312a095-0d16-410b-aac2-4b0c41101a99"
+  },
+  {
+    "_id": {
+      "$oid": "67130e86030ee18eb40c4f47"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "d6293aa0-99c7-4e9f-95c4-d9e70c2e58f2",
+    "description": "part of",
+    "first_node_annot_id": "acf92087-2ff9-4fe8-9064-9b1d4725674a",
+    "second_node_annot_id": "3312a095-0d16-410b-aac2-4b0c41101a99"
+  },
+  {
+    "_id": {
+      "$oid": "67130e8e030ee18eb40c6f2c"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "b8cb53c5-4585-4061-8597-5a844dc3b100",
+    "description": "part of",
+    "first_node_annot_id": "1f8267da-e2af-4ad5-b523-1f4d12edbd02",
+    "second_node_annot_id": "3312a095-0d16-410b-aac2-4b0c41101a99"
+  },
+  {
+    "_id": {
+      "$oid": "67130e99030ee18eb40ca3a2"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "02007b43-536a-404f-98c0-0c6dacda2daa",
+    "description": "part of",
+    "first_node_annot_id": "51a22b55-9a95-4d7d-a04a-a2566ce01605",
+    "second_node_annot_id": "3b913a4b-4f6b-4d1c-827c-423fa2de9efc"
+  },
+  {
+    "_id": {
+      "$oid": "67130e9f030ee18eb40cc665"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "e54edfd5-a6a6-442e-8b94-b25e2d3aadc9",
+    "description": "part of",
+    "first_node_annot_id": "e5379d07-9084-445f-8b2d-38f3ae136b02",
+    "second_node_annot_id": "ca2b0708-a2b8-4f41-af84-2bf82994b95d"
+  },
+  {
+    "_id": {
+      "$oid": "67130eab030ee18eb40d0a89"
+    },
+    "relation_id": "1ddb8b23-e4e7-4a3e-b43d-78f8ddd39caa",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "e1eae47e-45a4-4419-8b53-ca57f802ad0c",
+    "second_node_annot_id": "dfae4ca4-7a87-402c-b5b7-a64354650b19"
+  },
+  {
+    "_id": {
+      "$oid": "67130ec7030ee18eb40d9728"
+    },
+    "relation_id": "a858627c-064c-4db9-9106-82a89a8e20b3",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f21fd874-dadf-440a-b74f-7529be92752f",
+    "second_node_annot_id": "86df6fd9-8bbd-4ed5-bfc3-3d101184e672"
+  },
+  {
+    "_id": {
+      "$oid": "67130efd030ee18eb40ea550"
+    },
+    "relation_id": "a8397e09-ce8c-41bd-889c-4417af18f382",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "975cb651-8816-4d14-a1db-dfb33c81363b",
+    "second_node_annot_id": "86df6fd9-8bbd-4ed5-bfc3-3d101184e672"
+  },
+  {
+    "_id": {
+      "$oid": "67130f55030ee18eb4102ba1"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "3d7ffdc1-5d25-41b7-97e2-84c644acae27",
+    "description": "part of",
+    "first_node_annot_id": "44baaedb-72de-4653-aaf9-7f17959c98ec",
+    "second_node_annot_id": "d92a7d97-1eb6-4340-bcb3-93a43e1235fb"
+  },
+  {
+    "_id": {
+      "$oid": "67130f5c030ee18eb4104a7e"
+    },
+    "relation_id": "acc1a9fc-5d8e-425f-9fac-93dd7509083f",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "200216d8-7731-4642-b5a9-ed10fccbb417",
+    "second_node_annot_id": "d92a7d97-1eb6-4340-bcb3-93a43e1235fb"
+  },
+  {
+    "_id": {
+      "$oid": "67130f77030ee18eb410bee1"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "abb51df7-9f9f-48fa-b6a0-d5b921276361",
+    "description": "part of",
+    "first_node_annot_id": "840b0e7a-144e-4aef-aae0-41b1d097d74a",
+    "second_node_annot_id": "d92a7d97-1eb6-4340-bcb3-93a43e1235fb"
+  },
+  {
+    "_id": {
+      "$oid": "67130fac030ee18eb411a8be"
+    },
+    "relation_id": "150234c1-982c-4bb5-992e-6823ee262d99",
+    "scene_id": "0kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f05bcfeb-2db5-4847-af36-e9b9347adb53",
+    "second_node_annot_id": "df66abca-4f71-4cad-a55f-a68ab5f77404"
+  },
+  {
+    "_id": {
+      "$oid": "67130fd1030ee18eb4124dd9"
+    },
+    "scene_id": "0kitchen",
+    "relation_id": "f40f2d51-ac39-4ff6-a0b5-ad48e785812d",
+    "description": "part of",
+    "first_node_annot_id": "12c8dbf9-5804-4081-95fb-f33ebcf78262",
+    "second_node_annot_id": "34cd4100-47fb-4288-a81b-7b509b7dc996"
+  },
+  {
+    "_id": {
+      "$oid": "6713111b030ee18eb4188a9c"
+    },
+    "scene_id": "1bathroom",
+    "relation_id": "adbad339-c514-49e4-acba-78a8c1c51883",
+    "description": "part of",
+    "first_node_annot_id": "c2d955e0-ce4b-4943-911d-e6bdc35595ef",
+    "second_node_annot_id": "97113108-1306-4a29-a52e-f589d4318713"
+  },
+  {
+    "_id": {
+      "$oid": "67131136030ee18eb41906ca"
+    },
+    "scene_id": "1bathroom",
+    "relation_id": "3e64e8fe-079a-4b7d-adc4-62a391d03e3c",
+    "description": "part of",
+    "first_node_annot_id": "f9c2845c-a663-48e9-9d06-c473ddff9ad6",
+    "second_node_annot_id": "07a85c08-4a23-4a4f-830b-697309388194"
+  },
+  {
+    "_id": {
+      "$oid": "6713114a030ee18eb4195add"
+    },
+    "relation_id": "d234425e-4231-47b5-a4ce-7d9954c3a1b1",
+    "scene_id": "1bathroom",
+    "description": "part of",
+    "first_node_annot_id": "9b386711-0502-4c62-92bb-2eab67fb3bca",
+    "second_node_annot_id": "07a85c08-4a23-4a4f-830b-697309388194"
+  },
+  {
+    "_id": {
+      "$oid": "67131156030ee18eb4198704"
+    },
+    "relation_id": "8fb8e4a0-6eb8-43a6-89ae-85573edea035",
+    "scene_id": "1bathroom",
+    "description": "part of",
+    "first_node_annot_id": "10f5c4c4-45e4-403b-b121-7dd591f33acf",
+    "second_node_annot_id": "eae369de-7a70-47d8-b5a4-873669f31946"
+  },
+  {
+    "_id": {
+      "$oid": "67131162030ee18eb419b112"
+    },
+    "scene_id": "1bathroom",
+    "relation_id": "f0b42838-9c26-4ae3-9f55-20d8943e70ba",
+    "description": "part of",
+    "first_node_annot_id": "ece708eb-dfd2-46ee-8bc9-34da286cdcca",
+    "second_node_annot_id": "fc7d4d40-b14b-40f6-aef2-ab95c48ceda1"
+  },
+  {
+    "_id": {
+      "$oid": "6713116d030ee18eb419ddc3"
+    },
+    "scene_id": "1bathroom",
+    "relation_id": "0eba8627-e823-4084-a3d5-392a25af948b",
+    "description": "part of",
+    "first_node_annot_id": "59fee29a-737e-44d3-b6e6-6d1b511c7792",
+    "second_node_annot_id": "fc7d4d40-b14b-40f6-aef2-ab95c48ceda1"
+  },
+  {
+    "_id": {
+      "$oid": "67131175030ee18eb419fe53"
+    },
+    "relation_id": "5e94c35f-501b-4411-ae88-9c5eaa7dd68a",
+    "scene_id": "1bathroom",
+    "description": "part of",
+    "first_node_annot_id": "01deaf87-db55-4171-80f6-cbd57a84d310",
+    "second_node_annot_id": "86857788-1428-4173-bf06-14952875483d"
+  },
+  {
+    "_id": {
+      "$oid": "67131183030ee18eb41a3134"
+    },
+    "scene_id": "1bathroom",
+    "relation_id": "7d33f41e-afdc-4d97-9410-a5801007a1af",
+    "description": "part of",
+    "first_node_annot_id": "0d6e2bb7-05a6-4de3-95d9-817c3e312c00",
+    "second_node_annot_id": "c793addb-92d0-407e-82a9-8f78062e36d0"
+  },
+  {
+    "_id": {
+      "$oid": "671311de030ee18eb41b8072"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "d52198b9-0854-4401-a7e3-405b10fd1258",
+    "description": "part of",
+    "first_node_annot_id": "8b1feefd-92f9-43e8-b9e0-300c89e8fd67",
+    "second_node_annot_id": "f88723ca-b6b0-48cf-b437-6a280fd92527"
+  },
+  {
+    "_id": {
+      "$oid": "671311ec030ee18eb41bbffa"
+    },
+    "relation_id": "1bb6b9b9-893a-481c-afdd-8b5a09a6d1bc",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "8cad3558-ab57-4ccc-8620-5773db800740",
+    "second_node_annot_id": "87cd6d4e-2f88-402d-a68b-16f84d64a039"
+  },
+  {
+    "_id": {
+      "$oid": "671311f7030ee18eb41bf288"
+    },
+    "relation_id": "172f6608-e0e0-42b3-bf70-d30d6a918ae3",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "5453c502-4b31-4627-947e-dc0fa4fed8ea",
+    "second_node_annot_id": "48b189f9-daee-465d-ae14-063fe298bc89"
+  },
+  {
+    "_id": {
+      "$oid": "671311fd030ee18eb41c07f0"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "75be9b6c-9d57-416b-9736-f519a05780c9",
+    "description": "part of",
+    "first_node_annot_id": "8afd5554-722f-43fc-bbd4-9a2e2b902a58",
+    "second_node_annot_id": "26e1c6c1-390e-4baf-8844-f3aa7e33516f"
+  },
+  {
+    "_id": {
+      "$oid": "67131204030ee18eb41c1f73"
+    },
+    "relation_id": "a8b096e6-b329-4114-bc5c-2d2551e2bbd6",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "4ac9151a-9b84-49fc-88bd-3f4abd3dafa3",
+    "second_node_annot_id": "cd95a35a-cac6-4998-9383-26c78a1b7455"
+  },
+  {
+    "_id": {
+      "$oid": "6713120b030ee18eb41c3617"
+    },
+    "relation_id": "16e7265e-2af0-4802-a658-4224809321f9",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "b2b09116-409c-467c-a0a3-c57c5f6987ec",
+    "second_node_annot_id": "fa25f213-0aa8-4084-97ff-a990f17f4302"
+  },
+  {
+    "_id": {
+      "$oid": "6713120f030ee18eb41c4358"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "178cbdaa-1a82-4f1f-ac77-cec881ba07d6",
+    "description": "part of",
+    "first_node_annot_id": "572c154c-575f-40cc-9a67-8f295a4d3b31",
+    "second_node_annot_id": "fa25f213-0aa8-4084-97ff-a990f17f4302"
+  },
+  {
+    "_id": {
+      "$oid": "67131216030ee18eb41c5c54"
+    },
+    "relation_id": "ffab80d4-6c1b-45f7-bf3b-cfef1c37c28b",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f292060f-d75e-481d-9b2e-6a3141aa6f06",
+    "second_node_annot_id": "fa25f213-0aa8-4084-97ff-a990f17f4302"
+  },
+  {
+    "_id": {
+      "$oid": "6713121a030ee18eb41c6fbc"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "8e98ced9-df81-4f09-8276-0410ce144877",
+    "description": "part of",
+    "first_node_annot_id": "99e1e2c2-0076-4700-bbc0-a97ec08346c3",
+    "second_node_annot_id": "fa25f213-0aa8-4084-97ff-a990f17f4302"
+  },
+  {
+    "_id": {
+      "$oid": "67131220030ee18eb41c82d7"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "d0559abc-7a39-4863-85b3-3e25d5231fc0",
+    "description": "part of",
+    "first_node_annot_id": "285b0930-f4ff-4e8e-81ec-528d93fa9e35",
+    "second_node_annot_id": "fa25f213-0aa8-4084-97ff-a990f17f4302"
+  },
+  {
+    "_id": {
+      "$oid": "67131241030ee18eb41d0b40"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "8e3f5e48-7904-4282-a1ff-284418766d30",
+    "description": "part of",
+    "first_node_annot_id": "9865f477-df67-4813-9120-ed2e3ec77383",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "67131247030ee18eb41d2244"
+    },
+    "relation_id": "a1be7b0e-afde-4685-99f2-85bc058c12fd",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "4a3b6cab-dbe3-49ea-b77e-1eec3a15bbb7",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "6713124c030ee18eb41d3648"
+    },
+    "relation_id": "28766906-f944-4823-90a0-73996d1299da",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f39a91fc-e687-4602-ad0b-bbde919f746a",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "67131250030ee18eb41d4924"
+    },
+    "scene_id": "3kitchen",
+    "relation_id": "cd582bc2-96fb-426d-afb9-5faf81dae40e",
+    "description": "part of",
+    "first_node_annot_id": "0b1700cb-5847-4249-bc88-a6a7e06765be",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "67131254030ee18eb41d5cb9"
+    },
+    "relation_id": "a1611a6c-ccd5-48b3-b0db-9f0b9fb334b0",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "cba6cd3d-f29e-4fb3-bb44-6e738202d7d6",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "67131258030ee18eb41d6dcd"
+    },
+    "relation_id": "33cbd597-950e-4478-b74f-e58a402e3310",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "16d54d1e-68ea-40e7-9a96-028594f89903",
+    "second_node_annot_id": "57895ee6-21fc-4706-80d1-0507c60b2749"
+  },
+  {
+    "_id": {
+      "$oid": "6713127a030ee18eb41e0fa8"
+    },
+    "relation_id": "0e349553-cc04-4ce3-ba35-17e8c7552023",
+    "scene_id": "3kitchen",
+    "description": "part of",
+    "first_node_annot_id": "d3cf8a60-d9cb-4ffe-934c-ecefa4db9886",
+    "second_node_annot_id": "0a0824a3-f355-4a32-83c6-8eb5cfebde60"
+  },
+  {
+    "_id": {
+      "$oid": "671312ec030ee18eb4204bc1"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "c3d05eb5-c37e-4016-92e2-d4f483146e2e",
+    "description": "part of",
+    "first_node_annot_id": "377ca5bd-82e6-4fef-a528-bfc62ebc687a",
+    "second_node_annot_id": "be854fc1-da14-4471-85ce-4ddbeb684f31"
+  },
+  {
+    "_id": {
+      "$oid": "671312f9030ee18eb4208a18"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "d8dea0b3-7e2f-407a-a842-f46bc6314657",
+    "description": "part of",
+    "first_node_annot_id": "2ab3d46d-6803-4800-a37c-021a75ba83d8",
+    "second_node_annot_id": "5fcbe0c1-e753-48f9-881a-6104441be49a"
+  },
+  {
+    "_id": {
+      "$oid": "671312ff030ee18eb420a308"
+    },
+    "relation_id": "baf04717-7891-435f-9a06-3a44356f54b9",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "33eac69d-ce91-45c8-8d55-c04dcc7863f9",
+    "second_node_annot_id": "5fcbe0c1-e753-48f9-881a-6104441be49a"
+  },
+  {
+    "_id": {
+      "$oid": "67131304030ee18eb420b959"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "bc45bc31-e479-4373-a823-e5fa79e15b2e",
+    "description": "part of",
+    "first_node_annot_id": "e893754b-bbe7-4c2d-a6d0-ed54b816bdfd",
+    "second_node_annot_id": "5fcbe0c1-e753-48f9-881a-6104441be49a"
+  },
+  {
+    "_id": {
+      "$oid": "6713130c030ee18eb420df5a"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "1f82946f-8850-422e-89c7-85ff8c97d6fb",
+    "description": "part of",
+    "first_node_annot_id": "ead8ecc5-2d26-4cb3-9777-bfb575b219ac",
+    "second_node_annot_id": "b9dfc044-a71e-4f90-a3ac-ebb0c6fc2723"
+  },
+  {
+    "_id": {
+      "$oid": "67131310030ee18eb420f263"
+    },
+    "relation_id": "b55ab281-b3d9-447b-b0d5-b90364fa2247",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "7868405c-e703-4450-963c-bf7cad5e84b3",
+    "second_node_annot_id": "b9dfc044-a71e-4f90-a3ac-ebb0c6fc2723"
+  },
+  {
+    "_id": {
+      "$oid": "67131315030ee18eb4210b1c"
+    },
+    "relation_id": "40fb6b77-712f-4105-8c26-3a3b5582327c",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "0d4d0b33-aa83-4d76-82c1-341bbb71a09d",
+    "second_node_annot_id": "6a144bdf-6523-4bf8-8b64-d6bb63ee967c"
+  },
+  {
+    "_id": {
+      "$oid": "6713132d030ee18eb4217f7c"
+    },
+    "relation_id": "6a879336-3685-44c9-bcfd-f13c08f325f4",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "d920ef1d-43f0-4dbd-988c-128c8376acb4",
+    "second_node_annot_id": "6a144bdf-6523-4bf8-8b64-d6bb63ee967c"
+  },
+  {
+    "_id": {
+      "$oid": "67131332030ee18eb4219356"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "23c6160f-1b0e-4063-88fd-441ccbede4d5",
+    "description": "part of",
+    "first_node_annot_id": "d4c63e47-dc32-4285-96b0-f03ad84f25e7",
+    "second_node_annot_id": "6a144bdf-6523-4bf8-8b64-d6bb63ee967c"
+  },
+  {
+    "_id": {
+      "$oid": "6713133d030ee18eb421bfaf"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "8aad9623-ca13-4a62-be75-8e8d6a5ce0ef",
+    "description": "part of",
+    "first_node_annot_id": "be4b5219-1023-4b39-8a9d-cbb485a50538",
+    "second_node_annot_id": "f92d6939-4b73-4797-a5a4-8799ab5bb544"
+  },
+  {
+    "_id": {
+      "$oid": "6713137a030ee18eb422f23c"
+    },
+    "relation_id": "97b97c09-4a95-4d3e-8db8-f51a7b1eb558",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "3f96bab7-8ee2-40ee-b201-cfebadcf7582",
+    "second_node_annot_id": "b40e025d-f8b5-4fa4-9347-1274e26c37bc"
+  },
+  {
+    "_id": {
+      "$oid": "6713137f030ee18eb4230786"
+    },
+    "relation_id": "96f2518a-15f2-4fef-aca1-66f4813a0b14",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "85eb89bd-6ee7-4621-8a4f-823af6b41a72",
+    "second_node_annot_id": "b40e025d-f8b5-4fa4-9347-1274e26c37bc"
+  },
+  {
+    "_id": {
+      "$oid": "67131386030ee18eb4232eaa"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "42bed297-2eef-42f0-aa91-f50d6ddfc78e",
+    "description": "part of",
+    "first_node_annot_id": "1069895b-76b9-4980-ac7b-5f271d13a83b",
+    "second_node_annot_id": "b40e025d-f8b5-4fa4-9347-1274e26c37bc"
+  },
+  {
+    "_id": {
+      "$oid": "6713138d030ee18eb4234cda"
+    },
+    "relation_id": "f85e20a5-ee7d-4160-b64c-8fcd292b982b",
+    "scene_id": "4livingroom",
+    "description": "part of",
+    "first_node_annot_id": "b9aabe16-2e07-4516-bc8b-40b89902736c",
+    "second_node_annot_id": "4a931c41-5b5a-4ddb-90de-03e3654ff85e"
+  },
+  {
+    "_id": {
+      "$oid": "67131392030ee18eb4236cb4"
+    },
+    "scene_id": "4livingroom",
+    "relation_id": "cae71797-bffa-4d4f-8131-b53c56c9e020",
+    "description": "part of",
+    "first_node_annot_id": "992edb77-c4a4-4b5a-a532-b0485f102738",
+    "second_node_annot_id": "4a931c41-5b5a-4ddb-90de-03e3654ff85e"
+  },
+  {
+    "_id": {
+      "$oid": "671313e3030ee18eb424c841"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "d60b9df4-232d-44f4-bdd8-5b181eb4fa55",
+    "description": "part of",
+    "first_node_annot_id": "187043d5-992f-49c6-84d4-c829fd7ed35e",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "671313ed030ee18eb424f106"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "6f89fda5-cf2a-4712-9537-768646f1c0c8",
+    "description": "part of",
+    "first_node_annot_id": "14753073-2a95-496e-91e5-2385981f2468",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "671313f5030ee18eb425184d"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "4a3cbdaf-825d-4ff4-b349-c57d05c177f9",
+    "description": "part of",
+    "first_node_annot_id": "b809b058-e459-42e5-8f5f-3438566e3145",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "671313fc030ee18eb4253ba7"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "e6008848-53c2-4ccb-92ea-838cd1c219cd",
+    "description": "part of",
+    "first_node_annot_id": "889a3eae-65bd-4e72-99c9-3eda86a52001",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "67131403030ee18eb42558d8"
+    },
+    "relation_id": "07c858ce-e752-40cb-a8b2-d85101669230",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "8b3801a9-bfb3-4823-961f-b2acf2bbe60c",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "6713140d030ee18eb4258539"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "180e69d1-605d-467c-b056-41b97894272f",
+    "description": "part of",
+    "first_node_annot_id": "772ffb5a-aa96-4134-8646-00f1e9d9d6cb",
+    "second_node_annot_id": "bcc11fea-162f-47e0-a86b-34f1d5d2fb69"
+  },
+  {
+    "_id": {
+      "$oid": "67131429030ee18eb425fd1a"
+    },
+    "relation_id": "db9d5854-4060-4f15-9a14-2b08511f4b20",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "6c9960b2-9c67-4daa-813b-061ebfcab127",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "6713142f030ee18eb4261526"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "9ffa8c4c-315d-4c79-8132-2e594ccbe073",
+    "description": "part of",
+    "first_node_annot_id": "5847e99a-ed77-4d93-9907-dadfe91239ce",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "67131433030ee18eb4262b23"
+    },
+    "relation_id": "d1247ecf-f78a-4da7-adb1-360a6e3e022e",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "c81e7268-4eaf-4990-bcd6-34e2a660c25f",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "67131437030ee18eb42641b5"
+    },
+    "relation_id": "dbc53b42-c42d-4ebd-854c-8afb7e8e3c1e",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "160f1d58-6577-4ba9-9910-31d65bea9d4d",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "6713143b030ee18eb426575e"
+    },
+    "relation_id": "7d4560f5-af0d-4334-b092-0a06cf164af6",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "dd94396b-b0ef-44c4-a1ae-83ff219607db",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "67131441030ee18eb4267238"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "32fbe982-99f0-4dfa-9e9f-fd918e15127b",
+    "description": "part of",
+    "first_node_annot_id": "c70a5d29-4dbf-4410-9d08-e5351faeb24c",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "6713144b030ee18eb426a917"
+    },
+    "relation_id": "410c5a6a-dedb-44ba-8a89-b8e7fd9bc03f",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "76c3de9b-9a11-47c1-86cf-3475f10c0cc1",
+    "second_node_annot_id": "93bc40e7-e4d3-4a03-a0ec-b587ccc52159"
+  },
+  {
+    "_id": {
+      "$oid": "67131461030ee18eb4271a1b"
+    },
+    "relation_id": "ab6737fd-54df-4878-b039-9b619b8898a6",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "3a785df0-8006-459d-9889-826cf20a0c40",
+    "second_node_annot_id": "9f14ebb1-eef5-412d-a794-8029fc60edbc"
+  },
+  {
+    "_id": {
+      "$oid": "6713146f030ee18eb4275450"
+    },
+    "relation_id": "e529e79a-08ad-4a76-9d49-ef5e63131a50",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "7de0fa81-afa9-46d7-b18a-6c79297faa94",
+    "second_node_annot_id": "1871b5d6-c2bf-4548-aec9-e4d9c08d5bf1"
+  },
+  {
+    "_id": {
+      "$oid": "67131479030ee18eb427824b"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "5886a813-7b6d-49dd-91ce-3e778789ddad",
+    "description": "part of",
+    "first_node_annot_id": "8b9321f0-c364-443d-99f5-6c26fd516ca4",
+    "second_node_annot_id": "1871b5d6-c2bf-4548-aec9-e4d9c08d5bf1"
+  },
+  {
+    "_id": {
+      "$oid": "67131495030ee18eb428085c"
+    },
+    "relation_id": "5dcb5b7b-4896-474c-9d37-8a574f7e0fcd",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "5510652e-a780-40a0-ac21-a7aa0a6a36c8",
+    "second_node_annot_id": "3e07c31d-1cf9-4a04-a76d-13334080bc7c"
+  },
+  {
+    "_id": {
+      "$oid": "671314a0030ee18eb4283d43"
+    },
+    "relation_id": "8195c3d2-3126-461b-8cd5-56ef6a5ca780",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "113d6f17-5cee-4965-8395-9a4e6f977017",
+    "second_node_annot_id": "3e07c31d-1cf9-4a04-a76d-13334080bc7c"
+  },
+  {
+    "_id": {
+      "$oid": "671314aa030ee18eb4286f71"
+    },
+    "relation_id": "f2d5bbea-5ff6-4aa2-8066-b020134b0a35",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "4f3a8c60-6ebb-4dff-a45f-8489bdc9f476",
+    "second_node_annot_id": "552ff359-5931-4f18-8a14-1ae262e7f7b3"
+  },
+  {
+    "_id": {
+      "$oid": "671314b0030ee18eb4289208"
+    },
+    "relation_id": "057807c1-ab9f-4053-9d53-626293d1b987",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "ce10ad19-b93f-496c-af83-6c9c9dad0970",
+    "second_node_annot_id": "552ff359-5931-4f18-8a14-1ae262e7f7b3"
+  },
+  {
+    "_id": {
+      "$oid": "671314b7030ee18eb428b209"
+    },
+    "relation_id": "d6d2cfbb-a715-42d5-8daa-b5776447fa29",
+    "scene_id": "5kitchen",
+    "description": "part of",
+    "first_node_annot_id": "018c9bbb-b61e-40b0-a89c-8acb8494118e",
+    "second_node_annot_id": "c1db0ee0-0baf-4a98-882d-11a8d6468c5f"
+  },
+  {
+    "_id": {
+      "$oid": "671314c3030ee18eb428f247"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "855b46f4-f6a1-47a2-a34a-68058281ecc4",
+    "description": "part of",
+    "first_node_annot_id": "7236b136-3cf9-4b53-86fd-c3aade3b3c5a",
+    "second_node_annot_id": "640d926a-e319-46db-8ee8-a949f4c92d01"
+  },
+  {
+    "_id": {
+      "$oid": "671314cc030ee18eb4291d9a"
+    },
+    "scene_id": "5kitchen",
+    "relation_id": "fc73025e-819b-4044-b032-4dbf2f24b8eb",
+    "description": "part of",
+    "first_node_annot_id": "cb59c632-4e43-46f4-a615-73193e65ba15",
+    "second_node_annot_id": "5022f815-0411-494b-b086-9683d5da1d89"
+  },
+  {
+    "_id": {
+      "$oid": "671314fa030ee18eb429eb94"
+    },
+    "relation_id": "72f6123c-5f66-4664-9a2c-fc8b5413b816",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "6072dac4-dc16-4bc4-a39e-6c88838cdf9b",
+    "second_node_annot_id": "7dbf59bc-f6a6-483a-bb31-7064c1f7c4b1"
+  },
+  {
+    "_id": {
+      "$oid": "67131501030ee18eb42a0aa3"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "130c1017-754d-47bd-9910-35113e75f7a2",
+    "description": "part of",
+    "first_node_annot_id": "a8c195c1-772f-418d-899c-6f1ef79401d5",
+    "second_node_annot_id": "7dbf59bc-f6a6-483a-bb31-7064c1f7c4b1"
+  },
+  {
+    "_id": {
+      "$oid": "6713150f030ee18eb42a4562"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "fbb7f6ec-9d68-4bd8-8bb8-e34aa0cafecd",
+    "description": "part of",
+    "first_node_annot_id": "332a8993-749f-4254-979f-e5c9cbd51acb",
+    "second_node_annot_id": "845e0325-c38a-403c-a076-1cbb07eb43a6"
+  },
+  {
+    "_id": {
+      "$oid": "6713152d030ee18eb42ad506"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "da2852b5-20f5-4ebb-86ed-573e25c19467",
+    "description": "part of",
+    "first_node_annot_id": "523dff48-dbe3-4f8d-92b8-134d9d74b92c",
+    "second_node_annot_id": "8f136460-9a3a-4d88-a8e6-1f799fb03eb1"
+  },
+  {
+    "_id": {
+      "$oid": "67131537030ee18eb42b005f"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "e2b60d97-8d86-49c5-bd4c-23d8117fa299",
+    "description": "part of",
+    "first_node_annot_id": "f159fc9d-a85a-4631-a854-cc2d672c6c99",
+    "second_node_annot_id": "200ff035-918f-4da8-963f-48da4becfef8"
+  },
+  {
+    "_id": {
+      "$oid": "6713153d030ee18eb42b1c32"
+    },
+    "relation_id": "36f03f39-117b-43a3-ad1a-dc9009a12ea0",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "836c1d30-a168-4c20-bc62-cf04ed8e98f1",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "67131556030ee18eb42b88d2"
+    },
+    "relation_id": "2ae20f5c-caac-45da-b1a2-27674e62c5e2",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "2cac307d-ccf4-4567-abbb-8c0e99517248",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "6713155b030ee18eb42b9fa1"
+    },
+    "relation_id": "8a5a61ef-cf79-47ed-8f3c-abe83b98d533",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "7a21d6ca-af3d-4f0a-b610-c57997f4814a",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "67131560030ee18eb42bb944"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "24c7fc2e-8cbf-4768-9923-f6b24f89ee9b",
+    "description": "part of",
+    "first_node_annot_id": "85d30623-02a5-43c5-a361-ea348d7c80b9",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "67131564030ee18eb42bcf2d"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "09de2641-5e9d-4b2c-966e-ef7d793d8832",
+    "description": "part of",
+    "first_node_annot_id": "bb65366b-3b76-4a69-b7bc-49bfdb4a9253",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "67131569030ee18eb42be560"
+    },
+    "relation_id": "c596f970-9d2f-4ae2-9782-bd36e1121a26",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "a2af6703-20e2-4de3-9e2d-e9572aba8319",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "6713156d030ee18eb42bf7de"
+    },
+    "relation_id": "078b6576-916e-4805-ab79-c887f10f6adf",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "66585692-502f-4554-a909-1e3be0e63a41",
+    "second_node_annot_id": "57af8075-e6f1-4a8f-ad01-f9124fd322ee"
+  },
+  {
+    "_id": {
+      "$oid": "67131578030ee18eb42c306b"
+    },
+    "relation_id": "520ffecf-430e-4a95-8dde-37daf6bc241f",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "6ab1eb7c-b836-4d0b-9754-39c483ab8f5a",
+    "second_node_annot_id": "e5429f83-7567-4185-87ae-d2870c6921eb"
+  },
+  {
+    "_id": {
+      "$oid": "6713157c030ee18eb42c430c"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "8246741d-c5e7-4078-a64f-68d1df6fd880",
+    "description": "part of",
+    "first_node_annot_id": "e6d4f3d7-20c1-4a13-892b-f5926a2b5146",
+    "second_node_annot_id": "e5429f83-7567-4185-87ae-d2870c6921eb"
+  },
+  {
+    "_id": {
+      "$oid": "67131581030ee18eb42c57ed"
+    },
+    "relation_id": "a506212f-3044-41f7-a198-3d820b8fdb2e",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "99cb4399-efc9-412e-94f3-bad250496efa",
+    "second_node_annot_id": "e5429f83-7567-4185-87ae-d2870c6921eb"
+  },
+  {
+    "_id": {
+      "$oid": "67131587030ee18eb42c6f94"
+    },
+    "relation_id": "bd560e36-2f58-49a0-82da-60f73a3375ec",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "41a017b4-c7a9-4e64-9d70-aa97acc58a5c",
+    "second_node_annot_id": "bd1e147b-9089-4ee9-81dc-028747537a02"
+  },
+  {
+    "_id": {
+      "$oid": "6713158c030ee18eb42c87d7"
+    },
+    "relation_id": "859f0214-3ee1-41ec-80b0-383a879dbbc7",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "0ae6e50a-c2a9-4de9-9b24-0da39f94c84c",
+    "second_node_annot_id": "bea31796-ad45-496c-9ec0-e845937a6a31"
+  },
+  {
+    "_id": {
+      "$oid": "67131591030ee18eb42c9a3a"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "9cc02d77-f4ee-49bb-8589-cfcf9f101e39",
+    "description": "part of",
+    "first_node_annot_id": "0d1fe9ae-c2f9-4d2d-861f-f3cb1afd8f41",
+    "second_node_annot_id": "bea31796-ad45-496c-9ec0-e845937a6a31"
+  },
+  {
+    "_id": {
+      "$oid": "67131597030ee18eb42cb547"
+    },
+    "relation_id": "e973349f-7877-4609-966c-b8813453b778",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "2a9a17c1-0848-4909-976c-3f64d8614784",
+    "second_node_annot_id": "9335a7cb-3e37-4da4-863d-28fa3420071d"
+  },
+  {
+    "_id": {
+      "$oid": "6713159f030ee18eb42cdb91"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "73b061b5-a1b1-4a5d-9b33-f23e8864a73b",
+    "description": "part of",
+    "first_node_annot_id": "564f7972-3bdf-4289-902d-9f547cabf0f5",
+    "second_node_annot_id": "93dbea78-522d-4530-a3bd-799ab596b00c"
+  },
+  {
+    "_id": {
+      "$oid": "671315aa030ee18eb42d156b"
+    },
+    "relation_id": "8f4b66e1-4f1b-4024-b65d-6b921dbeb204",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "cacd6963-5050-43fe-86b5-11ec27a0636e",
+    "second_node_annot_id": "42e9cf6d-2db7-4dd1-af4b-d94c0e8e5391"
+  },
+  {
+    "_id": {
+      "$oid": "671315b0030ee18eb42d3898"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "86ea4806-fd84-4c22-b6d7-147cd20b1483",
+    "description": "part of",
+    "first_node_annot_id": "d3f6114d-9018-4c5e-9476-acf0c050c92d",
+    "second_node_annot_id": "87a2cda1-2803-452c-a0d3-5d02582f8ff9"
+  },
+  {
+    "_id": {
+      "$oid": "671315c7030ee18eb42da452"
+    },
+    "relation_id": "15812601-0289-4d15-892c-b5a48650b933",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "dc3c3978-e1b1-49f4-b393-fa0996d947e2",
+    "second_node_annot_id": "c5d91ced-49b1-4f5e-8f33-681b7741e503"
+  },
+  {
+    "_id": {
+      "$oid": "671315cb030ee18eb42dba4d"
+    },
+    "scene_id": "6kitchen",
+    "relation_id": "184b0eb7-0241-4f93-ba96-e6af4234b2b6",
+    "description": "part of",
+    "first_node_annot_id": "09edd23e-7648-474d-b28e-298134f24a18",
+    "second_node_annot_id": "927ceae7-27a5-4069-99ed-6aa90471e064"
+  },
+  {
+    "_id": {
+      "$oid": "671315d9030ee18eb42dfd96"
+    },
+    "relation_id": "0f2fe4c6-60a2-4e92-a9f4-d4b0ef1d6ba5",
+    "scene_id": "6kitchen",
+    "description": "part of",
+    "first_node_annot_id": "a6fcc36d-4a05-473a-ae6d-a439e5c2bac7",
+    "second_node_annot_id": "ce3ec539-72ea-4a8f-8325-b59f685a553c"
+  },
+  {
+    "_id": {
+      "$oid": "67131aee030ee18eb444cbee"
+    },
+    "scene_id": "8bathroom",
+    "relation_id": "19207a80-44ce-4da9-96d9-9b5f561d495c",
+    "description": "part of",
+    "first_node_annot_id": "f333180c-848a-446e-95a0-350373919882",
+    "second_node_annot_id": "1ec675f3-1586-4b74-ba3c-e70e66733ed1"
+  },
+  {
+    "_id": {
+      "$oid": "67131af6030ee18eb444f23e"
+    },
+    "scene_id": "8bathroom",
+    "relation_id": "29258219-803d-4cb2-adb2-8716eae9a1d9",
+    "description": "part of",
+    "first_node_annot_id": "d2d55c1d-5111-4c65-9a50-f47546533178",
+    "second_node_annot_id": "feba042f-5b0d-4b98-8a56-cc73d6112cdf"
+  },
+  {
+    "_id": {
+      "$oid": "67131b01030ee18eb4452099"
+    },
+    "scene_id": "8bathroom",
+    "relation_id": "946339f6-c606-42c6-851c-ff51ac6bc26d",
+    "description": "part of",
+    "first_node_annot_id": "b37833b6-ef42-4f64-ae12-8ba154f68996",
+    "second_node_annot_id": "5f582d20-42f4-4b89-b73e-2d09719cfa10"
+  },
+  {
+    "_id": {
+      "$oid": "67131b11030ee18eb44566f0"
+    },
+    "relation_id": "c10c282f-271c-46ec-8fe0-28c42cda5f5f",
+    "scene_id": "8bathroom",
+    "description": "part of",
+    "first_node_annot_id": "f4714feb-efc3-4cca-b535-a3270c31d890",
+    "second_node_annot_id": "7c1ca272-9dc3-4c13-b302-121e1656c560"
+  },
+  {
+    "_id": {
+      "$oid": "67131b1a030ee18eb445884c"
+    },
+    "relation_id": "038a3fe0-e9d6-4dcc-a931-37754091c64f",
+    "scene_id": "8bathroom",
+    "description": "part of",
+    "first_node_annot_id": "56f40eb3-3424-4859-839b-0d9ec00a6e10",
+    "second_node_annot_id": "7c1ca272-9dc3-4c13-b302-121e1656c560"
+  },
+  {
+    "_id": {
+      "$oid": "67131b2c030ee18eb445cb07"
+    },
+    "relation_id": "6591ba85-e25b-4333-b38f-601bd8ce607d",
+    "scene_id": "8bathroom",
+    "description": "part of",
+    "first_node_annot_id": "4167f5bb-d862-46a4-92cc-6482c15c8bde",
+    "second_node_annot_id": "7c1ca272-9dc3-4c13-b302-121e1656c560"
+  },
+  {
+    "_id": {
+      "$oid": "67131b31030ee18eb445e068"
+    },
+    "relation_id": "8659c160-889a-4152-8768-3cbcf0872735",
+    "scene_id": "8bathroom",
+    "description": "part of",
+    "first_node_annot_id": "9c8bddfc-cdcd-40ba-9729-e4c49b4049b0",
+    "second_node_annot_id": "7c1ca272-9dc3-4c13-b302-121e1656c560"
+  },
+  {
+    "_id": {
+      "$oid": "67131b3c030ee18eb446097e"
+    },
+    "scene_id": "8bathroom",
+    "relation_id": "db3e9275-c61d-498f-bc16-f2cad0f8f94e",
+    "description": "part of",
+    "first_node_annot_id": "84573a3a-5866-4526-bfa4-4106ae991e73",
+    "second_node_annot_id": "cf0c700f-886c-4800-93ac-4c98f49e3afb"
+  },
+  {
+    "_id": {
+      "$oid": "67131b9e030ee18eb44793ca"
+    },
+    "scene_id": "9bedroom",
+    "relation_id": "87503eec-2832-48e6-b962-452c5a2fc4c8",
+    "description": "part of",
+    "first_node_annot_id": "cb65ae94-f347-448e-ae45-b8c3e756913d",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131ba2030ee18eb447a637"
+    },
+    "relation_id": "2977d916-beb3-4155-bbef-d2771c415b11",
+    "scene_id": "9bedroom",
+    "description": "part of",
+    "first_node_annot_id": "c7330652-ceba-4c91-8952-1453770391ca",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131ba6030ee18eb447b6b2"
+    },
+    "relation_id": "afc7e981-0cf6-4e8a-9087-aa7b72240851",
+    "scene_id": "9bedroom",
+    "description": "part of",
+    "first_node_annot_id": "2f761382-82f1-4609-8a12-39d71cda6ce7",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131baa030ee18eb447c8eb"
+    },
+    "relation_id": "0b9fedb4-dc17-440b-a29d-8818d6affc99",
+    "scene_id": "9bedroom",
+    "description": "part of",
+    "first_node_annot_id": "e7d5fc81-7265-4aeb-9d9c-5832ba0a019e",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131bae030ee18eb447db1e"
+    },
+    "scene_id": "9bedroom",
+    "relation_id": "cc14eaef-3187-4d78-8871-3d47bea1afb0",
+    "description": "part of",
+    "first_node_annot_id": "c64d8fe5-02d2-4d62-9624-e33a4cc60e63",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131bb2030ee18eb447eb61"
+    },
+    "relation_id": "a7668930-bb1b-4afb-a66b-b1640419ac00",
+    "scene_id": "9bedroom",
+    "description": "part of",
+    "first_node_annot_id": "b5e2a756-8d25-4a6d-b5a5-e650b6acc682",
+    "second_node_annot_id": "6feb4acb-d2eb-4f5f-a7b0-aa9ee463f975"
+  },
+  {
+    "_id": {
+      "$oid": "67131bc3030ee18eb44837d6"
+    },
+    "relation_id": "4e2ad7c3-7828-4ae7-82e9-d79c052c98c1",
+    "scene_id": "9bedroom",
+    "description": "part of",
+    "first_node_annot_id": "3f7eaf9a-faaa-468b-9671-93df342285be",
+    "second_node_annot_id": "b3aeb546-9f5c-467d-a7d7-2c34598c1e60"
+  },
+  {
+    "_id": {
+      "$oid": "67131be7030ee18eb448cba1"
+    },
+    "scene_id": "9bedroom",
+    "relation_id": "b3d2219f-1694-40e3-8128-31860dcac631",
+    "description": "part of",
+    "first_node_annot_id": "d0cb4755-ccf4-41db-ad35-457d5171084b",
+    "second_node_annot_id": "330bc4be-f766-452f-b708-90e3803d8f64"
+  },
+  {
+    "_id": {
+      "$oid": "67131cba030ee18eb44c654c"
+    },
+    "scene_id": "11bedroom",
+    "relation_id": "742f385c-a43a-4a47-944a-b63494733e7f",
+    "description": "part of",
+    "first_node_annot_id": "91d1304c-e3b0-49f6-9ac0-9ad498561b96",
+    "second_node_annot_id": "ab079220-e682-4a0c-9c34-3022fa6ffe20"
+  },
+  {
+    "_id": {
+      "$oid": "67131cca030ee18eb44cb183"
+    },
+    "relation_id": "0e240faa-d39f-4ccd-aea0-b650ca6f1122",
+    "scene_id": "11bedroom",
+    "description": "part of",
+    "first_node_annot_id": "4f273bf1-ea5e-4768-a4df-979a1e2d98e1",
+    "second_node_annot_id": "e461d8a7-bf31-487b-a848-1185950df166"
+  },
+  {
+    "_id": {
+      "$oid": "67131cd2030ee18eb44cd649"
+    },
+    "scene_id": "11bedroom",
+    "relation_id": "70570cd0-742f-450b-b95a-ee63efd7d4e3",
+    "description": "part of",
+    "first_node_annot_id": "b1a5ee8d-b76e-4a7e-8077-0c6d9780e393",
+    "second_node_annot_id": "e461d8a7-bf31-487b-a848-1185950df166"
+  },
+  {
+    "_id": {
+      "$oid": "67131cd6030ee18eb44cee25"
+    },
+    "relation_id": "b88ae7ba-c372-4bd3-abf1-34521b36fdde",
+    "scene_id": "11bedroom",
+    "description": "part of",
+    "first_node_annot_id": "e42d78c4-a043-4003-b8ae-b8fdf38ed44b",
+    "second_node_annot_id": "e461d8a7-bf31-487b-a848-1185950df166"
+  },
+  {
+    "_id": {
+      "$oid": "67131ceb030ee18eb44d5541"
+    },
+    "relation_id": "43bc9e7a-5e34-4748-bb04-a91423795989",
+    "scene_id": "11bedroom",
+    "description": "part of",
+    "first_node_annot_id": "edad5214-8d75-4e4f-a1c9-12bf78169766",
+    "second_node_annot_id": "5999f46d-0997-42df-8f4a-c2ca938e6511"
+  },
+  {
+    "_id": {
+      "$oid": "67131d66030ee18eb44f553c"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "9d234931-34f1-45a4-af4e-dbedafffce0c",
+    "description": "part of",
+    "first_node_annot_id": "9a3cc6e0-fb3c-4207-8618-4ffcd995eec3",
+    "second_node_annot_id": "f339a688-4f83-4acf-8471-e90228c4a07e"
+  },
+  {
+    "_id": {
+      "$oid": "67131d6c030ee18eb44f6ed6"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "ea5009f9-cf7a-4d61-b910-33883c35c262",
+    "description": "part of",
+    "first_node_annot_id": "cd483b3d-7757-4fe3-b085-82f22888db42",
+    "second_node_annot_id": "f339a688-4f83-4acf-8471-e90228c4a07e"
+  },
+  {
+    "_id": {
+      "$oid": "67131d7e030ee18eb44fb663"
+    },
+    "relation_id": "41735b98-52b5-4bcd-badb-1d6bd29fab75",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "20d140ce-61fb-4d32-aed8-b62b2c4bb575",
+    "second_node_annot_id": "8ee38466-9054-4600-a7f1-04a198caaf2b"
+  },
+  {
+    "_id": {
+      "$oid": "67131d9d030ee18eb4503674"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "523cdcc8-e506-4dbd-930b-b9b1940ee95a",
+    "description": "part of",
+    "first_node_annot_id": "4ebc38b0-9d3d-41e2-8fdb-8dc3f1cabd9b",
+    "second_node_annot_id": "1df7ab42-bac0-4282-9bef-f9fbc46cc5f0"
+  },
+  {
+    "_id": {
+      "$oid": "67131da8030ee18eb45064b9"
+    },
+    "relation_id": "f8a01d75-eae2-47c3-a348-431838b81da3",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "285ac4e9-7741-4790-837e-1dbd4393055c",
+    "second_node_annot_id": "1df7ab42-bac0-4282-9bef-f9fbc46cc5f0"
+  },
+  {
+    "_id": {
+      "$oid": "67131db3030ee18eb4509787"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "b3dfb4f7-fc7f-4f90-82ed-71132d61adf4",
+    "description": "part of",
+    "first_node_annot_id": "65988f77-2094-4552-b639-44056e154067",
+    "second_node_annot_id": "f339a688-4f83-4acf-8471-e90228c4a07e"
+  },
+  {
+    "_id": {
+      "$oid": "67131dbb030ee18eb450bbc9"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "9761500f-acf3-4334-a601-c8cc8d7c36e7",
+    "description": "part of",
+    "first_node_annot_id": "387fa922-f379-4aef-a653-315a5a0e89b0",
+    "second_node_annot_id": "f339a688-4f83-4acf-8471-e90228c4a07e"
+  },
+  {
+    "_id": {
+      "$oid": "67131dc4030ee18eb450df88"
+    },
+    "relation_id": "0ed320a5-b702-489f-8642-60fa0080cd30",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "b1743fca-c222-40a4-bd73-027725181331",
+    "second_node_annot_id": "8dda16d0-4f22-468d-b7bc-2b4f7c8ef835"
+  },
+  {
+    "_id": {
+      "$oid": "67131dce030ee18eb4510980"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "37adc480-cf2d-45ad-9a09-44185d8b6d0d",
+    "description": "part of",
+    "first_node_annot_id": "8350b046-97b5-4f34-8a98-8672910d40ac",
+    "second_node_annot_id": "8dda16d0-4f22-468d-b7bc-2b4f7c8ef835"
+  },
+  {
+    "_id": {
+      "$oid": "67131dd5030ee18eb4512898"
+    },
+    "relation_id": "1ed469ad-892e-4980-afd4-52bd6461319f",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "066ffbee-c6fd-49fd-b779-e2188ca69c22",
+    "second_node_annot_id": "8dda16d0-4f22-468d-b7bc-2b4f7c8ef835"
+  },
+  {
+    "_id": {
+      "$oid": "67131ddd030ee18eb451466b"
+    },
+    "relation_id": "b311607e-4894-495c-b52c-deda20b14365",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "2bf3ad66-f6a8-49ec-adfa-72e62c0a9f0f",
+    "second_node_annot_id": "8dda16d0-4f22-468d-b7bc-2b4f7c8ef835"
+  },
+  {
+    "_id": {
+      "$oid": "67131de5030ee18eb4516a8d"
+    },
+    "relation_id": "c1d1cdad-c353-43dc-af22-a70a9e43e03e",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "b7f1f433-6281-4fa0-a06b-4a11cd870181",
+    "second_node_annot_id": "8dda16d0-4f22-468d-b7bc-2b4f7c8ef835"
+  },
+  {
+    "_id": {
+      "$oid": "67131def030ee18eb4519255"
+    },
+    "relation_id": "95097048-cb5e-4657-a193-310d3b175151",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "a827b5c6-e001-48c6-99d7-b980ae01cbf7",
+    "second_node_annot_id": "76af3134-447f-42fa-80b0-db98f4dcf728"
+  },
+  {
+    "_id": {
+      "$oid": "67131df7030ee18eb451b139"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "2d9078f0-4e73-412e-bcfe-3a7a94b89666",
+    "description": "part of",
+    "first_node_annot_id": "601ff2d9-10c2-404b-9d05-13cfc8ace799",
+    "second_node_annot_id": "76af3134-447f-42fa-80b0-db98f4dcf728"
+  },
+  {
+    "_id": {
+      "$oid": "67131dff030ee18eb451d37a"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "fcb05641-f70b-4aea-a19d-827d2c59228b",
+    "description": "part of",
+    "first_node_annot_id": "64f143d5-f7a3-4d49-bcb9-7decf7602efa",
+    "second_node_annot_id": "76af3134-447f-42fa-80b0-db98f4dcf728"
+  },
+  {
+    "_id": {
+      "$oid": "67131e08030ee18eb451fb38"
+    },
+    "relation_id": "18d678cb-39d7-41da-ad59-fb9acb4018cc",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "f1e9a6f8-021a-4944-8a46-e0274b843644",
+    "second_node_annot_id": "1d98b33b-fbed-463f-8a31-4a7e2ba9d6b4"
+  },
+  {
+    "_id": {
+      "$oid": "67131e0e030ee18eb4521721"
+    },
+    "relation_id": "cb8fee38-83fd-4e2a-be52-843bb460dfb6",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "bbe67ebe-dd99-4c23-b307-184f074cc587",
+    "second_node_annot_id": "1d98b33b-fbed-463f-8a31-4a7e2ba9d6b4"
+  },
+  {
+    "_id": {
+      "$oid": "67131e17030ee18eb45242b8"
+    },
+    "relation_id": "7913b4a2-3a0e-478d-be51-61866bb1b0ba",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "436aac63-53a7-4c92-b295-e9c0c4b46f2e",
+    "second_node_annot_id": "910dfa70-00fe-49b9-8465-d1e6d2ea70f3"
+  },
+  {
+    "_id": {
+      "$oid": "67131e25030ee18eb4528adc"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "d417c388-f637-4bc4-87e3-463acd3052d9",
+    "description": "part of",
+    "first_node_annot_id": "745544f4-a8ca-4bbe-aed8-986368200c4a",
+    "second_node_annot_id": "fb600ca1-8e82-47e0-888a-408fab813991"
+  },
+  {
+    "_id": {
+      "$oid": "67131e69030ee18eb4539d0c"
+    },
+    "relation_id": "4bfc506c-d691-4965-8e2c-c96ad6d5eb4c",
+    "scene_id": "12kitchen",
+    "description": "part of",
+    "first_node_annot_id": "77d585fc-ed79-4562-a479-f174a8b19943",
+    "second_node_annot_id": "00becc68-446f-49ad-bd09-71f582ac55b3"
+  },
+  {
+    "_id": {
+      "$oid": "67131e77030ee18eb453cf6d"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "860aae46-d663-4472-bacb-772489cc90f0",
+    "description": "part of",
+    "first_node_annot_id": "71b4b344-2fef-47c5-9861-02bf4845c5ed",
+    "second_node_annot_id": "f9af0467-9ff2-4ce3-bedf-058d842c13c4"
+  },
+  {
+    "_id": {
+      "$oid": "67131e82030ee18eb453f99f"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "ebedfe7a-4ef5-4b72-ae59-37b5dad9fabb",
+    "description": "part of",
+    "first_node_annot_id": "33c6800c-3e97-4b15-9801-8adbc7888ede",
+    "second_node_annot_id": "f2002623-802a-4206-82df-b7ce839aeb7f"
+  },
+  {
+    "_id": {
+      "$oid": "67131e9d030ee18eb45467fb"
+    },
+    "scene_id": "12kitchen",
+    "relation_id": "72d5981c-cdff-4626-9d38-c355b2478b4b",
+    "description": "part of",
+    "first_node_annot_id": "9cba6a08-d29f-4d09-96dd-e2e0738607ea",
+    "second_node_annot_id": "f2002623-802a-4206-82df-b7ce839aeb7f"
+  },
+  {
+    "_id": {
+      "$oid": "67131f40030ee18eb45708c5"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "b0f6afa0-5667-4ebb-8397-ddb1c9cfa02c",
+    "description": "part of",
+    "first_node_annot_id": "bbf7d4a8-104d-4b26-a182-a4089c8e17eb",
+    "second_node_annot_id": "4490a892-2e27-46ee-b20b-0402036b96db"
+  },
+  {
+    "_id": {
+      "$oid": "67131f58030ee18eb4577e37"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "8399a660-1885-41d1-8421-57bac5cbc072",
+    "description": "part of",
+    "first_node_annot_id": "0561874e-2fc3-4af3-84af-ac11b6f11288",
+    "second_node_annot_id": "dccb9165-7e18-4ee4-a30c-ba295b251e95"
+  },
+  {
+    "_id": {
+      "$oid": "67131f5d030ee18eb457980c"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "a5a241b9-a555-4f90-b093-dc45035e6f16",
+    "description": "part of",
+    "first_node_annot_id": "516c5c1d-8ba0-4284-9005-b730f5884f29",
+    "second_node_annot_id": "dccb9165-7e18-4ee4-a30c-ba295b251e95"
+  },
+  {
+    "_id": {
+      "$oid": "67131f62030ee18eb457abc7"
+    },
+    "relation_id": "448466a3-9c00-4f11-9800-9f57b159c512",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "90da83c0-b6b7-4054-a957-70250023ead7",
+    "second_node_annot_id": "dccb9165-7e18-4ee4-a30c-ba295b251e95"
+  },
+  {
+    "_id": {
+      "$oid": "67131f66030ee18eb457bb1e"
+    },
+    "relation_id": "c89bf29f-403b-4c1f-b885-d38ebcff2b40",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "1c887c15-77fb-48cd-b199-648bcb058098",
+    "second_node_annot_id": "dccb9165-7e18-4ee4-a30c-ba295b251e95"
+  },
+  {
+    "_id": {
+      "$oid": "67131f6a030ee18eb457c83f"
+    },
+    "relation_id": "c626269c-3c88-44d7-a128-759525dddf68",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "2bcc8f71-864f-4c69-9cd4-e0f81574f6ae",
+    "second_node_annot_id": "dccb9165-7e18-4ee4-a30c-ba295b251e95"
+  },
+  {
+    "_id": {
+      "$oid": "67131f7d030ee18eb4581911"
+    },
+    "relation_id": "1bdc0216-9e4d-4755-9cb1-d00bf545ab39",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "28c908cc-bbeb-4275-b2e0-feed91f0544a",
+    "second_node_annot_id": "b3a9f35c-5404-4091-909c-4dd52ad842bf"
+  },
+  {
+    "_id": {
+      "$oid": "67131f99030ee18eb4588c63"
+    },
+    "relation_id": "ce0c924e-a2e4-4cd3-bc00-822663492921",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "e4802b30-56ee-4dc4-a983-026ea7cc3319",
+    "second_node_annot_id": "39b09ac3-f4af-4f26-904a-86c59397ed06"
+  },
+  {
+    "_id": {
+      "$oid": "67131fa9030ee18eb458cedb"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "85c8c4e2-ef9a-4866-8e5e-86394ffc8ac8",
+    "description": "part of",
+    "first_node_annot_id": "f934cad2-9e21-45b3-8ae0-3656a7b8cd7e",
+    "second_node_annot_id": "9f3f7df5-4751-4f24-bd19-9e08225640ad"
+  },
+  {
+    "_id": {
+      "$oid": "67131fb4030ee18eb458fd88"
+    },
+    "relation_id": "ff422381-01e1-410f-b3f8-0096e7bf576f",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "76a46ef3-4bf2-4ac5-a503-1ff4b14bcd15",
+    "second_node_annot_id": "98c0d73f-1043-4695-909e-c3f552d8aaeb"
+  },
+  {
+    "_id": {
+      "$oid": "67131fcb030ee18eb4595dca"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "8b0a81b4-6dcb-43c2-a752-495b36cc6ff9",
+    "description": "part of",
+    "first_node_annot_id": "7cbd6558-4aa2-43f3-9722-ea8ec5600d1f",
+    "second_node_annot_id": "fe4e7b9d-ad1d-456d-9f3e-8d3446714286"
+  },
+  {
+    "_id": {
+      "$oid": "67131fd5030ee18eb459842d"
+    },
+    "scene_id": "13bathroom",
+    "relation_id": "f77e70d6-69de-4ef3-8886-8e8f4d29ea16",
+    "description": "part of",
+    "first_node_annot_id": "910a7e36-8adb-472d-adb5-18e25f8e9a2e",
+    "second_node_annot_id": "fe4e7b9d-ad1d-456d-9f3e-8d3446714286"
+  },
+  {
+    "_id": {
+      "$oid": "67131fdd030ee18eb459a647"
+    },
+    "relation_id": "a5cb15e0-4ffa-4f17-af0c-fb921487af4f",
+    "scene_id": "13bathroom",
+    "description": "part of",
+    "first_node_annot_id": "d6f87229-5547-49f7-9716-9a4075c868db",
+    "second_node_annot_id": "3ddd9d01-a30e-433e-bcea-6a950151a205"
+  },
+  {
+    "_id": {
+      "$oid": "6713241e030ee18eb46c65e9"
+    },
+    "scene_id": "7bedroom",
+    "relation_id": "9f8faaa6-86f3-4163-a2dd-79604427767b",
+    "description": "part of",
+    "first_node_annot_id": "eed128d4-b8b5-468b-8c57-72d607267ccd",
+    "second_node_annot_id": "56946ad4-862c-471c-ac69-2297b5ee81fa"
+  },
+  {
+    "_id": {
+      "$oid": "67132423030ee18eb46c7c31"
+    },
+    "relation_id": "9a0f3808-e166-4560-8737-738f4f0b7a34",
+    "scene_id": "7bedroom",
+    "description": "part of",
+    "first_node_annot_id": "61b87c65-f637-4b37-822f-7cd096c149f3",
+    "second_node_annot_id": "56946ad4-862c-471c-ac69-2297b5ee81fa"
+  },
+  {
+    "_id": {
+      "$oid": "67132429030ee18eb46c8f0e"
+    },
+    "scene_id": "7bedroom",
+    "relation_id": "09c8298c-7a4c-4c1f-ba46-85f5f48d4337",
+    "description": "part of",
+    "first_node_annot_id": "59da02a6-2683-4f2f-985a-7789355c1346",
+    "second_node_annot_id": "56946ad4-862c-471c-ac69-2297b5ee81fa"
+  },
+  {
+    "_id": {
+      "$oid": "6713242e030ee18eb46ca175"
+    },
+    "scene_id": "7bedroom",
+    "relation_id": "bc0ec6f8-564b-4408-bd95-c66970a94276",
+    "description": "part of",
+    "first_node_annot_id": "573c6e1b-99ea-45a3-8eb4-4dcdccf583ef",
+    "second_node_annot_id": "05be65a1-e275-43e5-a360-02e91fa10628"
+  },
+  {
+    "_id": {
+      "$oid": "67132432030ee18eb46cb1d2"
+    },
+    "relation_id": "d23004b1-db00-42a8-b7f6-1d9a526680f6",
+    "scene_id": "7bedroom",
+    "description": "part of",
+    "first_node_annot_id": "b1addeea-9b12-49d3-ac46-6533ed37715d",
+    "second_node_annot_id": "05be65a1-e275-43e5-a360-02e91fa10628"
+  },
+  {
+    "_id": {
+      "$oid": "67132437030ee18eb46cc3e6"
+    },
+    "relation_id": "3da0c35a-651a-40cf-bd0e-2bd1f1389534",
+    "scene_id": "7bedroom",
+    "description": "part of",
+    "first_node_annot_id": "16942605-5ac2-42d7-9c3e-c461367959c1",
+    "second_node_annot_id": "ea2f8ec5-8551-451e-99fb-cd953d0c26cf"
+  },
+  {
+    "_id": {
+      "$oid": "6713243d030ee18eb46cd958"
+    },
+    "relation_id": "1ea90a31-be6b-4cf1-8596-b48875260e91",
+    "scene_id": "7bedroom",
+    "description": "part of",
+    "first_node_annot_id": "f126f357-9ad0-4053-ab0d-30e91d954fbe",
+    "second_node_annot_id": "ea2f8ec5-8551-451e-99fb-cd953d0c26cf"
+  },
+  {
+    "_id": {
+      "$oid": "67132440030ee18eb46ce565"
+    },
+    "scene_id": "7bedroom",
+    "relation_id": "3ebe4b77-9fb3-4c7a-b732-e72b521d4632",
+    "description": "part of",
+    "first_node_annot_id": "19d6b49b-e3f7-41b9-a761-c8a6b20c055c",
+    "second_node_annot_id": "dd7e47e2-e2de-44c2-bf64-cdaf4f10d6a2"
+  },
+  {
+    "_id": {
+      "$oid": "67132445030ee18eb46cf6b7"
+    },
+    "scene_id": "7bedroom",
+    "relation_id": "a3ff467b-f10c-45ec-b6de-6765dca42e43",
+    "description": "part of",
+    "first_node_annot_id": "a684e470-54e6-4e90-833f-cf6506b2cc3f",
+    "second_node_annot_id": "dd7e47e2-e2de-44c2-bf64-cdaf4f10d6a2"
+  }
+]

@@ -1,0 +1,1612 @@
+[
+  {
+    "_id": {
+      "$oid": "671214fa030ee18eb46b7de8"
+    },
+    "relation_id": "611540ef-b07e-4ad7-8f68-dc0c7cc5ec8e",
+    "scene_id": "420683",
+    "description": "part of",
+    "first_node_annot_id": "eb945e52-a2d5-4257-8de1-3f340deb71c9",
+    "second_node_annot_id": "6564cece-b08a-4e99-aadc-7b9b84d48c14"
+  },
+  {
+    "_id": {
+      "$oid": "67121bec030ee18eb48f5f0f"
+    },
+    "relation_id": "5052513b-0690-476c-a925-c8239b9617bb",
+    "scene_id": "420683",
+    "description": "part of",
+    "first_node_annot_id": "7478eaa4-362a-4613-9d6e-d41b794f41b9",
+    "second_node_annot_id": "6eabdfdc-d41c-4511-a841-08b177fd3d4b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c00030ee18eb48fb4e3"
+    },
+    "scene_id": "420683",
+    "relation_id": "1b9f4fea-c8e3-4bdf-85f5-9bc6a4b8f8c0",
+    "description": "part of",
+    "first_node_annot_id": "875242c5-10d3-4dd4-95ec-d20799e913c3",
+    "second_node_annot_id": "ef11c37b-4be8-4b73-aa2e-ff2d1a9ea5ff"
+  },
+  {
+    "_id": {
+      "$oid": "67121c1e030ee18eb49057eb"
+    },
+    "scene_id": "420683",
+    "relation_id": "b937382c-e6a2-45d3-a09c-8f4c77a3b118",
+    "description": "part of",
+    "first_node_annot_id": "465347e8-606a-4807-b89e-085cf8c578f3",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c49030ee18eb491324d"
+    },
+    "scene_id": "420683",
+    "relation_id": "f2d2c9dd-3ecf-496d-89bf-4295dfc022e5",
+    "description": "part of",
+    "first_node_annot_id": "1b45ca90-7c63-4bed-945b-ee564321a724",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c51030ee18eb49157be"
+    },
+    "scene_id": "420683",
+    "relation_id": "f3b18d41-f832-45ad-99bc-500e0000ce64",
+    "description": "part of",
+    "first_node_annot_id": "d8c8183c-8054-4101-9a2b-1d2645194360",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c59030ee18eb4917daf"
+    },
+    "scene_id": "420683",
+    "relation_id": "cc1758fa-fd66-40fd-b54f-5bb305de0512",
+    "description": "part of",
+    "first_node_annot_id": "d9876b50-2eaf-4c07-8543-3f57f6813b25",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c5f030ee18eb4919526"
+    },
+    "relation_id": "e6320118-ab36-42ec-a55d-2d16a1e15b65",
+    "scene_id": "420683",
+    "description": "part of",
+    "first_node_annot_id": "8dec8ba5-ee16-44b1-a131-611ee615bba7",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121c6b030ee18eb491cf2d"
+    },
+    "scene_id": "420683",
+    "relation_id": "4efbec48-633a-480b-8e19-89365279f874",
+    "description": "part of",
+    "first_node_annot_id": "bd7938dd-0f75-4e1c-84a3-aa6294dc6b36",
+    "second_node_annot_id": "34ef21f3-fb41-496f-afac-632e7ad4c34b"
+  },
+  {
+    "_id": {
+      "$oid": "67121cb1030ee18eb4931804"
+    },
+    "scene_id": "420683",
+    "relation_id": "003d2e91-9717-4b61-990d-cb5375517176",
+    "description": "part of",
+    "first_node_annot_id": "e0047d50-015b-40d0-8910-f0c4b1fb5b7a",
+    "second_node_annot_id": "8a1b9af6-dc57-4766-98cb-f10cb6266656"
+  },
+  {
+    "_id": {
+      "$oid": "67121cc5030ee18eb4937115"
+    },
+    "relation_id": "2a246367-9ee6-42cc-ad3b-cf18aff31faa",
+    "scene_id": "420683",
+    "description": "part of",
+    "first_node_annot_id": "1bcde871-8765-4a7b-b2fa-92caeb16596e",
+    "second_node_annot_id": "74f9d3c4-241d-4a60-937d-92a11e9421c7"
+  },
+  {
+    "_id": {
+      "$oid": "67121d47030ee18eb49625e2"
+    },
+    "scene_id": "421013",
+    "relation_id": "2fcf5f8c-b82d-46a3-a135-55d6e6a6ae6d",
+    "description": "part of",
+    "first_node_annot_id": "7f13ad67-a21a-4ed2-9bc1-c0e330ebfbb4",
+    "second_node_annot_id": "600ca2b3-a6fd-4360-8279-2e91df4d6851"
+  },
+  {
+    "_id": {
+      "$oid": "67121d4f030ee18eb4964fc5"
+    },
+    "relation_id": "44992f03-3f66-4718-990b-43bd34c0861b",
+    "scene_id": "421013",
+    "description": "part of",
+    "first_node_annot_id": "763b8e1e-ca12-4f8d-a0d9-cbdad0b699c2",
+    "second_node_annot_id": "600ca2b3-a6fd-4360-8279-2e91df4d6851"
+  },
+  {
+    "_id": {
+      "$oid": "67121d5c030ee18eb49699b8"
+    },
+    "scene_id": "421013",
+    "relation_id": "f53b9c58-9a92-49e1-8c0c-1551e054eaf9",
+    "description": "part of",
+    "first_node_annot_id": "4375aca4-619a-49e3-9bb5-abcd2fdc203f",
+    "second_node_annot_id": "e810c10f-8b4a-4fd1-8ae1-0d51fd3e2295"
+  },
+  {
+    "_id": {
+      "$oid": "67121d62030ee18eb496b527"
+    },
+    "relation_id": "39d7751d-3993-4e03-8127-cd177d1978cc",
+    "scene_id": "421013",
+    "description": "part of",
+    "first_node_annot_id": "363a1c6d-0870-419a-a9e1-539b68463700",
+    "second_node_annot_id": "e810c10f-8b4a-4fd1-8ae1-0d51fd3e2295"
+  },
+  {
+    "_id": {
+      "$oid": "67121d96030ee18eb497b808"
+    },
+    "scene_id": "421013",
+    "relation_id": "0f527ccd-9a25-466e-a9a8-acc91224e71d",
+    "description": "part of",
+    "first_node_annot_id": "5c383fa1-c2de-46d9-8c87-969486e5e28d",
+    "second_node_annot_id": "2b27ebab-9f6f-4a35-8e8b-dca0f71aeeef"
+  },
+  {
+    "_id": {
+      "$oid": "67121dd0030ee18eb498e3d5"
+    },
+    "scene_id": "421013",
+    "relation_id": "93d1f460-e804-4e46-802a-f05439aaa0de",
+    "description": "part of",
+    "first_node_annot_id": "5c71b546-bf86-49cd-9c7f-158a9c4b24e5",
+    "second_node_annot_id": "a00be285-5f92-4254-aadd-83e7182b5db9"
+  },
+  {
+    "_id": {
+      "$oid": "67121ddd030ee18eb4991dfd"
+    },
+    "scene_id": "421013",
+    "relation_id": "ca0746b7-4ae8-4df0-a1b5-55a7ae4588a5",
+    "description": "part of",
+    "first_node_annot_id": "6ce409f0-d503-4282-bbda-8dd62e3d2ae3",
+    "second_node_annot_id": "a00be285-5f92-4254-aadd-83e7182b5db9"
+  },
+  {
+    "_id": {
+      "$oid": "67121de4030ee18eb4994133"
+    },
+    "scene_id": "421013",
+    "relation_id": "caa19a2e-a28d-42bb-96a6-fba7f5a945cb",
+    "description": "part of",
+    "first_node_annot_id": "d1cb8681-bd37-49eb-8d89-5f09d782a627",
+    "second_node_annot_id": "a00be285-5f92-4254-aadd-83e7182b5db9"
+  },
+  {
+    "_id": {
+      "$oid": "67121deb030ee18eb499628d"
+    },
+    "relation_id": "2e1b3d1b-05cb-44b1-8910-1d6fd4c0d96a",
+    "scene_id": "421013",
+    "description": "part of",
+    "first_node_annot_id": "217402c7-af78-4217-b70f-ef3bb65f71d4",
+    "second_node_annot_id": "a00be285-5f92-4254-aadd-83e7182b5db9"
+  },
+  {
+    "_id": {
+      "$oid": "67121e5b030ee18eb49b8703"
+    },
+    "relation_id": "cc9c648f-c678-429d-b510-5d83f318aa2c",
+    "scene_id": "421015",
+    "description": "part of",
+    "first_node_annot_id": "87288e94-cd31-4f93-8e97-abfc7820ecdc",
+    "second_node_annot_id": "5febfbab-cf5b-4bc0-bf80-ba8eeba57d1a"
+  },
+  {
+    "_id": {
+      "$oid": "67121e66030ee18eb49bd1af"
+    },
+    "scene_id": "421015",
+    "relation_id": "c50ba9ff-6916-4dcc-b475-49033c434faf",
+    "description": "part of",
+    "first_node_annot_id": "bffeae1b-559e-44de-8179-5847aeeb323d",
+    "second_node_annot_id": "5febfbab-cf5b-4bc0-bf80-ba8eeba57d1a"
+  },
+  {
+    "_id": {
+      "$oid": "67121e6d030ee18eb49c02cc"
+    },
+    "relation_id": "49a24364-c5dc-43a6-8f13-2ed95d655a64",
+    "scene_id": "421015",
+    "description": "part of",
+    "first_node_annot_id": "ad665cfd-cce2-4b77-bacd-7df2562de3fb",
+    "second_node_annot_id": "5febfbab-cf5b-4bc0-bf80-ba8eeba57d1a"
+  },
+  {
+    "_id": {
+      "$oid": "67121e92030ee18eb49cc909"
+    },
+    "relation_id": "ff3259dc-5a21-4e8f-89cb-f6018c78a96c",
+    "scene_id": "421015",
+    "description": "part of",
+    "first_node_annot_id": "459f80b1-1d1c-45fe-85dc-601a9ffef984",
+    "second_node_annot_id": "5a5b914c-7a52-4266-ba38-629ff5abbe62"
+  },
+  {
+    "_id": {
+      "$oid": "67121fc8030ee18eb4a2df61"
+    },
+    "relation_id": "85c851ff-3200-43ed-8ca6-c16844bae396",
+    "scene_id": "421063",
+    "description": "part of",
+    "first_node_annot_id": "100fbbca-8668-4777-969e-b698a7dabc28",
+    "second_node_annot_id": "4b744253-7024-4cce-bc50-6ced6fa61cd9"
+  },
+  {
+    "_id": {
+      "$oid": "67121fd9030ee18eb4a34b5a"
+    },
+    "relation_id": "96457cfa-42d0-4c9c-8497-0c7233b0b31e",
+    "scene_id": "421063",
+    "description": "part of",
+    "first_node_annot_id": "9b3b2ba9-03f7-4d77-8fc1-40791d387e2d",
+    "second_node_annot_id": "e485d1c1-2fe4-4a67-a124-ca7f6abbd3a1"
+  },
+  {
+    "_id": {
+      "$oid": "67121ff0030ee18eb4a3b6b3"
+    },
+    "relation_id": "13fd02cd-7026-4089-9c5e-4c3e64456f2c",
+    "scene_id": "421063",
+    "description": "part of",
+    "first_node_annot_id": "b0e7459d-07a3-41a9-af61-18f99260e1d3",
+    "second_node_annot_id": "c4a12f33-c0ab-45d2-bea0-9710e08ef8c4"
+  },
+  {
+    "_id": {
+      "$oid": "67121fff030ee18eb4a3fd05"
+    },
+    "scene_id": "421063",
+    "relation_id": "404cbe43-3bab-4fd3-aa2d-c9f5fa77a227",
+    "description": "part of",
+    "first_node_annot_id": "a54cd1df-50ca-4ca9-b3c0-136fe9224393",
+    "second_node_annot_id": "c4a12f33-c0ab-45d2-bea0-9710e08ef8c4"
+  },
+  {
+    "_id": {
+      "$oid": "67122011030ee18eb4a45395"
+    },
+    "scene_id": "421063",
+    "relation_id": "1d896015-5243-487e-840f-258aa03d608a",
+    "description": "part of",
+    "first_node_annot_id": "1e33ac6a-7344-4c07-a5a0-d3ff74760222",
+    "second_node_annot_id": "b0e10097-ce1f-46d7-8905-b820e381c43e"
+  },
+  {
+    "_id": {
+      "$oid": "6712201c030ee18eb4a48886"
+    },
+    "scene_id": "421063",
+    "relation_id": "e54d0ff8-c160-4f0f-bbda-ab949ffa95cc",
+    "description": "part of",
+    "first_node_annot_id": "8c74ba89-2f15-4638-97e0-c1a8c294a25e",
+    "second_node_annot_id": "b0e10097-ce1f-46d7-8905-b820e381c43e"
+  },
+  {
+    "_id": {
+      "$oid": "67122034030ee18eb4a4f78f"
+    },
+    "relation_id": "c3e7ed93-2905-4549-a379-630e6c4a1b61",
+    "scene_id": "421063",
+    "description": "part of",
+    "first_node_annot_id": "1388fee4-5027-4d92-a76a-e91b50c6b13e",
+    "second_node_annot_id": "dc0199ff-e3ab-4754-9911-2cfe9eb6881d"
+  },
+  {
+    "_id": {
+      "$oid": "671220a0030ee18eb4a6fced"
+    },
+    "relation_id": "b641bb1c-5f68-402b-a785-c005c7a36184",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "addeffee-87e2-4f20-98bd-589c425f0f07",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220ac030ee18eb4a731e2"
+    },
+    "scene_id": "421254",
+    "relation_id": "fd7124b7-cf3e-4e5f-ade2-441d2d9e9977",
+    "description": "part of",
+    "first_node_annot_id": "9bb22a10-e42b-46fb-af9b-8a8df7d3f6b3",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220b4030ee18eb4a76009"
+    },
+    "scene_id": "421254",
+    "relation_id": "5cb11cb6-6916-4afb-b98f-3e5f3ecd1a58",
+    "description": "part of",
+    "first_node_annot_id": "da2d25fc-56d3-4b0f-8ada-778acac16871",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220bb030ee18eb4a7895e"
+    },
+    "relation_id": "8f1dbb59-f197-4ce8-bada-382db1e7e98c",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "2ffdc7cc-6746-4b6d-a2e5-35c078befc56",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220c0030ee18eb4a7b187"
+    },
+    "relation_id": "8d39f815-0291-4a42-ad2f-b83931864240",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "f75e1a27-55d7-4b2e-be1a-2d5596d69dd8",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220c7030ee18eb4a7da3f"
+    },
+    "relation_id": "1247f859-3396-4f5b-bbab-7c22339e23d8",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "3025d034-e4c9-4dc8-8711-ba7cda23b8e1",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220cc030ee18eb4a7fb9e"
+    },
+    "scene_id": "421254",
+    "relation_id": "7243d8f3-14a5-4d60-af83-7711b83d1313",
+    "description": "part of",
+    "first_node_annot_id": "0635ce47-455a-4933-b421-cd5601b7203f",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220d2030ee18eb4a81d87"
+    },
+    "relation_id": "799b0c43-8bc3-4a7c-9cbf-b341adda34b0",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "877bb40d-b6d8-4716-b958-320b07e6f8d8",
+    "second_node_annot_id": "97164eaa-1cf8-49ff-9024-f20d4d64f13e"
+  },
+  {
+    "_id": {
+      "$oid": "671220db030ee18eb4a84854"
+    },
+    "scene_id": "421254",
+    "relation_id": "57f88abc-c9a9-4a8d-a973-1eac0d042c01",
+    "description": "part of",
+    "first_node_annot_id": "8ab6af8d-3cad-4fad-bf78-157916578132",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220e0030ee18eb4a864ec"
+    },
+    "scene_id": "421254",
+    "relation_id": "69b76413-5cef-4fb9-95e9-7b1d3acdc68e",
+    "description": "part of",
+    "first_node_annot_id": "a0f8f1a0-fe8d-4eae-b655-66ac3b1ca05f",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220e5030ee18eb4a88305"
+    },
+    "scene_id": "421254",
+    "relation_id": "13b891cc-c260-4958-b96f-3f1e470bf6a7",
+    "description": "part of",
+    "first_node_annot_id": "b0aa5f30-4fae-4ca8-bc66-c0595b8fc754",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220ea030ee18eb4a89a36"
+    },
+    "scene_id": "421254",
+    "relation_id": "2866ac13-99b3-4c0f-ad16-b64cf0d18402",
+    "description": "part of",
+    "first_node_annot_id": "ac42e1c2-3ed4-447f-8147-cd903d8eefc5",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220ef030ee18eb4a8b181"
+    },
+    "scene_id": "421254",
+    "relation_id": "7fd4f4fc-4082-46cd-b31f-4c09c21752c5",
+    "description": "part of",
+    "first_node_annot_id": "6aa841fa-6898-401d-a750-0f521b4cafe7",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220f4030ee18eb4a8c862"
+    },
+    "scene_id": "421254",
+    "relation_id": "064e14b9-a9eb-4884-93e4-5db78e29d3d6",
+    "description": "part of",
+    "first_node_annot_id": "044038ae-cd3a-4874-837c-9f2e32a83b04",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220f8030ee18eb4a8da48"
+    },
+    "scene_id": "421254",
+    "relation_id": "bccd4bc6-604f-40de-8cda-8c12ade8db0e",
+    "description": "part of",
+    "first_node_annot_id": "15a1acd9-d48d-4011-bbdc-297619dfb62c",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220fc030ee18eb4a8eda5"
+    },
+    "scene_id": "421254",
+    "relation_id": "28032579-88c0-4088-b5ca-50ccd2d50d87",
+    "description": "part of",
+    "first_node_annot_id": "2b17304a-ced6-4b4f-9c1b-32ec7ba8bc64",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "671220ff030ee18eb4a90127"
+    },
+    "relation_id": "06742f16-2702-403d-949c-88c893625368",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "482d7642-61c9-4161-b651-45dc8cb9e2ae",
+    "second_node_annot_id": "f1f234c5-0f2c-4fd0-aaf5-91a02c121ccb"
+  },
+  {
+    "_id": {
+      "$oid": "67122153030ee18eb4aaa642"
+    },
+    "scene_id": "421254",
+    "relation_id": "a8fbfc93-9f2e-422a-b1c8-6b9c1db38e81",
+    "description": "part of",
+    "first_node_annot_id": "ba0e4f26-1e02-4745-92b6-e1035ba5252c",
+    "second_node_annot_id": "762c6ae7-17cb-4f69-998b-ffe2c168d47f"
+  },
+  {
+    "_id": {
+      "$oid": "67122157030ee18eb4aab76c"
+    },
+    "relation_id": "cfc39f7d-7adb-4f97-b6ae-d9aa805c6a39",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "c0685f07-46ed-41c9-b3ce-4fc476c86c7c",
+    "second_node_annot_id": "762c6ae7-17cb-4f69-998b-ffe2c168d47f"
+  },
+  {
+    "_id": {
+      "$oid": "6712215b030ee18eb4aac8f8"
+    },
+    "relation_id": "86f335b7-b55c-45e7-83c3-4c3bef4899f5",
+    "scene_id": "421254",
+    "description": "part of",
+    "first_node_annot_id": "d2174346-66bb-4a99-8177-edcc8c7cd20b",
+    "second_node_annot_id": "762c6ae7-17cb-4f69-998b-ffe2c168d47f"
+  },
+  {
+    "_id": {
+      "$oid": "6712221b030ee18eb4aea28b"
+    },
+    "relation_id": "45d4aab8-2fa4-4023-af84-6465d2532f49",
+    "scene_id": "421267",
+    "description": "part of",
+    "first_node_annot_id": "d4851784-f51f-426a-acf3-ca0eeb595add",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "67122224030ee18eb4aed138"
+    },
+    "relation_id": "3d6a7174-1048-4dff-9f9c-644650499d22",
+    "scene_id": "421267",
+    "description": "part of",
+    "first_node_annot_id": "a525305a-4203-4fff-9d2f-54dec37a7722",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "6712222d030ee18eb4af0416"
+    },
+    "relation_id": "1faf0845-ef18-4ff8-9241-a0ea26f199f1",
+    "scene_id": "421267",
+    "description": "part of",
+    "first_node_annot_id": "d1aa6377-5e75-44be-a4b0-e32c4330edc3",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "67122232030ee18eb4af1976"
+    },
+    "relation_id": "4d9a2b26-be5a-4fc1-b3df-20dde5287788",
+    "scene_id": "421267",
+    "description": "part of",
+    "first_node_annot_id": "64769d1c-3a54-4e23-872d-cf2a5770db2b",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "67122238030ee18eb4af37fb"
+    },
+    "scene_id": "421267",
+    "relation_id": "b74af038-b154-41f0-bd28-a6320ff1c790",
+    "description": "part of",
+    "first_node_annot_id": "9a1fc970-494b-4e42-8529-98a91f255ba7",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "6712223c030ee18eb4af4c36"
+    },
+    "relation_id": "35720860-86d0-4af4-943b-785a1f6e4bf2",
+    "scene_id": "421267",
+    "description": "part of",
+    "first_node_annot_id": "e5005f56-18e2-444e-9d2c-d6fb588fb672",
+    "second_node_annot_id": "7a40a053-a0ee-459d-86c4-fbc6f520cf36"
+  },
+  {
+    "_id": {
+      "$oid": "671222c6030ee18eb4b1f841"
+    },
+    "scene_id": "421267",
+    "relation_id": "e026e0d0-6fc9-415e-998b-0d6e5296cbff",
+    "description": "part of",
+    "first_node_annot_id": "d9e567a7-ca6a-4a05-804d-42529876fdef",
+    "second_node_annot_id": "e32e7ea8-d74d-4cd4-aef2-2a95b3f784ba"
+  },
+  {
+    "_id": {
+      "$oid": "671222cb030ee18eb4b20e9d"
+    },
+    "scene_id": "421267",
+    "relation_id": "a7096c99-ed7f-467e-9a72-4606a86eb2e1",
+    "description": "part of",
+    "first_node_annot_id": "9f66af68-a000-49c5-8c64-e4c06d19dac2",
+    "second_node_annot_id": "e32e7ea8-d74d-4cd4-aef2-2a95b3f784ba"
+  },
+  {
+    "_id": {
+      "$oid": "6712233e030ee18eb4b46e7a"
+    },
+    "relation_id": "4bb203c5-c22c-4a5c-9e29-78bdf3d7f06c",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "2e9cd70e-9bcb-463e-8609-dc8c63d1facc",
+    "second_node_annot_id": "340b66f3-ff28-4436-a311-ba6ba9202289"
+  },
+  {
+    "_id": {
+      "$oid": "67122343030ee18eb4b4883e"
+    },
+    "scene_id": "421602",
+    "relation_id": "b3c11f26-2dfa-468a-bca8-cee89b536b95",
+    "description": "part of",
+    "first_node_annot_id": "d54793bc-ed8e-4883-a708-1299c03d038d",
+    "second_node_annot_id": "340b66f3-ff28-4436-a311-ba6ba9202289"
+  },
+  {
+    "_id": {
+      "$oid": "67122348030ee18eb4b49fe6"
+    },
+    "relation_id": "71ce84c7-6cc1-42eb-9605-ea7374203360",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "90e6a8bd-5b0f-4991-8bbe-831acf0faa53",
+    "second_node_annot_id": "340b66f3-ff28-4436-a311-ba6ba9202289"
+  },
+  {
+    "_id": {
+      "$oid": "6712235f030ee18eb4b5103f"
+    },
+    "relation_id": "cc3632cb-5d08-493c-baf6-183b114c4471",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "c9adafa4-e9f4-469b-9f85-1fefacb17b22",
+    "second_node_annot_id": "0c6ed5cc-e7f3-45df-9d2c-bd355e32457f"
+  },
+  {
+    "_id": {
+      "$oid": "67122370030ee18eb4b55e49"
+    },
+    "scene_id": "421602",
+    "relation_id": "d463e5ef-659a-42a3-867c-020334edee27",
+    "description": "part of",
+    "first_node_annot_id": "13b01e96-5010-4c1a-8b09-c8346e420ea3",
+    "second_node_annot_id": "1293f172-4c8b-4f52-9c8d-745aeb42d7f1"
+  },
+  {
+    "_id": {
+      "$oid": "67122389030ee18eb4b5e96c"
+    },
+    "scene_id": "421602",
+    "relation_id": "e0a7df3a-172b-4328-b46e-c52438539c7b",
+    "description": "part of",
+    "first_node_annot_id": "9fcd23c1-4638-41a9-a8d8-02bffa3e6a7c",
+    "second_node_annot_id": "f4e41b55-ad6c-4f3c-a624-d139edd6f6c3"
+  },
+  {
+    "_id": {
+      "$oid": "6712238e030ee18eb4b5fe89"
+    },
+    "relation_id": "06da1fb1-0618-443e-85bc-db653b486dfb",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "cde51d66-3837-4fc6-bf48-16cb2189a7ed",
+    "second_node_annot_id": "f4e41b55-ad6c-4f3c-a624-d139edd6f6c3"
+  },
+  {
+    "_id": {
+      "$oid": "67122392030ee18eb4b61b2c"
+    },
+    "relation_id": "bf3296c2-a15d-4d5c-9396-b38aabe39dff",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "7f9d7574-57e9-4963-af14-e6278c288313",
+    "second_node_annot_id": "f4e41b55-ad6c-4f3c-a624-d139edd6f6c3"
+  },
+  {
+    "_id": {
+      "$oid": "67122395030ee18eb4b6327b"
+    },
+    "relation_id": "99eb45f3-b60f-4a85-80ad-c7f92a246051",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "70b0480d-4014-4c34-a7c1-b8c37aa7faaa",
+    "second_node_annot_id": "f4e41b55-ad6c-4f3c-a624-d139edd6f6c3"
+  },
+  {
+    "_id": {
+      "$oid": "67122399030ee18eb4b644de"
+    },
+    "relation_id": "077ff891-0a40-4d5e-885d-370f96a755eb",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "1fff26d6-a1bc-4a03-bfa9-b4baf44f058d",
+    "second_node_annot_id": "f4e41b55-ad6c-4f3c-a624-d139edd6f6c3"
+  },
+  {
+    "_id": {
+      "$oid": "671223a7030ee18eb4b6a1aa"
+    },
+    "relation_id": "3bde3622-68e8-485a-8f3f-5cdad8215d33",
+    "scene_id": "421602",
+    "description": "part of",
+    "first_node_annot_id": "31afb664-5958-490b-ba2d-4de7e0d0e632",
+    "second_node_annot_id": "631559ce-afb5-4459-9a00-7ec088bf4628"
+  },
+  {
+    "_id": {
+      "$oid": "671223aa030ee18eb4b6b4b2"
+    },
+    "scene_id": "421602",
+    "relation_id": "e7991c8f-b1c0-4465-9d6f-23cf75ea3eaf",
+    "description": "part of",
+    "first_node_annot_id": "416fa12f-6bc2-458b-941d-0daffd9e5d7d",
+    "second_node_annot_id": "631559ce-afb5-4459-9a00-7ec088bf4628"
+  },
+  {
+    "_id": {
+      "$oid": "67122414030ee18eb4b8f154"
+    },
+    "scene_id": "422007",
+    "relation_id": "e3c75665-64b1-4307-90b6-e257a872454a",
+    "description": "part of",
+    "first_node_annot_id": "46cf72e8-fb79-4ef9-9a16-88c10e23d95c",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "67122418030ee18eb4b90218"
+    },
+    "scene_id": "422007",
+    "relation_id": "1b4e5207-44d6-4cb8-af13-e30ea3f45f04",
+    "description": "part of",
+    "first_node_annot_id": "60d26c42-5f8d-4496-9bba-229f67aefaa1",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "6712241b030ee18eb4b911c9"
+    },
+    "relation_id": "70577328-0edd-4d79-a66d-e77f7149aca3",
+    "scene_id": "422007",
+    "description": "part of",
+    "first_node_annot_id": "a979a9cf-9237-4b4d-a5c3-ca54c5a21aa7",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "67122420030ee18eb4b928b9"
+    },
+    "relation_id": "27514f82-9d41-4aa1-8396-87fdbe176726",
+    "scene_id": "422007",
+    "description": "part of",
+    "first_node_annot_id": "e86fb71b-5da5-4393-9625-7d2f9982eb50",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "67122423030ee18eb4b9395b"
+    },
+    "scene_id": "422007",
+    "relation_id": "6439ee41-8964-43a3-be09-2f3f8d12abbc",
+    "description": "part of",
+    "first_node_annot_id": "a7ee3039-69d3-4174-bd24-bb1827ff9821",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "67122427030ee18eb4b94887"
+    },
+    "scene_id": "422007",
+    "relation_id": "37b52751-c629-40bf-ac8f-8ff7c126b47f",
+    "description": "part of",
+    "first_node_annot_id": "dd45f484-9431-4d5f-8905-60ae3fc5608b",
+    "second_node_annot_id": "176a66cb-7f30-4b8d-92c4-242924426e70"
+  },
+  {
+    "_id": {
+      "$oid": "67122432030ee18eb4b97b5a"
+    },
+    "scene_id": "422007",
+    "relation_id": "69104031-b0aa-49d0-90d1-7ec43f361659",
+    "description": "part of",
+    "first_node_annot_id": "10205bba-224b-4807-9db9-d32b9d656899",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "67122437030ee18eb4b99041"
+    },
+    "scene_id": "422007",
+    "relation_id": "393d0644-f4a4-420a-ae6b-1be7978f60a8",
+    "description": "part of",
+    "first_node_annot_id": "e46875af-6491-4159-9306-19911e41515c",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "6712243b030ee18eb4b9a318"
+    },
+    "scene_id": "422007",
+    "relation_id": "189538f1-31d9-4eaf-aaef-78daccc5e851",
+    "description": "part of",
+    "first_node_annot_id": "61397967-d5dc-4a02-905a-fadb3e966abc",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "6712243f030ee18eb4b9ba13"
+    },
+    "relation_id": "3fb141cc-571e-44db-99f3-ce5337c821d9",
+    "scene_id": "422007",
+    "description": "part of",
+    "first_node_annot_id": "5bdc73ae-9e12-4d44-8821-bb748b42866f",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "67122442030ee18eb4b9cd62"
+    },
+    "relation_id": "140bad20-e670-40a1-a4d4-3041a39f23cd",
+    "scene_id": "422007",
+    "description": "part of",
+    "first_node_annot_id": "529788c6-7f9b-48af-81e8-13ba7a2b2499",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "67122446030ee18eb4b9e6c7"
+    },
+    "relation_id": "1fc26a3c-1cb9-4216-8eed-cd1b0f820dd8",
+    "scene_id": "422007",
+    "description": "part of",
+    "first_node_annot_id": "43347ad2-c581-495f-a584-e6ac18620789",
+    "second_node_annot_id": "8abfd9fd-4b8a-421a-981d-32f56cae3061"
+  },
+  {
+    "_id": {
+      "$oid": "6712246e030ee18eb4bab462"
+    },
+    "scene_id": "422007",
+    "relation_id": "c9d5a1a0-cafb-4d37-820a-31cf9bfa181e",
+    "description": "part of",
+    "first_node_annot_id": "47b97fdc-4a14-43a1-b207-8902401afab8",
+    "second_node_annot_id": "71b9a2c2-c233-418a-8a79-ea35a0fa1b5e"
+  },
+  {
+    "_id": {
+      "$oid": "671224db030ee18eb4bcb050"
+    },
+    "relation_id": "83165d12-310d-4734-8e81-539e8cd92e02",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "282c10c9-3020-4333-b468-cb3197b80940",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "671224e5030ee18eb4bce983"
+    },
+    "relation_id": "088ca20f-7043-4208-854b-3fe189fbfe9e",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "352d3a71-9681-4a32-aecd-1d89a929bd7b",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "671224ed030ee18eb4bd0d79"
+    },
+    "scene_id": "421380",
+    "relation_id": "4e887258-58b7-41b4-8b1f-9f412247c642",
+    "description": "part of",
+    "first_node_annot_id": "927cd15d-3bd7-4709-b88d-6e4c8b8afca4",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "671224f5030ee18eb4bd304d"
+    },
+    "scene_id": "421380",
+    "relation_id": "e86811b1-bd79-4820-bf13-de70d50938fb",
+    "description": "part of",
+    "first_node_annot_id": "73839439-0110-43e5-bb6e-d2883e193874",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "671224fa030ee18eb4bd4b9c"
+    },
+    "scene_id": "421380",
+    "relation_id": "0f4b9999-d092-4661-a3ad-6543283c7cd0",
+    "description": "part of",
+    "first_node_annot_id": "f26835a1-518e-4918-a492-c23cee451f0a",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122500030ee18eb4bd643e"
+    },
+    "scene_id": "421380",
+    "relation_id": "9cc4156f-f425-4233-bbcf-d3cffdf72a03",
+    "description": "part of",
+    "first_node_annot_id": "1365989c-2223-4888-8465-ec59a7adea8e",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122506030ee18eb4bd8121"
+    },
+    "relation_id": "0614a40b-3506-4b77-89e8-739243cda3e9",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "bb923245-a044-4875-b548-bee144ca7d2a",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "6712250b030ee18eb4bd9907"
+    },
+    "relation_id": "0bee9884-5892-49f6-81bf-9bf7d296ade5",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "8fa63b99-b099-4906-a608-5325add561e4",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122511030ee18eb4bdb29a"
+    },
+    "scene_id": "421380",
+    "relation_id": "19169b0c-ed0d-4365-b246-eb7682cc6949",
+    "description": "part of",
+    "first_node_annot_id": "08a1222a-4837-49cf-a0c6-836d236311a0",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122517030ee18eb4bdc894"
+    },
+    "scene_id": "421380",
+    "relation_id": "6006cd17-d751-4824-94c7-11cef1371736",
+    "description": "part of",
+    "first_node_annot_id": "2569559b-e5fd-4e92-a533-308098b6becd",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122526030ee18eb4be0a84"
+    },
+    "relation_id": "de771a89-2717-4a5a-b520-9d938a196fbb",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "f263ca02-a3c0-4b5f-bd3e-2866f0c9a9ec",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "6712252e030ee18eb4be2df3"
+    },
+    "scene_id": "421380",
+    "relation_id": "689b3e5b-a170-4d49-9b60-8eb11c7b39bc",
+    "description": "part of",
+    "first_node_annot_id": "64dde80b-d956-4d15-8305-58466e31648f",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122537030ee18eb4be59b2"
+    },
+    "relation_id": "3fced8c1-dac1-49b3-8a53-5b60e8acd7ae",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "9db14ed4-ed96-4e43-a12d-7a1a865f0161",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122543030ee18eb4be9706"
+    },
+    "relation_id": "6171002e-13f1-4f3d-bce3-f0806e0a657b",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "bc40c514-1f23-4a0f-b9c6-a3aee1416269",
+    "second_node_annot_id": "6e39c1ea-d3cd-4059-9b4f-c2a506d716e9"
+  },
+  {
+    "_id": {
+      "$oid": "67122567030ee18eb4bf613e"
+    },
+    "relation_id": "9ad4d874-3603-425b-99f8-eb7d30eecc1f",
+    "scene_id": "421380",
+    "description": "part of",
+    "first_node_annot_id": "44d68daa-9a11-483c-91fc-8771f75185a0",
+    "second_node_annot_id": "f422e864-7d94-4369-b4b4-d4c06bbe4739"
+  },
+  {
+    "_id": {
+      "$oid": "671225ce030ee18eb4c1713b"
+    },
+    "scene_id": "422391",
+    "relation_id": "a218f793-81e6-441d-8178-e19dd2f73b40",
+    "description": "part of",
+    "first_node_annot_id": "14937519-c9da-4b32-951c-fb7fcfe0257a",
+    "second_node_annot_id": "db58acbf-e160-420d-81a7-6b0724221d5d"
+  },
+  {
+    "_id": {
+      "$oid": "671225e6030ee18eb4c1dd03"
+    },
+    "scene_id": "422391",
+    "relation_id": "181076fa-52d7-4eff-b320-73f3ede1be95",
+    "description": "part of",
+    "first_node_annot_id": "a89a59ea-0b19-42a6-b257-d14451cb435d",
+    "second_node_annot_id": "e21b658e-f896-42c3-a884-e30eec4eb690"
+  },
+  {
+    "_id": {
+      "$oid": "67122674030ee18eb4c478a0"
+    },
+    "relation_id": "315cac63-edbb-4e14-9a19-054938dc2cfb",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "1deb7d86-ff85-4dd9-bab3-fefffa2ddcdb",
+    "second_node_annot_id": "649f5431-e6cb-4760-a70f-ffa2ed3ac707"
+  },
+  {
+    "_id": {
+      "$oid": "6712267d030ee18eb4c4a130"
+    },
+    "scene_id": "422813",
+    "relation_id": "350bc58d-703f-4f79-9a31-8d4c20e1df2a",
+    "description": "part of",
+    "first_node_annot_id": "b012412a-0a59-46b6-a39c-0be4984a68b3",
+    "second_node_annot_id": "649f5431-e6cb-4760-a70f-ffa2ed3ac707"
+  },
+  {
+    "_id": {
+      "$oid": "6712268f030ee18eb4c4f60a"
+    },
+    "relation_id": "86c0aabc-68ba-473a-83b4-24ec44877a88",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "f1549e98-8ad0-4b75-9695-51f431ce9b01",
+    "second_node_annot_id": "44e2dfea-b13a-4012-bcef-7629228a5d57"
+  },
+  {
+    "_id": {
+      "$oid": "67122692030ee18eb4c5056e"
+    },
+    "scene_id": "422813",
+    "relation_id": "32e73b33-d18a-4292-98ff-95aef62a0b37",
+    "description": "part of",
+    "first_node_annot_id": "7ad8afa0-1eee-49f2-9562-a1d1f1a4d92f",
+    "second_node_annot_id": "44e2dfea-b13a-4012-bcef-7629228a5d57"
+  },
+  {
+    "_id": {
+      "$oid": "671226a2030ee18eb4c56686"
+    },
+    "relation_id": "60f5a202-7907-49ea-9bc9-6e9fd68c10d8",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "8e4a16f1-0727-4d90-8bc3-fefe3d09ffd2",
+    "second_node_annot_id": "24108b81-8591-4d65-a082-7b13d8405e83"
+  },
+  {
+    "_id": {
+      "$oid": "67122796030ee18eb4ca29b9"
+    },
+    "relation_id": "8819bd81-baf1-46aa-b391-98eeabcbddc7",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "8315a573-603f-4a3c-9fc6-902a8ab19ad0",
+    "second_node_annot_id": "bb70dccc-863c-446d-a1b2-66ca94a389ed"
+  },
+  {
+    "_id": {
+      "$oid": "671227a7030ee18eb4ca7f2b"
+    },
+    "relation_id": "351e0eee-3638-4a7a-b217-93bb029ffc33",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "381968b3-9045-484b-bf77-ea95b427a529",
+    "second_node_annot_id": "bb70dccc-863c-446d-a1b2-66ca94a389ed"
+  },
+  {
+    "_id": {
+      "$oid": "671227b0030ee18eb4caa922"
+    },
+    "relation_id": "0a4d5556-821b-4c03-a7e7-a79a27363564",
+    "scene_id": "422813",
+    "description": "part of",
+    "first_node_annot_id": "e2619ee5-03e2-40cd-b289-70169ed2b6b9",
+    "second_node_annot_id": "20dda7db-e0d4-44cb-91c9-820c49485a7a"
+  },
+  {
+    "_id": {
+      "$oid": "6712289f030ee18eb4cf48d0"
+    },
+    "relation_id": "5234d81a-2859-4fe7-b388-4213c783998e",
+    "scene_id": "422826",
+    "description": "part of",
+    "first_node_annot_id": "8d9cd3bf-ccfa-461b-9dc5-12880bbb113e",
+    "second_node_annot_id": "0d5e2400-d9b0-4d3b-982a-d05bfb3d9b1f"
+  },
+  {
+    "_id": {
+      "$oid": "671228b2030ee18eb4cf9ad8"
+    },
+    "scene_id": "422826",
+    "relation_id": "16e2cfab-4001-4ecc-ad53-9cbcc5c153d1",
+    "description": "part of",
+    "first_node_annot_id": "c422e2b3-1b85-448e-825b-a1248437ff96",
+    "second_node_annot_id": "92efab5e-6d41-46e3-8389-ce829bb0b1f9"
+  },
+  {
+    "_id": {
+      "$oid": "6712292b030ee18eb4d1ef8f"
+    },
+    "scene_id": "460417",
+    "relation_id": "3727397e-9bb0-4fdb-bc92-221dea58a89d",
+    "description": "part of",
+    "first_node_annot_id": "10313d37-ce8c-46d2-ac35-802b83af6d0b",
+    "second_node_annot_id": "b47c57ba-51db-480b-af65-ba2a5b6c3b00"
+  },
+  {
+    "_id": {
+      "$oid": "6712294f030ee18eb4d29a60"
+    },
+    "relation_id": "02afbdfe-a868-4c9d-938f-fae48622ae68",
+    "scene_id": "460417",
+    "description": "part of",
+    "first_node_annot_id": "ca9e7157-7222-4429-8629-add94f3fc620",
+    "second_node_annot_id": "66ce5acd-9d4e-4b6b-af9e-fde601c66cb6"
+  },
+  {
+    "_id": {
+      "$oid": "67122966030ee18eb4d30b88"
+    },
+    "relation_id": "d3d8a097-7745-472e-b26b-cb8ca1acbe5f",
+    "scene_id": "460417",
+    "description": "part of",
+    "first_node_annot_id": "a6956e03-3809-409c-b16d-cee0ef3e1246",
+    "second_node_annot_id": "66ce5acd-9d4e-4b6b-af9e-fde601c66cb6"
+  },
+  {
+    "_id": {
+      "$oid": "6712296d030ee18eb4d33722"
+    },
+    "scene_id": "460417",
+    "relation_id": "a80dbca0-9c9b-49d9-9959-fb9d573b2291",
+    "description": "part of",
+    "first_node_annot_id": "c0499d97-a54d-472f-89a3-6e778e59767d",
+    "second_node_annot_id": "d3ce1a14-5ed1-4196-b922-49ac70f4ff78"
+  },
+  {
+    "_id": {
+      "$oid": "671229ad030ee18eb4d4729a"
+    },
+    "scene_id": "460417",
+    "relation_id": "3f6013da-9907-4736-9d5f-dcb46225e2fd",
+    "description": "part of",
+    "first_node_annot_id": "f845e4b3-a202-4e17-8100-a41736068ffc",
+    "second_node_annot_id": "3f5fc8ad-60c9-4b6e-a323-a919410bdd1a"
+  },
+  {
+    "_id": {
+      "$oid": "67122a4a030ee18eb4d76a84"
+    },
+    "relation_id": "8e2cb3c0-df61-45f5-b9b7-490e5d926be3",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "9aab3874-ed35-4a16-8e46-0dd2e2c18fd3",
+    "second_node_annot_id": "944bff7c-f721-4416-aa2e-60ddcbf5a931"
+  },
+  {
+    "_id": {
+      "$oid": "67122a4f030ee18eb4d784ff"
+    },
+    "relation_id": "a095de83-b71b-44fa-a915-edca19fe790e",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "490c40e4-b0ae-4aa6-bfe6-72b1eb69b0fb",
+    "second_node_annot_id": "944bff7c-f721-4416-aa2e-60ddcbf5a931"
+  },
+  {
+    "_id": {
+      "$oid": "67122a55030ee18eb4d79ab9"
+    },
+    "relation_id": "cf162d99-7221-4ad9-b55d-6f383869a090",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "12044573-1dbf-4dea-9452-b3e523116d26",
+    "second_node_annot_id": "944bff7c-f721-4416-aa2e-60ddcbf5a931"
+  },
+  {
+    "_id": {
+      "$oid": "67122a57030ee18eb4d7a6e3"
+    },
+    "relation_id": "1b42b029-c8ea-4225-8845-02ba740ad6f6",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "eb7a1d9c-144f-4253-aaf2-e88b00185f79",
+    "second_node_annot_id": "944bff7c-f721-4416-aa2e-60ddcbf5a931"
+  },
+  {
+    "_id": {
+      "$oid": "67122a5d030ee18eb4d7c17b"
+    },
+    "relation_id": "4736512a-53bd-4e22-ad9c-5e02697c58ed",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "7b052f5e-54e9-4536-bffc-ee2f7ad00210",
+    "second_node_annot_id": "3574b273-5c07-4604-b31d-84c283c3c089"
+  },
+  {
+    "_id": {
+      "$oid": "67122a63030ee18eb4d7dbbe"
+    },
+    "relation_id": "afe290c1-b4cd-4d95-8485-a6f7a46d6568",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "1ae9c972-964d-4bd1-9cf9-ac594439b99d",
+    "second_node_annot_id": "ea5136cd-6e6c-482f-9e28-182d4fc05f3b"
+  },
+  {
+    "_id": {
+      "$oid": "67122a7d030ee18eb4d85f4c"
+    },
+    "relation_id": "eebc48e7-3102-42e8-be03-f0ba885ab2e2",
+    "scene_id": "460419",
+    "description": "part of",
+    "first_node_annot_id": "881e98ba-747c-406e-a489-ba01369a1230",
+    "second_node_annot_id": "12eaa698-d06c-4de2-b31d-fcbdd01d08db"
+  },
+  {
+    "_id": {
+      "$oid": "67122e79030ee18eb4ebc98b"
+    },
+    "relation_id": "dfa238c8-19a1-4882-8f11-336257beccfa",
+    "scene_id": "466183",
+    "description": "part of",
+    "first_node_annot_id": "c488097e-dc73-47e2-9256-8956af99162b",
+    "second_node_annot_id": "d02a5d8b-742f-46cf-ad11-e712c3f518d2"
+  },
+  {
+    "_id": {
+      "$oid": "67122e87030ee18eb4ec0e86"
+    },
+    "scene_id": "466183",
+    "relation_id": "71c84e54-82ce-407a-9692-bdfe9fd5ed47",
+    "description": "part of",
+    "first_node_annot_id": "1f24417e-164d-4100-ab84-5d44baa79b00",
+    "second_node_annot_id": "d486d4d4-190e-42b5-b212-0454af9bbd8b"
+  },
+  {
+    "_id": {
+      "$oid": "67122eaa030ee18eb4ecc0b0"
+    },
+    "relation_id": "dcbf4217-89a8-4c65-b461-178cb94f2962",
+    "scene_id": "466183",
+    "description": "part of",
+    "first_node_annot_id": "558bb060-e396-4707-9bfe-9a173eeb63a6",
+    "second_node_annot_id": "e3f9f13c-2874-4b8f-9973-8affe0f8a07c"
+  },
+  {
+    "_id": {
+      "$oid": "67122eb0030ee18eb4ecda94"
+    },
+    "relation_id": "eb49cbf0-a175-45a6-b6f6-3fadbca99d83",
+    "scene_id": "466183",
+    "description": "part of",
+    "first_node_annot_id": "ee3a40cc-2176-4ea4-a542-88ec0601ece1",
+    "second_node_annot_id": "e3f9f13c-2874-4b8f-9973-8affe0f8a07c"
+  },
+  {
+    "_id": {
+      "$oid": "67122f27030ee18eb4ef3edb"
+    },
+    "scene_id": "466192",
+    "relation_id": "fdd0e8be-d9a0-45ec-83f3-b11d2b777630",
+    "description": "part of",
+    "first_node_annot_id": "9311f0c0-33b1-4b61-8ef7-1d2dc24c903a",
+    "second_node_annot_id": "87da20eb-b2be-450b-b42e-b9d6f49ca0d4"
+  },
+  {
+    "_id": {
+      "$oid": "67122f39030ee18eb4ef9082"
+    },
+    "relation_id": "557cf31c-c342-48f3-87db-af6486a3c9d0",
+    "scene_id": "466192",
+    "description": "part of",
+    "first_node_annot_id": "83da9fe4-5d04-4f73-b9dd-f3a91d273cd0",
+    "second_node_annot_id": "87da20eb-b2be-450b-b42e-b9d6f49ca0d4"
+  },
+  {
+    "_id": {
+      "$oid": "67122f50030ee18eb4f00511"
+    },
+    "scene_id": "466192",
+    "relation_id": "16d36986-c887-4cbf-822c-cf8f531fa257",
+    "description": "part of",
+    "first_node_annot_id": "955efc16-07fa-4af0-afd6-867bbd7333ae",
+    "second_node_annot_id": "724a0787-626b-4e22-a2a7-cf75cdcb6435"
+  },
+  {
+    "_id": {
+      "$oid": "67122f54030ee18eb4f01984"
+    },
+    "relation_id": "3b522c00-dde0-4bca-b4fd-75f97ca946a3",
+    "scene_id": "466192",
+    "description": "part of",
+    "first_node_annot_id": "d0e18255-d9a3-47b2-8830-8a4138113076",
+    "second_node_annot_id": "724a0787-626b-4e22-a2a7-cf75cdcb6435"
+  },
+  {
+    "_id": {
+      "$oid": "67122f5f030ee18eb4f04aef"
+    },
+    "scene_id": "466192",
+    "relation_id": "f0a2b7f8-e01f-4fce-8071-2d2859de0b8e",
+    "description": "part of",
+    "first_node_annot_id": "2b2cccd7-2df2-4904-926e-ebd8e99f7df5",
+    "second_node_annot_id": "bfdeff05-7d93-4768-8480-46aa3cec0ca8"
+  },
+  {
+    "_id": {
+      "$oid": "67123352030ee18eb404af38"
+    },
+    "scene_id": "466803",
+    "relation_id": "36bd050f-7aac-48d8-b998-bd21af6bf924",
+    "description": "part of",
+    "first_node_annot_id": "94276ce1-f267-425a-87fb-7cd12d491730",
+    "second_node_annot_id": "6c6ea5f0-b56c-4055-9596-7aa2fa455c25"
+  },
+  {
+    "_id": {
+      "$oid": "6712352e030ee18eb40dd8b6"
+    },
+    "scene_id": "467293",
+    "relation_id": "647e3bf3-e9b1-41e3-bf1f-3a6ad6612bd0",
+    "description": "part of",
+    "first_node_annot_id": "9a55f2de-0c10-4184-9eef-1f6f65ac30ed",
+    "second_node_annot_id": "817c9a66-bd86-4316-9f62-5116593420fc"
+  },
+  {
+    "_id": {
+      "$oid": "67123534030ee18eb40df4e5"
+    },
+    "relation_id": "640a4a0a-8d6a-4c83-a8e9-9f6810a165bc",
+    "scene_id": "467293",
+    "description": "part of",
+    "first_node_annot_id": "dbfe7333-4e03-44b5-851e-85d6c772f55d",
+    "second_node_annot_id": "817c9a66-bd86-4316-9f62-5116593420fc"
+  },
+  {
+    "_id": {
+      "$oid": "67123f79030ee18eb4402b31"
+    },
+    "relation_id": "e86693d2-8491-45bb-b44d-2030d2d1934d",
+    "scene_id": "468076",
+    "description": "part of",
+    "first_node_annot_id": "f4306253-a9ea-475e-ba3b-598b263d6d8e",
+    "second_node_annot_id": "c8227e49-88ef-4098-88bc-8532a7aca0c4"
+  },
+  {
+    "_id": {
+      "$oid": "67123f7e030ee18eb44042aa"
+    },
+    "relation_id": "f7b6c911-9b5f-444b-81d8-a0aa576191b9",
+    "scene_id": "468076",
+    "description": "part of",
+    "first_node_annot_id": "2de49947-d225-43ca-a4c4-708221c4ff32",
+    "second_node_annot_id": "c8227e49-88ef-4098-88bc-8532a7aca0c4"
+  },
+  {
+    "_id": {
+      "$oid": "67123f8b030ee18eb44079a1"
+    },
+    "relation_id": "7b022f0a-d317-43fa-886c-8f4c97a2c10b",
+    "scene_id": "468076",
+    "description": "part of",
+    "first_node_annot_id": "d2835c80-fcec-4e27-b445-eda4493b2da0",
+    "second_node_annot_id": "73bdd5d7-311d-4670-acf4-cf4fe249d67f"
+  },
+  {
+    "_id": {
+      "$oid": "67123f90030ee18eb4408f2f"
+    },
+    "relation_id": "0370cf0d-48f0-4156-b73c-00174d1bc979",
+    "scene_id": "468076",
+    "description": "part of",
+    "first_node_annot_id": "473760d5-1424-4dcc-bb41-15b168ab0056",
+    "second_node_annot_id": "73bdd5d7-311d-4670-acf4-cf4fe249d67f"
+  },
+  {
+    "_id": {
+      "$oid": "67124152030ee18eb4499490"
+    },
+    "relation_id": "66c602a4-7cea-4477-900c-1f93a90e7042",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "2abcdace-ba3f-45c0-8dce-eac4de015ee8",
+    "second_node_annot_id": "7fddf637-3da9-4511-b4b4-fc6a042db72c"
+  },
+  {
+    "_id": {
+      "$oid": "67124178030ee18eb44a4904"
+    },
+    "relation_id": "e586f137-144f-4475-bbcb-6c043754be39",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "ba5246d7-ea68-4bd5-b390-45a1b4e8d58e",
+    "second_node_annot_id": "af49702a-b605-472e-8ba6-697e38979647"
+  },
+  {
+    "_id": {
+      "$oid": "6712417e030ee18eb44a655b"
+    },
+    "scene_id": "469011",
+    "relation_id": "710b4750-75d0-473b-a757-2af5e2ac1472",
+    "description": "part of",
+    "first_node_annot_id": "60c75bed-76ac-430f-9ed8-790350f059b6",
+    "second_node_annot_id": "cdfa3f8b-1bdf-4b70-aa8a-8be5d157be07"
+  },
+  {
+    "_id": {
+      "$oid": "67124189030ee18eb44a9a60"
+    },
+    "scene_id": "469011",
+    "relation_id": "853065c6-7722-4780-b69e-61583fe84f88",
+    "description": "part of",
+    "first_node_annot_id": "26d01e98-de8b-4574-91a6-6b4f62371315",
+    "second_node_annot_id": "d68f6e84-8842-429e-a877-dd6d951bc930"
+  },
+  {
+    "_id": {
+      "$oid": "6712418d030ee18eb44ab2f0"
+    },
+    "relation_id": "d3cbcd4c-684a-4efb-8d62-9dc36214150f",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "26facf7e-0a3c-4c02-ae11-e6ce94dcdc33",
+    "second_node_annot_id": "d68f6e84-8842-429e-a877-dd6d951bc930"
+  },
+  {
+    "_id": {
+      "$oid": "67124194030ee18eb44adff4"
+    },
+    "scene_id": "469011",
+    "relation_id": "a32449ce-a658-47c7-b981-8f08ea5c16e7",
+    "description": "part of",
+    "first_node_annot_id": "8572a9c1-67b2-4493-8cfe-d492a255c623",
+    "second_node_annot_id": "d68f6e84-8842-429e-a877-dd6d951bc930"
+  },
+  {
+    "_id": {
+      "$oid": "6712419f030ee18eb44b1a6c"
+    },
+    "relation_id": "9a1dd3af-3eb3-40d3-8491-6ac5050826e8",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "4af16074-57d0-47e7-8be9-aa361472ae26",
+    "second_node_annot_id": "19d41c11-a30d-4f1b-bb52-5f8260af117f"
+  },
+  {
+    "_id": {
+      "$oid": "671241a4030ee18eb44b388b"
+    },
+    "scene_id": "469011",
+    "relation_id": "99d75492-6cf1-4c6f-8f95-8a56fd9e65f1",
+    "description": "part of",
+    "first_node_annot_id": "d4432013-4335-4218-8276-da26c1bf64e4",
+    "second_node_annot_id": "a5cb3f02-1860-44e3-95c1-9799088474e0"
+  },
+  {
+    "_id": {
+      "$oid": "671241bc030ee18eb44bb4fb"
+    },
+    "scene_id": "469011",
+    "relation_id": "7b5aa95f-3e14-4bd0-99c9-1fc3e3a8df74",
+    "description": "part of",
+    "first_node_annot_id": "6dcb0d35-1950-4621-a2d7-c4ba3cb0f5d1",
+    "second_node_annot_id": "4507827d-3758-4e21-ac0c-75149e840d57"
+  },
+  {
+    "_id": {
+      "$oid": "671241d3030ee18eb44c2f7f"
+    },
+    "scene_id": "469011",
+    "relation_id": "30432aac-472c-4cbc-b0b4-0ce30b0b63df",
+    "description": "part of",
+    "first_node_annot_id": "d003c3b8-3330-4adf-8c1e-6c8c9f2245f8",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "671241de030ee18eb44c6301"
+    },
+    "relation_id": "d9cecac7-5652-4621-ac75-8e9c4e4c85bc",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "06b684bb-7a5c-4717-847a-d343bd6824d9",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "671241e6030ee18eb44c92eb"
+    },
+    "relation_id": "82ce17f3-b32f-4eba-8bb6-2d8049544300",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "28e9ec26-d38b-45a2-9614-9fe6a8d69211",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "671241ed030ee18eb44cc64e"
+    },
+    "scene_id": "469011",
+    "relation_id": "d503e5b2-d774-4ad1-8e61-87ca4660a526",
+    "description": "part of",
+    "first_node_annot_id": "76002344-9de9-476f-a43e-d822d1cdb592",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "671241f5030ee18eb44cf07f"
+    },
+    "scene_id": "469011",
+    "relation_id": "23559015-e170-4a8c-8d2c-306ac0c0d680",
+    "description": "part of",
+    "first_node_annot_id": "85f5f2f0-ef9b-4e32-a0de-cd8a7f54db4b",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "67124209030ee18eb44d52c2"
+    },
+    "scene_id": "469011",
+    "relation_id": "74222ee1-2c0c-4261-a7d8-dd6f22aa67ca",
+    "description": "part of",
+    "first_node_annot_id": "47d6518d-dce3-4c45-8cfc-34c56bbb3454",
+    "second_node_annot_id": "8e66432e-ee5a-4009-9ad5-f53d29772552"
+  },
+  {
+    "_id": {
+      "$oid": "67124213030ee18eb44d8787"
+    },
+    "scene_id": "469011",
+    "relation_id": "6a630c00-95df-497c-86e0-b69e24270ab3",
+    "description": "part of",
+    "first_node_annot_id": "65d617ff-232c-4148-99bb-0286d46995b5",
+    "second_node_annot_id": "7b89239e-5681-403a-a1da-dd26e16be537"
+  },
+  {
+    "_id": {
+      "$oid": "67124222030ee18eb44dd07b"
+    },
+    "scene_id": "469011",
+    "relation_id": "4125b3fb-8fd6-49e9-b766-a983ef1d01af",
+    "description": "part of",
+    "first_node_annot_id": "98aa04b7-41b4-4339-aed9-0a1e01d51fd8",
+    "second_node_annot_id": "f985cca4-89e2-43f9-b8c2-5de77392b1f3"
+  },
+  {
+    "_id": {
+      "$oid": "6712422e030ee18eb44e0969"
+    },
+    "relation_id": "e7bc2eb5-197b-4007-a265-5d74f2016457",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "a6844581-85cd-4300-9fed-bc1d7e5971a5",
+    "second_node_annot_id": "0b2e3fc2-7080-4e9f-aee6-1a18a9798952"
+  },
+  {
+    "_id": {
+      "$oid": "67124237030ee18eb44e32e9"
+    },
+    "relation_id": "d82afcd2-da8a-422e-ac29-7cf2dd4e24b6",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "cb5cccda-b4e9-4933-8516-6c775c1f91f8",
+    "second_node_annot_id": "4a7d1c17-7c39-41cc-9b5c-6d169d0a9ca1"
+  },
+  {
+    "_id": {
+      "$oid": "67124254030ee18eb44eb8b4"
+    },
+    "scene_id": "469011",
+    "relation_id": "3d150074-b341-4528-b5e7-e981cd6deca4",
+    "description": "part of",
+    "first_node_annot_id": "9f732c04-b269-4e3b-982c-fb29cf75d515",
+    "second_node_annot_id": "ff93b24e-ee51-464d-81b9-737553b78364"
+  },
+  {
+    "_id": {
+      "$oid": "6712425b030ee18eb44eda82"
+    },
+    "scene_id": "469011",
+    "relation_id": "4620fda3-3b29-48d1-a2e7-0191829cbbbb",
+    "description": "part of",
+    "first_node_annot_id": "79d81cf3-381e-48cd-9bf6-aea8e7bd017c",
+    "second_node_annot_id": "78932c81-2e84-4f45-a579-f28174406741"
+  },
+  {
+    "_id": {
+      "$oid": "67124260030ee18eb44ef0f4"
+    },
+    "relation_id": "0313ab1a-07c8-4f19-acc9-46f934f2f769",
+    "scene_id": "469011",
+    "description": "part of",
+    "first_node_annot_id": "1a2ac79a-7144-460c-9641-2cfd08c9615d",
+    "second_node_annot_id": "78932c81-2e84-4f45-a579-f28174406741"
+  }
+]

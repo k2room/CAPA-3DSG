@@ -1,0 +1,11 @@
+[
+    "rotate",
+    "key_press",
+    "tip_push",
+    "hook_pull",
+    "pinch_pull",
+    "hook_turn",
+    "foot_push",
+    "plug_in",
+    "unplug"
+]
