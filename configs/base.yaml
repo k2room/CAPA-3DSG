@@ -11,14 +11,14 @@ defaults:
 
 # datasets
 ALLOWED_DATASETS: ["FunGraph3D", "SceneFun3Ddev", "SceneFun3Dtest", "CAPAD", "3DSSG", "ReplicaSSG"]
-FUNGRAPH3D_root: ${root}/gpuserver00_storage/CAPA/FunGraph3D/
+FUNGRAPH3D_root: ${root}/CAPA-3DSG/dataset/FunGraph3D # FUNGRAPH3D_root: ${root}/gpuserver00_storage/CAPA/FunGraph3D/
 FUNGRAPH3D_config_path: ${project_root}/dataset/dataconfigs/fungraph3d/fungraph3d.yaml
-SCENEFUN3D_root: ${root}/gpuserver00_storage/CAPA/SceneFun3D_Graph/
+SCENEFUN3D_root: ${root}/CAPA-3DSG/dataset/SceneFun3D/ # SCENEFUN3D_root: ${root}/gpuserver00_storage/CAPA/SceneFun3D_Graph/
 SCENEFUN3D_config: ${project_root}/dataset/dataconfigs/scenefun3d/scenefun3d.yaml
-CAPAD_root: ${root}/gpuserver00_storage/PADO/
+CAPAD_root: ${root}/CAPA-3DSG/dataset/CAPAD/ # CAPAD_root: ${root}/gpuserver00_storage/PADO/
 CAPAD_config: ${project_root}/dataset/dataconfigs/capad/capad.yaml
-ReplicaSSG_root: ${root}/gpuserver00_storage/CAPA/Replica/
-ReplicaSSG_config: ${project_root}/dataset/dataconfigs/replicassg/replicassg.yaml #####
+ReplicaSSG_root: ${root}/CAPA-3DSG/dataset/ReplicaSSG/
+ReplicaSSG_config: ${project_root}/dataset/dataconfigs/replicassg/replicassg.yaml
 
 # object part knowledge
 knowledge_path: ${project_root}/object_part_knowledge.json
