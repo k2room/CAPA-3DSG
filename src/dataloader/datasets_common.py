@@ -572,7 +572,8 @@ class GradSLAMDataset(torch.utils.data.Dataset):
             - Output: :math:`(H, W, 1)` if `self.channels_first == False`, else :math:`(1, H, W)`.
         """
         depth = cv2.resize(
-            depth.astype(float),
+            # depth.astype(float),
+            depth.astype(np.float32),
             (self.desired_width, self.desired_height),
             interpolation=cv2.INTER_NEAREST,
         )
@@ -1497,7 +1498,8 @@ class D3SSGDataset(GradSLAMDataset):
         depth_path = self.depth_paths[index]
 
         # ----- load color -----
-        color = np.asarray(imageio.imread(color_path), dtype=float)
+        # color = np.asarray(imageio.imread(color_path), dtype=float)
+        color = np.asarray(imageio.imread(color_path), dtype=np.uint8)
         color = self._preprocess_color(color)
         color = torch.from_numpy(color)
 
@@ -1605,9 +1607,17 @@ class ReplicaDataset(D3SSGDataset):
             label_categories = config_dict.get("label_categories", "replica")
         self.label_categories = str(label_categories)
 
-        data_root = os.path.join(basedir, "data")
+        # data_root = os.path.join(basedir, "data")
+        # if os.path.isdir(os.path.join(data_root, sequence)):
+        #     basedir = data_root
+        data_root = basedir
         if os.path.isdir(os.path.join(data_root, sequence)):
             basedir = data_root
+
+        if stride < 5:
+            print("Warning: Too small stride may lead to high memory usage/time for ReplicaSSG.")
+            print("Warning: Manually set to 5.")
+            stride = 5
 
         super().__init__(
             config_dict,

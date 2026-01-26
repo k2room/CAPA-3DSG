@@ -15,6 +15,7 @@ import pickle
 import numpy as np
 import open3d as o3d
 import torch
+import cv2
 from tqdm import trange
 import warnings, logging
 
@@ -93,6 +94,9 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     elif ds == "CAPAD":
         cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
         cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
+    elif ds == "ReplicaSSG":
+        cfg.dataset_root   = _resolve_path(cfg.ReplicaSSG_root)
+        cfg.dataset_config = _resolve_path(cfg.ReplicaSSG_config)
     else:
         raise ValueError(f"Unknown dataset: {ds}")
     
@@ -388,4 +392,8 @@ def main(cfg : DictConfig):
     LOGGER.info("FINISH main()")
         
 if __name__ == "__main__":
+    torch.set_num_threads(8)
+    torch.set_num_interop_threads(2)
+    cv2.setNumThreads(0)
+    cv2.ocl.setUseOpenCL(False)
     main()
