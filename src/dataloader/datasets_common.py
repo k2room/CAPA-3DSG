@@ -786,7 +786,7 @@ class SceneFun3DDataset(GradSLAMDataset):
         else:
             print("Camera axis for sequence {} is {}".format(sequence, self.camera_axis))
         # self.camera_axis = 'Up'
-
+        
         super().__init__(
             config_dict,
             stride=stride,
@@ -803,10 +803,10 @@ class SceneFun3DDataset(GradSLAMDataset):
     def get_filepaths(self):
         if self.mode == 'lowres':
             color_paths = natsorted(glob.glob(f"{self.input_folder}/wide/*.png"))
-            depth_paths = natsorted(glob.glob(f"{self.input_folder}/hires_depth/*.png"))
+            depth_paths = natsorted(glob.glob(f"{self.input_folder}/highres_depth/*.png"))
         elif self.mode == 'hires':
             color_paths = natsorted(glob.glob(f"{self.input_folder}/hires_wide/*.jpg"))
-            depth_paths = natsorted(glob.glob(f"{self.input_folder}/hires_depth/*.png"))
+            depth_paths = natsorted(glob.glob(f"{self.input_folder}/highres_depth/*.png"))
         embedding_paths = None
         if self.load_embeddings:
             embedding_paths = natsorted(
