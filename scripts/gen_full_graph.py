@@ -72,32 +72,33 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     prev_struct = OmegaConf.is_struct(cfg)
     OmegaConf.set_struct(cfg, False)
 
-    cfg.mode = "ca"   # ca: context-aware 3DSG, func: unified 3DSG-functional only
+    # cfg.mode = "ca"   # ca: context-aware 3DSG, func: unified 3DSG-functional only
 
     ds = str(cfg.dataset)
     if ds == "FunGraph3D":
         cfg.dataset_root   = _resolve_path(cfg.FUNGRAPH3D_root)
         cfg.dataset_config = _resolve_path(cfg.FUNGRAPH3D_config_path)
-        cfg.mode = "func" # functional relation only for FunGraph3D
+        # cfg.mode = "func" # functional relation only for FunGraph3D
     elif ds == "SceneFun3Ddev":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "dev")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
-        cfg.mode = "func" # functional relation only for SceneFun3D
+        # cfg.mode = "func" # functional relation only for SceneFun3D
     elif ds == "SceneFun3Dtest":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
-        cfg.mode = "func" # functional relation only for SceneFun3D
+        # cfg.mode = "func" # functional relation only for SceneFun3D
     elif ds == "CAPAD":
         cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
         cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
-        cfg.mode = "ca"
+        # cfg.mode = "ca"
     elif ds == "ReplicaSSG":
         cfg.dataset_root   = _resolve_path(cfg.ReplicaSSG_root)
         cfg.dataset_config = _resolve_path(cfg.ReplicaSSG_config)
-        cfg.mode = "spat"
+        # cfg.mode = "spat"
     else:
         raise ValueError(f"Unknown dataset: {ds}")
-
+    
+    cfg.mode = "uni"
     OmegaConf.set_struct(cfg, prev_struct)
 
 def _idx_from(node_id: str, prefix: str) -> Optional[int]:
@@ -201,8 +202,8 @@ def main(cfg: DictConfig):
         LOGGER.info("API REQUESTING... (Local Functional Relations)")
         resp = client.responses.create(
             model=OPENAI_CHAT_MODEL,
-            instructions=prompts.system_func_local,
-            input= initial_graph,
+            instructions=prompts.system_prompt_local,
+            input=initial_graph,
             background=True,
             reasoning={"effort":"high"},
             text={
@@ -297,8 +298,8 @@ def main(cfg: DictConfig):
         LOGGER.info("API REQUESTING... (Remote Functional Relations)")
         resp2 = client.responses.create(
             model=OPENAI_CHAT_MODEL,
-            instructions=prompts.system_func_remote,
-            input= initial_graph,
+            instructions=prompts.system_prompt_remote,
+            input=initial_graph,
             background=True,
             reasoning={"effort":"high"},
             text={
@@ -1289,640 +1290,552 @@ def main(cfg: DictConfig):
             json.dump(merged_all, jf, ensure_ascii=False, indent=2)
         LOGGER.info(f"[SceneGraph] Saved: {out_path}")
 
-    elif cfg.mode == "unified":
-        LOGGER.info("Generating Context-aware 3D Scene Graph with Spatial, Functional Relations, and Affordances")
+    
+    elif cfg.mode == "uni":
+        LOGGER.info("Generating Unified 3D Scene Graph")
+        if cfg.dataset == "FunGraph3D" or cfg.dataset.startswith("SceneFun3D"):
 
-        # -----------------------------
-        # Load scenario instructions
-        # -----------------------------
-        scenario_path = (Path(cfg.dataset_root) / cfg.scene_id).parent / "scenario.json"
-        if not scenario_path.exists():
-            LOGGER.error(f"Scenario file not found: {scenario_path}")
-            raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
-        scenario = read_json(scenario_path)
-        LOGGER.info(f"Scenario loaded from: {scenario_path}")
+            # Preprocess initial graph: remove spatial relations & clean up object/part centers/extents
+            spatial_relation = initial_graph.pop("spatial_relation", None)
 
-        instructions = []
-        for i in scenario["scenario"].keys():
-            sdata = scenario["scenario"][i]
-            for j in sdata["route"].keys():
-                instructions.append([sdata["scenario_goal"], sdata["route"][j]["instruction"]])
+            if "object" in initial_graph and isinstance(initial_graph["object"], dict):
+                for obj_id, obj in initial_graph["object"].items():
+                    if "center" in obj:
+                        obj["center"] = [round(float(num), 2) for num in obj["center"]]
+                    obj.pop("extent", None)
+
+            if "part" in initial_graph and isinstance(initial_graph["part"], dict):
+                for part_id, part in initial_graph["part"].items():
+                    if "center" in part:
+                        part["center"] = [round(float(num), 2) for num in part["center"]]
+                    part.pop("extent", None)
+
+            initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
+        else:
+            initial_graph = json.dumps(initial_graph, ensure_ascii=False, separators=(",", ":"))
+        LOGGER.info("Initial Graph Loaded.")
+
+        obj_results, part_results = load_node(cfg)
 
         prompts = GPTprompt(config=cfg)
+        LOGGER.info("Generating Unified 3D Scene Graph")
+        LOGGER.info("API REQUESTING... (Local Functional Relations)")
+        resp = client.responses.create(
+            model=OPENAI_CHAT_MODEL,
+            instructions=prompts.system_prompt_local,
+            input=initial_graph,
+            background=True,
+            reasoning={"effort":"high"},
+            max_output_tokens=128000,
+            text={
+                "verbosity": "high",
+                "format": {
+                    "type": "json_schema",
+                    "name": "3D_Scene_Graph",
+                    "strict": True,
+                    # ------------ SCHEMA ------------
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            # ------------ for Objects ------------
+                            "objects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^(obj|part)_\\d+$"
+                                        },
+                                        "label": {"type": "string"},
+                                        "affordance": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "minItems": 1
+                                        },
+                                        "connected_parts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^part_\\d+$"
+                                            }
+                                        }
+                                    },
+                                    "required": ["id", "label", "affordance", "connected_parts"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Parts ------------
+                            "parts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^part_\\d+$"
+                                        },
+                                        "label": {"type": "string"},
+                                        "affordance": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "minItems": 1
+                                        }
+                                    },
+                                    "required": ["id", "label", "affordance"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Functional Relations ------------
+                            "functional_relations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^(obj|part)_\\d+$",
+                                            },
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        },
+                                        "label": {"type": "string"},
+                                        "reason": {
+                                            "type": "string",
+                                            "description": "Reason for inferring the relations"
+                                        },
+                                        "score": {
+                                            "type": "number",
+                                            "description": "Confidence score of the inferred relation",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0,
+                                            "multipleOf": 0.1
+                                        },
+                                    },
+                                    "required": ["pair", "label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            }
+                        },
+                        "required": ["objects", "parts", "functional_relations"],
+                        "additionalProperties": False
+                    }
+                }
+            }
+        )
 
+        LOGGER.info("API REQUESTING... (Remote Functional Relations)")
+        resp2 = client.responses.create(
+            model=OPENAI_CHAT_MODEL,
+            instructions=prompts.system_prompt_remote,
+            input=initial_graph,
+            background=True,
+            reasoning={"effort": "high"},
+            max_output_tokens=128000,
+            text={
+                "verbosity": "high",
+                "format": {
+                    "type": "json_schema",
+                    "name": "3D_Scene_Graph",
+                    "strict": True,
+                    # ------------ SCHEMA ------------
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            # ------------ for Objects ------------
+                            "objects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^(obj|part)_\\d+$"
+                                        },
+                                        "label": {"type": "string"},
+                                        "affordance": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "minItems": 1
+                                        },
+                                        "connected_parts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^part_\\d+$"
+                                            }
+                                        }
+                                    },
+                                    "required": ["id", "label", "affordance", "connected_parts"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Parts ------------
+                            "parts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^part_\\d+$"
+                                        },
+                                        "label": {"type": "string"},
+                                        "affordance": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "minItems": 1
+                                        }
+                                    },
+                                    "required": ["id", "label", "affordance"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            # ------------ for Functional Relations ------------
+                            "functional_relations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^(obj|part)_\\d+$",
+                                            },
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        },
+                                        "label": {"type": "string"},
+                                        "reason": {
+                                            "type": "string",
+                                            "description": "Reason for inferring the relations"
+                                        },
+                                        "score": {
+                                            "type": "number",
+                                            "description": "Confidence score of the inferred relation",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0,
+                                            "multipleOf": 0.1
+                                        },
+                                    },
+                                    "required": ["pair", "label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            }
+                        },
+                        "required": ["objects", "parts", "functional_relations"],
+                        "additionalProperties": False
+                    }
+                }
+            }
+        )
+
+        logging.getLogger("openai").setLevel(logging.WARNING)
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
+        jobs = {"local": resp.id, "remote": resp2.id}
+        results = {}
+        prev_status = {}  # name -> last_status
+
+        timeout = 3000  # seconds
+        start_time = time.time()
+
+        while jobs:
+            for name, job_id in list(jobs.items()):
+                r = client.responses.retrieve(job_id)
+                s = getattr(r, "status", None)
+
+                if prev_status.get(name) != s:
+                    LOGGER.info(f"[{name}] status changed: {prev_status.get(name)} -> {s}")
+                    prev_status[name] = s
+
+                if s in {"completed", "succeeded"}:
+                    results[name] = r
+                    del jobs[name]
+                elif s in {"failed", "errored", "cancelled", "incomplete"}:
+                    LOGGER.error(f"[{name}] job failed with status={s}")
+                    raise RuntimeError(f"{name} job failed: {s}")
+
+                if time.time() - start_time > timeout:
+                    LOGGER.error(f"[{name}] job timeout after {timeout} seconds")
+                    raise TimeoutError(f"{name} job timeout")
+            sleep(5)
+
+        resp = results["local"]
+        resp2 = results["remote"]
+
+        try:
+            llm_result_local = json.loads(resp.output_text)
+            LOGGER.info("Successfully parsed LLM response as JSON - Local Functional Relations")
+            llm_result_remote = json.loads(resp2.output_text)
+            LOGGER.info("Successfully parsed LLM response as JSON - Remote Functional Relations")
+        except Exception as e:
+            LOGGER.error("Failed to parse LLM response as JSON.")
+            LOGGER.error(f"Response: {resp}")
+            LOGGER.error(f"Response: {resp2}")
+            raise e
+
+        try:
+            LOGGER.debug(f"reasoning: {resp.reasoning}")
+            LOGGER.debug(f"usage: {resp.usage}")
+            LOGGER.debug(f"reasoning: {resp2.reasoning}")
+            LOGGER.debug(f"usage: {resp2.usage}")
+        except Exception:
+            pass
+
+        objs = llm_result_local.get("objects")
+        parts = llm_result_local.get("parts")
+        func_rels_local = llm_result_local["functional_relations"]
+        func_rels_remote = llm_result_remote["functional_relations"]
+
+        owner = {}
+        for obj in objs:
+            cps = obj.get("connected_parts", [])
+            if isinstance(cps, list):
+                for pid in cps:
+                    if isinstance(pid, str) and pid.startswith("part_"):
+                        owner[pid] = obj.get("id")
+
+        func_rels = []
+        _seen_pairs = set()  # (tuple(pair), label)
+
+        def _push_relation(rel):
+            pair = rel.get("pair", [])
+            lab = rel.get("label", "")
+            if not (isinstance(pair, list) and len(pair) == 2):
+                return
+            key = (tuple(pair), lab)
+            if key not in _seen_pairs:
+                _seen_pairs.add(key)
+                func_rels.append(rel)
+
+        # Add local functional relations
+        for r in func_rels_local:
+            _push_relation(r)
+
+        # Add remote functional relations, and propagate part-object to object-object
+        for r in func_rels_remote:
+            _push_relation(r)
+            pair = r.get("pair", [])
+            if not (isinstance(pair, list) and len(pair) == 2):
+                continue
+            a, b = pair[0], pair[1]
+            if isinstance(a, str) and a.startswith("part_") and isinstance(b, str) and b.startswith("obj_"):
+                parent = owner.get(a)
+                if parent and parent != b:
+                    rr = dict(r)
+                    rr["pair"] = [parent, b]
+                    rr["reason"] = (r.get("reason", "") + " (propagated from part to object)").strip()
+                    rr["score"] = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
+                    _push_relation(rr)
+            elif isinstance(a, str) and a.startswith("obj_") and isinstance(b, str) and b.startswith("part_"):
+                parent = owner.get(b)
+                if parent and parent != a:
+                    rr = dict(r)
+                    rr["pair"] = [a, parent]
+                    rr["reason"] = (r.get("reason", "") + " (propagated from object to part)").strip()
+                    rr["score"] = float(max(0.0, min(1.0, r.get("score", 0.0) - 0.05)))
+                    _push_relation(rr)
+
+        # ---- (3) Build spatial relations from LLM connected_parts (label is always "part of") ----
+        spatial_rels = []
+        _seen_spatial = set()  # (obj_id, part_id)
+        for obj in objs:
+            oid = obj.get("id")
+            cps = obj.get("connected_parts", [])
+            if not (isinstance(oid, str) and oid.startswith("obj_")):
+                continue
+            if not isinstance(cps, list):
+                continue
+            for pid in cps:
+                if not (isinstance(pid, str) and pid.startswith("part_")):
+                    continue
+                key = (oid, pid)
+                if key not in _seen_spatial:
+                    _seen_spatial.add(key)
+                    spatial_rels.append({
+                        "pair": [oid, pid],
+                        "label": "part of"
+                    })
+
+        # ---- Keep using fusion nodes for center/extent, but DO NOT save updated PKL ----
+        obj_mol = _load_mol(obj_results["objects"])
+        part_mol = _load_mol(part_results["objects"])
+
+        # Update Objects (in-memory only: label / connected_parts / affordance)
+        for item in objs:
+            oid = item.get("id")        # obj_00
+            label = item.get("label")
+            oi = _idx_from(oid, "obj")  # 00
+            if oi is None:
+                LOGGER.warning(f"[objects] skip invalid id: {oid}")
+                continue
+            try:
+                obj_entry = obj_mol[oi]
+            except Exception:
+                LOGGER.warning(f"[objects] index out of range: {oi}")
+                continue
+
+            if label:
+                if obj_entry.get("refined_obj_tag", None) != label:
+                    refined = obj_entry.get("refined_obj_tag", "")
+                    LOGGER.debug(f"[objects] {oid} : {refined}-> {label}")
+                obj_entry["refined_obj_tag"] = label
+
+            cps = item.get("connected_parts", None)
+            if isinstance(cps, list):
+                cp_idx = []
+                for pid in cps:
+                    pj = _idx_from(pid, "part")
+                    if pj is None:
+                        LOGGER.warning(f"[objects] skip invalid part id: {pid}")
+                        continue
+                    try:
+                        _ = part_mol[pj]
+                    except Exception:
+                        LOGGER.warning(f"[objects] part index OOR: {pj}")
+                        continue
+                    cp_idx.append(int(pj))
+                obj_entry["connected_parts"] = sorted(set(cp_idx))
+
+            aff = item.get("affordance", None)
+            aff_list = ["none"]
+            if isinstance(aff, list):
+                aff_list = [a.strip() for a in aff if isinstance(a, str) and a.strip()]
+                if not aff_list:
+                    aff_list = ["none"]
+            elif isinstance(aff, str) and aff.strip():
+                aff_list = [aff.strip()]
+            obj_entry["affordance"] = aff_list
+
+        # Update Parts (in-memory only: label / affordance)
+        for item in parts:
+            pid = item.get("id")
+            label = item.get("label")
+            pj = _idx_from(pid, "part")
+            if pj is None:
+                LOGGER.warning(f"[parts] skip invalid id: {pid}")
+                continue
+            try:
+                part_entry = part_mol[pj]
+            except Exception:
+                LOGGER.warning(f"[parts] index out of range: {pj}")
+                continue
+
+            if label:
+                if part_entry.get("refined_obj_tag", None) != label:
+                    refined = part_entry.get("refined_obj_tag", "")
+                    LOGGER.debug(f"[parts] {pid} : {refined}-> {label}")
+                part_entry["refined_obj_tag"] = label
+
+            aff = item.get("affordance", None)
+            aff_list = ["none"]
+            if isinstance(aff, list):
+                aff_list = [a.strip() for a in aff if isinstance(a, str) and a.strip()]
+                if not aff_list:
+                    aff_list = ["none"]
+            elif isinstance(aff, str) and aff.strip():
+                aff_list = [aff.strip()]
+            part_entry["affordance"] = aff_list
+
+        # ---- (2) Remove edge pkl saving; integrate everything into unified_3d_scene_graph.json ----
         sg_dir = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "scene_graph"
         sg_dir.mkdir(parents=True, exist_ok=True)
 
-        merged_all = []
-
-        for step_idx, (goal, inst) in enumerate(instructions):
-            # Combine goal + step instruction as a single instruction string
-            instruction = str(inst)
-            if goal:
-                instruction = (str(goal).rstrip(".") + ". " + instruction).strip()
-
-            nd = 3  # decimal precision (same as mode=func)
-
-            # (A) local / remote input: no spatial_relation, no extent, rounded centers (+ instruction)
-            graph_func = {"object": {}, "part": {}, "instruction": instruction}
-
-            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("object"), dict):
-                for oid, obj in initial_graph["object"].items():
-                    if not isinstance(obj, dict):
-                        continue
-                    o = {
-                        "label": obj.get("label", ""),
-                        "connected_parts": obj.get("connected_parts", []) if isinstance(obj.get("connected_parts"), list) else [],
-                    }
-                    if isinstance(obj.get("center"), list):
-                        o["center"] = [round(float(x), nd) for x in obj["center"]]
-                    graph_func["object"][oid] = o
-
-            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("part"), dict):
-                for pid, part in initial_graph["part"].items():
-                    if not isinstance(part, dict):
-                        continue
-                    p = {"label": part.get("label", "")}
-                    if isinstance(part.get("center"), list):
-                        p["center"] = [round(float(x), nd) for x in part["center"]]
-                    graph_func["part"][pid] = p
-
-            graph_str_func = json.dumps(graph_func, ensure_ascii=False, separators=(",", ":"))
-
-            # (B) spatial input: keep center+extent, include spatial_relation prior candidates, no functional relations
-            graph_spatial = {"object": {}, "part": {}, "instruction": instruction}
-
-            if isinstance(initial_graph, dict) and ("spatial_relation" in initial_graph):
-                graph_spatial["spatial_relation"] = initial_graph.get("spatial_relation")
-
-            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("object"), dict):
-                for oid, obj in initial_graph["object"].items():
-                    if not isinstance(obj, dict):
-                        continue
-                    o = {
-                        "label": obj.get("label", ""),
-                        "connected_parts": obj.get("connected_parts", []) if isinstance(obj.get("connected_parts"), list) else [],
-                    }
-                    if isinstance(obj.get("center"), list):
-                        o["center"] = [round(float(x), nd) for x in obj["center"]]
-                    if isinstance(obj.get("extent"), list):
-                        o["extent"] = [round(float(x), nd) for x in obj["extent"]]
-                    graph_spatial["object"][oid] = o
-
-            if isinstance(initial_graph, dict) and isinstance(initial_graph.get("part"), dict):
-                for pid, part in initial_graph["part"].items():
-                    if not isinstance(part, dict):
-                        continue
-                    p = {"label": part.get("label", "")}
-                    if isinstance(part.get("center"), list):
-                        p["center"] = [round(float(x), nd) for x in part["center"]]
-                    if isinstance(part.get("extent"), list):
-                        p["extent"] = [round(float(x), nd) for x in part["extent"]]
-                    graph_spatial["part"][pid] = p
-
-            graph_str_spatial = json.dumps(graph_spatial, ensure_ascii=False, separators=(",", ":"))
-
-            # (C) affordance input: no relation info (reuse func-style input)
-            graph_str_aff = graph_str_func
-
-
-            LOGGER.info(f"[CA] API REQUESTING... step={step_idx} (Local / Remote / Spatial / Affordance)")
-
-            # -----------------------------
-            # (1) Local functional relations
-            # -----------------------------
-            LOGGER.info("API REQUESTING... (Local Functional Relations)")
-            resp = client.responses.create(
-                model=OPENAI_CHAT_MODEL,
-                instructions=prompts.system_prompt_local,
-                input=graph_str_func,
-                background=True,
-                reasoning={"effort": "high"},
-                text={
-                    "verbosity": "high",
-                    "format": {
-                        "type": "json_schema",
-                        "name": "CA3DSG_local",
-                        "strict": True,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                # ------------ for Objects ------------ 
-                                "objects": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "string", 
-                                                "pattern":"^(obj|part)_\\d+$"
-                                            },
-                                            "label": {"type": "string"},
-                                            "connected_parts": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "pattern": "^part_\\d+$"
-                                                },
-                                            },
-                                        },
-                                        "required": ["id", "label", "connected_parts"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                # ------------ for Parts ------------
-                                "parts": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "string", 
-                                                "pattern": "^part_\\d+$"
-                                                },
-                                            "label": {"type": "string"},
-                                        },
-                                        "required": ["id", "label"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                # ------------ for Functional Relations ------------ 
-                                "functional_relations": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "pair": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string", 
-                                                    "pattern": "^(obj|part)_\\d+$"
-                                                    },
-                                                "minItems": 2,
-                                                "maxItems": 2,
-                                            },
-                                            "label": {"type": "string"},
-                                            "reason": {"type": "string"},
-                                            "score": {
-                                                "type": "number",
-                                                "minimum": 0.0,
-                                                "maximum": 1.0,
-                                                "multipleOf": 0.1,
-                                            },
-                                        },
-                                        "required": ["pair", "label", "reason", "score"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                            },
-                            "required": ["objects", "parts", "functional_relations"],
-                            "additionalProperties": False,
-                        },
-                    },
-                },
+        # deterministic order for spatial relations (optional, but keeps stable output)
+        spatial_rels = sorted(
+            spatial_rels,
+            key=lambda r: (
+                _idx_from(r.get("pair", ["", ""])[0], "obj") if isinstance(r.get("pair", ["", ""])[0], str) and r.get("pair", ["", ""])[0].startswith("obj_") else 10**9,
+                _idx_from(r.get("pair", ["", ""])[1], "part") if isinstance(r.get("pair", ["", ""])[1], str) and r.get("pair", ["", ""])[1].startswith("part_") else 10**9,
             )
+        )
 
-            # -----------------------------
-            # (2) Remote functional relations
-            # -----------------------------
-            LOGGER.info("API REQUESTING... (Remote Functional Relations)")
-            resp2 = client.responses.create(
-                model=OPENAI_CHAT_MODEL,
-                instructions=prompts.system_prompt_remote,
-                input=graph_str_func,
-                background=True,
-                reasoning={"effort": "high"},
-                text={
-                    "verbosity": "high",
-                    "format": {
-                        "type": "json_schema",
-                        "name": "CA3DSG_remote",
-                        "strict": True,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "objects": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string", "pattern": "^obj_\\d+$"},
-                                            "label": {"type": "string"},
-                                            "connected_parts": {
-                                                "type": "array",
-                                                "items": {"type": "string", "pattern": "^part_\\d+$"},
-                                            },
-                                        },
-                                        "required": ["id", "label", "connected_parts"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                "parts": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string", "pattern": "^part_\\d+$"},
-                                            "label": {"type": "string"},
-                                        },
-                                        "required": ["id", "label"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                "remote_relations": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "pair": {
-                                                "type": "array",
-                                                "items": {"type": "string", "pattern": "^(obj|part)_\\d+$"},
-                                                "minItems": 2,
-                                                "maxItems": 2,
-                                            },
-                                            "label": {"type": "string"},
-                                            "reason": {"type": "string"},
-                                            "score": {
-                                                "type": "number",
-                                                "minimum": 0.0,
-                                                "maximum": 1.0,
-                                                "multipleOf": 0.1,
-                                            },
-                                        },
-                                        "required": ["pair", "label", "reason", "score"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                            },
-                            "required": ["objects", "parts", "remote_relations"],
-                            "additionalProperties": False,
-                        },
-                    },
-                },
+        # functional relations output (use combined func_rels directly)
+        func_rel = []
+        func_rels = sorted(
+            func_rels,
+            key=lambda r: (
+                # sort by pair[0]
+                (0, _idx_from(r.get("pair", ["", ""])[0], "obj") if _idx_from(r.get("pair", ["", ""])[0], "obj") is not None else 10**9)
+                if isinstance(r.get("pair", ["", ""])[0], str) and r.get("pair", ["", ""])[0].startswith("obj_")
+                else (1, _idx_from(r.get("pair", ["", ""])[0], "part") if _idx_from(r.get("pair", ["", ""])[0], "part") is not None else 10**9)
+                if isinstance(r.get("pair", ["", ""])[0], str) and r.get("pair", ["", ""])[0].startswith("part_")
+                else (2, 10**9),
+                # sort by pair[1]
+                (0, _idx_from(r.get("pair", ["", ""])[1], "obj") if _idx_from(r.get("pair", ["", ""])[1], "obj") is not None else 10**9)
+                if isinstance(r.get("pair", ["", ""])[1], str) and r.get("pair", ["", ""])[1].startswith("obj_")
+                else (1, _idx_from(r.get("pair", ["", ""])[1], "part") if _idx_from(r.get("pair", ["", ""])[1], "part") is not None else 10**9)
+                if isinstance(r.get("pair", ["", ""])[1], str) and r.get("pair", ["", ""])[1].startswith("part_")
+                else (2, 10**9),
+                r.get("label", "")
             )
+        )
+        for rel in func_rels:
+            pair = rel.get("pair", [])
+            if not (isinstance(pair, list) and len(pair) == 2):
+                continue
+            func_rel.append({
+                "pair":  [pair[0], pair[1]],
+                "label": rel.get("label", ""),
+                "reason": rel.get("reason", ""),
+                "score": float(rel.get("score", -1.0)),
+            })
 
-            # -----------------------------
-            # (3) Spatial relations
-            # -----------------------------
-            LOGGER.info("API REQUESTING... (Spatial Relations)")
-            resp3 = client.responses.create(
-                model=OPENAI_CHAT_MODEL,
-                instructions=prompts.system_prompt_spatial,
-                input=graph_str_spatial,
-                background=True,
-                reasoning={"effort": "high"},
-                text={
-                    "verbosity": "high",
-                    "format": {
-                        "type": "json_schema",
-                        "name": "CA3DSG_spatial",
-                        "strict": True,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "objects": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string", "pattern": "^obj_\\d+$"},
-                                            "label": {"type": "string"},
-                                            "connected_parts": {
-                                                "type": "array",
-                                                "items": {"type": "string", "pattern": "^part_\\d+$"},
-                                            },
-                                        },
-                                        "required": ["id", "label", "connected_parts"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                "parts": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string", "pattern": "^part_\\d+$"},
-                                            "label": {"type": "string"},
-                                        },
-                                        "required": ["id", "label"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                                "spatial_relations": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "pair": {
-                                                "type": "array",
-                                                "items": {"type": "string", "pattern": "^obj_\\d+$"},
-                                                "minItems": 2,
-                                                "maxItems": 2,
-                                            },
-                                            "label": {
-                                                "type": "array",
-                                                "items": {"type": "string"},
-                                                "minItems": 1,
-                                                "maxItems": 5,
-                                            },
-                                            "scores": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "number",
-                                                    "minimum": 0.0,
-                                                    "maximum": 1.0,
-                                                    "multipleOf": 0.1,
-                                                },
-                                                "minItems": 1,
-                                                "maxItems": 5,
-                                            },
-                                        },
-                                        "required": ["pair", "label", "scores"],
-                                        "additionalProperties": False,
-                                    },
-                                },
-                            },
-                            "required": ["objects", "parts", "spatial_relations"],
-                            "additionalProperties": False,
-                        },
-                    },
-                },
-            )
+        sg_out = {
+            "object": {},
+            "part": {},
+            "spatial_relation": spatial_rels,
+            "functional_relation": func_rel
+        }
 
-            # -----------------------------
-            # (4) Affordances (open-vocabulary)
-            # -----------------------------
-            LOGGER.info("API REQUESTING... (Affordance)")
-            resp4 = client.responses.create(
-                model=OPENAI_CHAT_MODEL,
-                instructions=prompts.system_prompt_affordance,
-                input=graph_str_aff,
-                background=True,
-                reasoning={"effort": "high"},
-                text={
-                    "verbosity": "high",
-                    "format": {
-                        "type": "json_schema",
-                        "name": "CA3DSG_affordance",
-                        "strict": True,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "affordance": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string", "pattern": "^(obj|part)_\\d+$"},
-                                            "verb": {
-                                                "type": "array",
-                                                "items": {"type": "string"},
-                                                "minItems": 0
-                                            },
-                                        },
-                                        "required": ["id", "verb"],
-                                        "additionalProperties": False,
-                                    },
-                                }
-                            },
-                            "required": ["affordance"],
-                            "additionalProperties": False,
-                        },
-                    },
-                },
-            )
+        # fill nodes from current fusion state (center/extent) + LLM-updated label/connected_parts/affordance
+        # objects
+        src_obj = obj_mol if hasattr(obj_mol, "__len__") else []
+        for i in range(len(src_obj)):
+            ent = src_obj[i]
+            cps = ent.get("connected_parts", [])
+            aff = ent.get("affordance", ["none"])
+            if isinstance(aff, str):
+                aff = [aff]
+            if not isinstance(aff, list) or not aff:
+                aff = ["none"]
 
-
-            # -----------------------------
-            # Wait all 4 jobs
-            # -----------------------------
-            logging.getLogger("openai").setLevel(logging.WARNING)
-            logging.getLogger("httpx").setLevel(logging.WARNING)
-            logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-            jobs = {"local": resp.id, "remote": resp2.id, "spatial": resp3.id, "aff": resp4.id}
-            results = {}
-            prev_status = {}
-
-            timeout = 1200  # seconds
-            start_time = time.time()
-
-            while jobs:
-                for name, job_id in list(jobs.items()):
-                    r = client.responses.retrieve(job_id)
-                    s = getattr(r, "status", None)
-
-                    if prev_status.get(name) != s:
-                        LOGGER.info(f"[{name}] status changed: {prev_status.get(name)} -> {s}")
-                        prev_status[name] = s
-
-                    if s in {"completed", "succeeded"}:
-                        results[name] = r
-                        del jobs[name]
-                    elif s in {"failed", "errored", "cancelled", "incomplete"}:
-                        LOGGER.error(f"[{name}] job failed with status={s}")
-                        raise RuntimeError(f"{name} job failed: {s}")
-
-                    if time.time() - start_time > timeout:
-                        LOGGER.error(f"[{name}] job timeout after {timeout} seconds")
-                        raise TimeoutError(f"{name} job timeout")
-
-                sleep(5)
-
-            resp = results["local"]
-            resp2 = results["remote"]
-            resp3 = results["spatial"]
-            resp4 = results["aff"]
-
-            try:
-                llm_local = json.loads(resp.output_text)
-                llm_remote = json.loads(resp2.output_text)
-                llm_spatial = json.loads(resp3.output_text)
-                llm_aff = json.loads(resp4.output_text)
-            except Exception as e:
-                LOGGER.error("Failed to parse LLM response as JSON.")
-                LOGGER.error(f"Response(local): {resp}")
-                LOGGER.error(f"Response(remote): {resp2}")
-                LOGGER.error(f"Response(spatial): {resp3}")
-                LOGGER.error(f"Response(aff): {resp4}")
-                raise e
-
-            # -----------------------------
-            # Merge 4 agent outputs
-            # - keep nodes that appear in >=2 results
-            # - vote label if mismatch
-            # -----------------------------
-            def _nodes_from_graph(g):
-                nodes = {}
-                for o in g.get("objects", []):
-                    oid = o.get("id")
-                    lab = o.get("label")
-                    if isinstance(oid, str) and isinstance(lab, str):
-                        nodes[oid] = lab
-                for p in g.get("parts", []):
-                    pid = p.get("id")
-                    lab = p.get("label")
-                    if isinstance(pid, str) and isinstance(lab, str):
-                        nodes[pid] = lab
-                return nodes
-
-            nodes_local = _nodes_from_graph(llm_local)
-            nodes_remote = _nodes_from_graph(llm_remote)
-            nodes_spatial = _nodes_from_graph(llm_spatial)
-
-            nodes_aff = {}
-            for it in llm_aff.get("affordance", []):
-                if isinstance(it, list) and len(it) >= 2:
-                    nid, nlab = it[0], it[1]
-                    if isinstance(nid, str) and isinstance(nlab, str):
-                        nodes_aff[nid] = nlab
-
-            node_sources = [nodes_local, nodes_remote, nodes_spatial, nodes_aff]
-
-            presence = {}
-            for src in node_sources:
-                for nid in src.keys():
-                    presence[nid] = presence.get(nid, 0) + 1
-
-            keep_ids = set([nid for nid, c in presence.items() if c >= 2])
-
-            def _vote_label(nid: str) -> str:
-                votes = {}
-                for src in node_sources:
-                    lab = src.get(nid)
-                    if isinstance(lab, str) and lab:
-                        votes[lab] = votes.get(lab, 0) + 1
-                if not votes:
-                    return ""
-                best = max(votes.values())
-                cands = [lab for lab, c in votes.items() if c == best]
-                if len(cands) == 1:
-                    return cands[0]
-                llab = nodes_local.get(nid)
-                if llab in cands:
-                    return llab
-                return sorted(cands)[0]
-
-            # prefer local for connected_parts, else initial graph
-            local_obj = {o.get("id"): o for o in llm_local.get("objects", []) if isinstance(o, dict)}
-            init_obj = initial_graph.get("object", {}) if isinstance(initial_graph, dict) else {}
-
-            obj_ids = [nid for nid in keep_ids if isinstance(nid, str) and nid.startswith("obj_")]
-            part_ids = [nid for nid in keep_ids if isinstance(nid, str) and nid.startswith("part_")]
-
-            obj_ids = sorted(
-                obj_ids,
-                key=lambda x: _idx_from(x, "obj") if _idx_from(x, "obj") is not None else 10**9,
-            )
-            part_ids = sorted(
-                part_ids,
-                key=lambda x: _idx_from(x, "part") if _idx_from(x, "part") is not None else 10**9,
-            )
-
-            merged_objects = []
-            for oid in obj_ids:
-                cps = []
-                if oid in local_obj and isinstance(local_obj[oid].get("connected_parts"), list):
-                    cps = local_obj[oid]["connected_parts"]
-                elif isinstance(init_obj, dict) and oid in init_obj and isinstance(init_obj[oid].get("connected_parts"), list):
-                    cps = init_obj[oid]["connected_parts"]
-
-                cps = sorted(
-                    set([pid for pid in cps if isinstance(pid, str) and pid.startswith("part_") and pid in keep_ids]),
-                    key=lambda x: _idx_from(x, "part") if _idx_from(x, "part") is not None else 10**9,
-                )
-                merged_objects.append({"id": oid, "label": _vote_label(oid), "connected_parts": cps})
-
-            merged_parts = [{"id": pid, "label": _vote_label(pid)} for pid in part_ids]
-
-            # filter relations by kept nodes
-            merged_func = []
-            _seen = set()
-            for r in llm_local.get("functional_relations", []):
-                pair = r.get("pair", [])
-                lab = r.get("label", "")
-                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
-                    k = (tuple(pair), lab)
-                    if k not in _seen:
-                        _seen.add(k)
-                        merged_func.append(r)
-
-            merged_remote = []
-            _seen = set()
-            for r in llm_remote.get("remote_relations", []):
-                pair = r.get("pair", [])
-                lab = r.get("label", "")
-                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
-                    k = (tuple(pair), lab)
-                    if k not in _seen:
-                        _seen.add(k)
-                        merged_remote.append(r)
-
-            merged_spatial = []
-            _seen = set()
-            for r in llm_spatial.get("spatial_relations", []):
-                pair = r.get("pair", [])
-                lab = r.get("label", [])
-                if isinstance(pair, list) and len(pair) == 2 and pair[0] in keep_ids and pair[1] in keep_ids:
-                    k = (tuple(pair), tuple(lab) if isinstance(lab, list) else str(lab))
-                    if k not in _seen:
-                        _seen.add(k)
-                        merged_spatial.append(r)
-
-            # affordance: keep only kept nodes, and inherit part affordances to objects
-            aff_map = {}
-            for it in llm_aff.get("affordance", []):
-                if not (isinstance(it, list) and len(it) == 3):
-                    continue
-                nid, _nlab, verbs = it[0], it[1], it[2]
-                if nid not in keep_ids:
-                    continue
-                if isinstance(verbs, list):
-                    for v in verbs:
-                        if isinstance(v, str) and v:
-                            aff_map.setdefault(nid, set()).add(v)
-
-            owner = {}
-            for o in merged_objects:
-                for pid in o.get("connected_parts", []):
-                    owner[pid] = o.get("id")
-
-            for pid, oid in owner.items():
-                if pid in aff_map:
-                    aff_map.setdefault(oid, set()).update(aff_map[pid])
-
-            merged_aff = []
-            for nid in obj_ids + part_ids:
-                verbs = aff_map.get(nid, set())
-                if verbs:
-                    merged_aff.append([nid, _vote_label(nid), sorted(verbs)])
-
-            merged_graph = {
-                "instruction": instruction,
-                "objects": merged_objects,
-                "parts": merged_parts,
-                "functional_relations": merged_func,
-                "remote_relations": merged_remote,
-                "spatial_relations": merged_spatial,
-                "affordance": merged_aff,
+            sg_out["object"][f"obj_{i}"] = {
+                "label": ent.get("refined_obj_tag", ent.get("majority_class_name", "")),
+                "center": list(ent["bbox"].center) if "bbox" in ent else None,
+                "extent": list(ent["bbox"].extent) if "bbox" in ent else None,
+                "connected_parts": [f"part_{j}" for j in cps] if isinstance(cps, list) else [],
+                "affordance": aff
             }
 
-            out_path = sg_dir / f"context_aware_3d_scene_graph_step{step_idx:03d}.json"
-            with open(out_path, "w") as jf:
-                json.dump(merged_graph, jf, ensure_ascii=False, indent=2)
-            LOGGER.info(f"[SceneGraph] Saved: {out_path}")
+        # parts
+        src_part = part_mol if hasattr(part_mol, "__len__") else []
+        for j in range(len(src_part)):
+            ent = src_part[j]
+            aff = ent.get("affordance", ["none"])
+            if isinstance(aff, str):
+                aff = [aff]
+            if not isinstance(aff, list) or not aff:
+                aff = ["none"]
 
-            merged_all.append(merged_graph)
+            sg_out["part"][f"part_{j}"] = {
+                "label": ent.get("refined_obj_tag", ent.get("majority_class_name", "")),
+                "center": list(ent["bbox"].center) if "bbox" in ent else None,
+                "extent": list(ent["bbox"].extent) if "bbox" in ent else None,
+                "affordance": aff
+            }
 
-        out_path = sg_dir / "context_aware_3d_scene_graph_all.json"
-        with open(out_path, "w") as jf:
-            json.dump(merged_all, jf, ensure_ascii=False, indent=2)
-        LOGGER.info(f"[SceneGraph] Saved: {out_path}")
+        sg_path = sg_dir / "unified_3d_scene_graph.json"
+        with open(sg_path, "w") as jf:
+            json.dump(sg_out, jf, ensure_ascii=False, indent=2)
+        LOGGER.info(f"[SceneGraph] Saved: {sg_path}")
 
-    
-    
-    
-    
+
+
     else:
         LOGGER.error(f"Unknown mode: {cfg.mode}")
 

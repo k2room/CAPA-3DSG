@@ -595,7 +595,7 @@ def gobs_to_detection_list(
             'bbox': pcd_bbox,
             'clip_ft': to_tensor(gobs['image_feats'][mask_idx], cfg.device),
             'text_ft': to_tensor(gobs['text_feats'][mask_idx], cfg.device),
-            'color_ft': gobs['color_feats'][mask_idx] if gobs['color_feats'] is not None else None,
+            'color_ft': gobs['color_feats'][mask_idx] if (gobs['color_feats'] is not None and gobs['color_feats'] != []) else None,
         }
         
         if class_name in BG_CLASSES:

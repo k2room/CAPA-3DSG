@@ -48,6 +48,30 @@ CLASS_LABELS_FUNC = [
     "handle / faucet", "switch panel", "electric outlet"
 ]
 
+# SceneFun3D_Graph original labels
+all_nodes_scenefun3d = [
+    "handle / faucet", "washing machine", "handle", "bathtub", "bathroom sink", "dryer", "light bulb", 
+    "window", "fridge", "light switch", "wardrobe", "dresser / nightstand", "toilet", "trashcan", "knob / button", 
+    "door", "laptop", "sink", "faucet / handle", "television stand / cabinet", "cabinet / closet", "lamp", "remote", 
+    "radiator", "drawer", "glass door", "chest of drawers / dresser", "kettle", "nightstand / dresser", "projector", 
+    "dresser / chest of drawers", "kitchen sink", "power strip", "television", "kitchen cabinet", "faucet / knob / handle", 
+    "oven", "cabinet / dresser / nightstand", "exhaust hood / ventilation fan", "switch panel", "knob", "dishwasher", 
+    "doors", "nightstand drawer", "chandelier / ceiling light", "switch panel / electric outlet", "ceiling light fixture", 
+    "cabinet", "electric outlet", "button / knob", "ceiling light", "button", "electric outlet / power strip", "drawer / cabinet"
+    ]
+
+# FunGraph3D original labels
+all_nodes_fungraph3d = [
+    "faucet / handle", "toilet", "electric outlet", "ceiling light fixture", "dishwasher button / dishwasher switch", 
+    "coffee machine", "handle", "cooker", "electric outlet / switch panel", "trashcan", "window", "radiator", "coffee maker", 
+    "kitchen cabinet / fridge", "desk drawer", "fan", "bathroom sink", "dishwasher", "button", "kitchen cabinet", "cabinet", 
+    "microwave oven", "switch / electric outlet", "power strip / electric outlet", "electric cooker", "toaster", "television", 
+    "knob / handle / faucet", "wardrobe", "kitchen cabinet / drawer", "switch panel / electric outlet", "switch panel", 
+    "light fixture", "exhaust hood", "kitchen cabinet / kitchen counter", "fridge", "button / knob", "oven", "lamp", 
+    "dresser / chest of drawers", "handle / knob", "bathtub", "door", "switch", "power strip", "kitchen sink", "bathroom vanity", 
+    "kettle", "knob", "drawer / kitchen cabinet"
+    ]
+
 # SceneFun3D divided & refined labels
 all_nodes_scenefun3d_divided = [
     "bathroom sink", "bathtub", "button", "cabinet", "ceiling light", "ceiling light fixture", "chandelier",
@@ -77,7 +101,8 @@ def get_parser():
     p.add_argument("--video", type=str, default=None)
     p.add_argument("--split", type=str, default=None)
 
-    p.add_argument("--iou_threshold", type=float, default=0.0)
+    p.add_argument("--bbox_threshold", type=float, default=0.0, help="BBox match threshold (interpreted as IoU/IoP depending on --bbox_match).")
+    p.add_argument("--bbox_match", type=str, default="iou", choices=["iou", "iop"], help="BBox match metric: iou or iop.")
 
     p.add_argument("--obj_file", type=str, required=True)
     p.add_argument("--part_file", type=str, required=True)
@@ -119,6 +144,26 @@ def compute_3d_iou(bbox1: o3d.geometry.OrientedBoundingBox, bbox2: o3d.geometry.
     if union <= 0:
         return 0.0
     return overlap_volume / union
+
+def compute_3d_iop(bbox1: o3d.geometry.OrientedBoundingBox, bbox2: o3d.geometry.OrientedBoundingBox) -> float:
+    """
+    Axis-aligned IoP computed from bbox min/max bounds.
+    """
+    bbox1_min = np.asarray(bbox1.get_min_bound())
+    bbox1_max = np.asarray(bbox1.get_max_bound())
+    bbox2_min = np.asarray(bbox2.get_min_bound())
+    bbox2_max = np.asarray(bbox2.get_max_bound())
+
+    overlap_min = np.maximum(bbox1_min, bbox2_min)
+    overlap_max = np.minimum(bbox1_max, bbox2_max)
+    overlap_size = np.maximum(overlap_max - overlap_min, 0.0)
+
+    overlap_volume = float(np.prod(overlap_size))
+    v1 = float(np.prod(bbox1_max - bbox1_min))
+    v2 = float(np.prod(bbox2_max - bbox2_min))
+    if v2 <= 0:
+        return 0.0
+    return overlap_volume / v2
 
 
 def load_map_objects(result_path: str):
@@ -243,23 +288,24 @@ def match_rank(
     pred_label,
     get_top_node_labels,
     max_k: int,
-    iou_th: float,
+    bbox_th: float,
+    overlap_fn,
+    overlap_name: str = "IoU",
     debug: bool = False,
     debug_prefix: str = "",
 ) -> int:
     """
     Returns the minimal rank r (1..max_k) such that:
-      IoU(gt_bbox, pred_bbox) > iou_th AND gt_label in top-r labels of pred_label
-    If not matched within max_k, returns max_k+1.
+      overlap(gt_bbox, pred_bbox) > bbox_th AND gt_label in top-r labels of pred_label
     """
-    iou = compute_3d_iou(gt_bbox, pred_bbox)
-    if iou <= iou_th:
+    score = overlap_fn(gt_bbox, pred_bbox)
+    if score <= bbox_th:
         return max_k + 1
     topk = get_top_node_labels(pred_label)
     r = rank_of_gt_in_topk(gt_label, topk, max_k=max_k)
     if debug:
         print(
-            f"{debug_prefix} IoU={iou:.4f} pred_label='{pred_label}' "
+            f"{debug_prefix} {overlap_name}={score:.4f} pred_label='{pred_label}' "
             f"top{max_k}={topk} | gt_label='{gt_label}' rank={r}"
         )
     return r
@@ -272,7 +318,9 @@ def unordered_pair_rank_any(
     pred2,
     get_top_node_labels,
     max_k: int,
-    iou_th: float,
+    bbox_th: float,
+    overlap_fn,
+    overlap_name: str = "IoU",
     debug: bool = False,
     debug_prefix: str = "",
 ) -> int:
@@ -286,22 +334,22 @@ def unordered_pair_rank_any(
     # orientation A: pred1->gt1, pred2->gt2
     r_a1 = match_rank(
         gt1["bbox"], gt1["label"], pred1["bbox"], pred1["label"],
-        get_top_node_labels, max_k, iou_th, debug=debug, debug_prefix=debug_prefix + " [A-gt1<-pred1]"
+        get_top_node_labels, max_k, bbox_th, overlap_fn, overlap_name, debug=debug, debug_prefix=debug_prefix + " [A-gt1<-pred1]"
     )
     r_a2 = match_rank(
         gt2["bbox"], gt2["label"], pred2["bbox"], pred2["label"],
-        get_top_node_labels, max_k, iou_th, debug=debug, debug_prefix=debug_prefix + " [A-gt2<-pred2]"
+        get_top_node_labels, max_k, bbox_th, overlap_fn, overlap_name, debug=debug, debug_prefix=debug_prefix + " [A-gt2<-pred2]"
     )
     rank_a = max(r_a1, r_a2)
 
     # orientation B: pred2->gt1, pred1->gt2
     r_b1 = match_rank(
         gt1["bbox"], gt1["label"], pred2["bbox"], pred2["label"],
-        get_top_node_labels, max_k, iou_th, debug=debug, debug_prefix=debug_prefix + " [B-gt1<-pred2]"
+        get_top_node_labels, max_k, bbox_th, overlap_fn, overlap_name, debug=debug, debug_prefix=debug_prefix + " [B-gt1<-pred2]"
     )
     r_b2 = match_rank(
         gt2["bbox"], gt2["label"], pred1["bbox"], pred1["label"],
-        get_top_node_labels, max_k, iou_th, debug=debug, debug_prefix=debug_prefix + " [B-gt2<-pred1]"
+        get_top_node_labels, max_k, bbox_th, overlap_fn, overlap_name, debug=debug, debug_prefix=debug_prefix + " [B-gt2<-pred1]"
     )
     rank_b = max(r_b1, r_b2)
 
@@ -353,6 +401,19 @@ def print_summary_table(gt_counts, metrics_counts, ks):
 def main():
     args = get_parser().parse_args()
     root = Path(args.root_path)
+
+    # Choose bbox overlap metric function
+    if args.bbox_match == "iou":
+        overlap_fn = compute_3d_iou
+        overlap_name = "IoU"
+    elif args.bbox_match == "iop":
+        overlap_fn = compute_3d_iop
+        overlap_name = "IoP"
+    else:
+        raise ValueError(f"Unknown bbox_match: {args.bbox_match}")
+
+    bbox_th = float(args.bbox_threshold)
+    print(f"[BBoxMatch] metric={args.bbox_match} ({overlap_name}), threshold={bbox_th}")
 
     # ---------------------- Load GT files ---------------------- #
     prefix = args.dataset  # "SceneFun3D" or "FunGraph3D"
@@ -472,7 +533,7 @@ def main():
             "affordance": aff_list,
         }
 
-        # Affordance instances (multi-label allowed) - only for functional part nodes
+        # Affordance instances (multi-label allowed)
         if is_part:
             for a in aff_list:
                 gt_aff_instances.append({"bbox": bbox, "label": label, "aff_label": a})
@@ -576,7 +637,9 @@ def main():
                 pred["label"],
                 get_top_node_labels,
                 max_k=max_k,
-                iou_th=args.iou_threshold,
+                bbox_th=bbox_th,
+                overlap_fn=overlap_fn,
+                overlap_name=overlap_name,
                 debug=args.debug,
                 debug_prefix=f"[Node annot={annot_id}]",
             )
@@ -633,7 +696,9 @@ def main():
                 pred2={"bbox": pred2["bbox"], "label": pred2["label"]},
                 get_top_node_labels=get_top_node_labels,
                 max_k=max_k,
-                iou_th=args.iou_threshold,
+                bbox_th=bbox_th,
+                overlap_fn=overlap_fn,
+                overlap_name=overlap_name,
                 debug=args.debug,
                 debug_prefix="[FuncRel]",
             )
@@ -687,7 +752,9 @@ def main():
                 pred2={"bbox": pred2["bbox"], "label": pred2["label"]},
                 get_top_node_labels=get_top_node_labels,
                 max_k=max_k,
-                iou_th=args.iou_threshold,
+                bbox_th=bbox_th,
+                overlap_fn=overlap_fn,
+                overlap_name=overlap_name,
                 debug=args.debug,
                 debug_prefix="[SpatRel]",
             )
@@ -717,7 +784,9 @@ def main():
                 pred_part["label"],
                 get_top_node_labels,
                 max_k=max_k,
-                iou_th=args.iou_threshold,
+                bbox_th=bbox_th,
+                overlap_fn=overlap_fn,
+                overlap_name=overlap_name,
                 debug=args.debug,
                 debug_prefix="[Aff-node]",
             )
@@ -755,8 +824,8 @@ def main():
         best_rank = max_k + 1
         # candidates: predicted parts only (only parts have affordance field)
         for pred_part in pred_parts.values():
-            iou = compute_3d_iou(gt_bbox, pred_part["bbox"])
-            if iou <= args.iou_threshold:
+            score = overlap_fn(gt_bbox, pred_part["bbox"])
+            if score <= bbox_th:
                 continue
 
             pred_aff_list = pred_part.get("affordance", [])

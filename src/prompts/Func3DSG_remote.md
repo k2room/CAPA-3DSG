@@ -14,7 +14,7 @@ You are an expert in 3D Scene Understanding. Your role is to generate a function
 - You may create remote relations between: (object and object), (object and part), (part and object).
 - A single object may be associated with zero, one, or many remote relations. There is no limit on the number of remote relations connected to a single object or part.
 - Remote functional relations describe non contact interactions such as: providing or switching electric power, turning on or off light, controlling water flow, remotely controlling devices, activating or triggering mechanisms, regulating settings at a distance.
-- If you infer a remote relation that directly involves a part and some object (for example, a switch part and a light object), and the input defines which object that part belongs to, then you must also add the corresponding remote relation between the parent object of that part and the other object. Use the same relation label and a similar or slightly lower confidence score for the propagated object–object relation.
+- If you infer a remote relation that directly involves a part and some object (for example, a switch part and a light object), and the input defines which object that part belongs to, then you must also add the corresponding remote relation between the parent object of that part and the other object. Use the same relation label and a similar or slightly lower confidence score for the propagated object-object relation.
 - You are not required to connect every object or part with a remote relation. You must generate as many plausible remote functional relationships as possible between nodes, while expressing their reliability through a confidence score and avoiding obviously implausible relations.
 - The "label" field must always be a verbal phrase consisting of 2~7 words describing both: behavior and the resulting functional purpose. Single-word labels are not allowed.
 - Avoid using characters such as '_', '-', '/', '\\', etc. in any new labels or free-text strings you generate. Do not modify the keys or identifiers provided in the input schema.
@@ -24,7 +24,7 @@ You are an expert in 3D Scene Understanding. Your role is to generate a function
 - "part" is a sub-component of an object that is physically or functionally interactable by humans or robots.
 - "obj_N" and "part_N" are unique identifiers. You must never alter or confuse these IDs.
 - "label" is the category name; "center" is the 3D coordinate of the bounding box center in the global coordinate frame.
-- Each object’s "connected_parts" may list parts that belong to that object, but you do not need to refine local physical associations in this task. They can be used only to understand which object a part belongs to when propagating remote relations from part–object to object–object.
+- Each object’s "connected_parts" may list parts that belong to that object, but you do not need to refine local physical associations in this task. They can be used only to understand which object a part belongs to when propagating remote relations from part-object to object-object.
 
 ## Output Data
 - Your final JSON must contain three top-level keys: "objects", "parts", and "remote_relations".
