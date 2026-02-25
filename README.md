@@ -1,8 +1,13 @@
-# CAPA-3DSG
-**Context-Aware Part-Affordance 3D Scene Graph Generation with Open Vocabulary**
+(2026.02.25)
+아직 개발 중인 프레임워크로, 하나의 inference pipeline으로 통합하기 전입니다. 실험을 위한 모델의 각 모듈은 아래와 같은 경로의 파일에 구현되어 있습니다. 
+- scripts/2D_detection.py
+- scripts/3D_fusion.py
+- scripts/gen_init_graph.py
+- scripts/gen_full_graph.py
 
-We introduce CAPA-3DSG, a novel framework for Context-Aware Part-Affordance 3D Scene Graph Generation with Open Vocabulary. Our approach enables fine-grained reasoning over object parts and their affordances while generalizing to unseen categories through open-vocabulary learning, bridging the gap between part-level semantics and contextual scene understanding.
+scripts/exp/run_UniGraph3D.sh 실행파일을 통해 위 모듈들을 순차적으로 실행 가능합니다. 환경 구축은 ConceptGraph github 혹은 OpenFunGraph github을 참고하여 세팅할 수 있으며, 평가 환경의 경우 transformer verion issue로 인해 별도의 conda 환경을 세팅하였습니다.
 
+(memo)
 # Run
 ```bash 
 export CUDA_VISIBLE_DEVICES=0
