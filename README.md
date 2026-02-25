@@ -1,5 +1,5 @@
 (2026.02.25)
-아직 개발 중인 프레임워크로, 하나의 inference pipeline으로 통합하기 전입니다. 실험을 위한 모델의 각 모듈은 아래와 같은 경로의 파일에 구현되어 있습니다. 
+RGB-D sequence를 입력받아 open-vocabulary 2D detection을 수행하고, 3D Fusion을 통해 Unified 3D Scene Graph를 생성하는 모델입니다. 아직 개발 중인 프레임워크로, 하나의 inference pipeline으로 통합하기 전입니다. 실험을 위한 모델의 각 모듈은 아래와 같은 경로의 파일에 구현되어 있습니다. 
 - scripts/2D_detection.py
 - scripts/3D_fusion.py
 - scripts/gen_init_graph.py
