@@ -215,3 +215,6 @@ checkpoints/*
 latest_pcd_save
 outputs/*
 logs/*
+temp_codes/fusion_debug/*
+temp_codes/fusion_debug_rmbg/*
+temp_codes/fusion_debug_floor/*
