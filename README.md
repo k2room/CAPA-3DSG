@@ -1,13 +1,11 @@
-(2026.02.25)
-RGB-D sequence를 입력받아 open-vocabulary 2D detection을 수행하고, 3D Fusion을 통해 Unified 3D Scene Graph를 생성하는 모델입니다. 아직 개발 중인 프레임워크로, 하나의 inference pipeline으로 통합하기 전입니다. 실험을 위한 모델의 각 모듈은 아래와 같은 경로의 파일에 구현되어 있습니다. 
+## Main Source code
+Use the scripts/exp/run_UniGraph3D.sh for excuting the below python codes.
 - scripts/2D_detection.py
 - scripts/3D_fusion.py
 - scripts/gen_init_graph.py
 - scripts/gen_full_graph.py
 
-scripts/exp/run_UniGraph3D.sh 실행파일을 통해 위 모듈들을 순차적으로 실행 가능합니다. 환경 구축은 ConceptGraph github 혹은 OpenFunGraph github을 참고하여 세팅할 수 있으며, 평가 환경의 경우 transformer verion issue로 인해 별도의 conda 환경을 세팅하였습니다.
 
-(memo)
 # Run
 ```bash 
 export CUDA_VISIBLE_DEVICES=0
@@ -27,7 +25,6 @@ python scripts/gen_init_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D sav
 
 python scripts/gen_full_graph.py scene_id=0kitchen/video0 dataset=FunGraph3D save_folder_name=capa_wc_0
 
-python scripts/gen_full_graph.py scene_id=422826/42897541 dataset=SceneFun3D save_folder_name=capa_1
 
 
 python eval/eval_node_CLIP.py --dataset FunGraph3D --root_path /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D --scene 13bathroom --video video0  --obj_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/object/pcd_saves/full_pcd_ram_update.pkl.gz --part_file /home/main/workspace/k2room2/gpuserver00_storage/CAPA/FunGraph3D/13bathroom/video0/capa_1/part/pcd_saves/full_pcd_ram_update.pkl.gz
