@@ -72,33 +72,36 @@ def _process_cfg(cfg: DictConfig) -> None:  # [HYDRA]
     prev_struct = OmegaConf.is_struct(cfg)
     OmegaConf.set_struct(cfg, False)
 
-    # cfg.mode = "ca"   # ca: context-aware 3DSG, func: unified 3DSG-functional only
+    cfg.mode = None
 
     ds = str(cfg.dataset)
     if ds == "FunGraph3D":
         cfg.dataset_root   = _resolve_path(cfg.FUNGRAPH3D_root)
         cfg.dataset_config = _resolve_path(cfg.FUNGRAPH3D_config_path)
         # cfg.mode = "func" # functional relation only for FunGraph3D
+        cfg.mode = "uni"
     elif ds == "SceneFun3Ddev":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "dev")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
         # cfg.mode = "func" # functional relation only for SceneFun3D
+        cfg.mode = "uni"
     elif ds == "SceneFun3Dtest":
         cfg.dataset_root   = _resolve_path(Path(cfg.SCENEFUN3D_root) / "test")
         cfg.dataset_config = _resolve_path(cfg.SCENEFUN3D_config)
         # cfg.mode = "func" # functional relation only for SceneFun3D
+        cfg.mode = "uni"
     elif ds == "CAPAD":
         cfg.dataset_root   = _resolve_path(cfg.CAPAD_root)
         cfg.dataset_config = _resolve_path(cfg.CAPAD_config)
-        # cfg.mode = "ca"
+        cfg.mode = "ca"
     elif ds == "ReplicaSSG":
         cfg.dataset_root   = _resolve_path(cfg.ReplicaSSG_root)
         cfg.dataset_config = _resolve_path(cfg.ReplicaSSG_config)
-        # cfg.mode = "spat"
+        cfg.mode = "spat"
     else:
         raise ValueError(f"Unknown dataset: {ds}")
     
-    cfg.mode = "uni"
+    
     OmegaConf.set_struct(cfg, prev_struct)
 
 def _idx_from(node_id: str, prefix: str) -> Optional[int]:
@@ -163,6 +166,8 @@ def load_node(cfg):
 def main(cfg: DictConfig):  
     LOGGER.info("START main()")
     _process_cfg(cfg)
+
+    LOGGER.info(f"Generate 3DSG with {cfg.mode} mode")
 
     LOGGER.info("Loading inital 3D Scene Graph json file")
     sg_init_path = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / 'scene_graph' / f"initial_3d_scene_graph.json"
@@ -1540,7 +1545,7 @@ def main(cfg: DictConfig):
         results = {}
         prev_status = {}  # name -> last_status
 
-        timeout = 3000  # seconds
+        timeout = 6000  # seconds
         start_time = time.time()
 
         while jobs:
@@ -1834,7 +1839,433 @@ def main(cfg: DictConfig):
             json.dump(sg_out, jf, ensure_ascii=False, indent=2)
         LOGGER.info(f"[SceneGraph] Saved: {sg_path}")
 
+    elif cfg.mode == "spat":
+        LOGGER.info("Generating Spatial 3D Scene Graph")
+        # ============================================================
+        # (0) Build spatial-only initial_graph for LLM
+        # - drop "part" and "functional_relation"
+        # - keep only top-level keys: "object", "spatial_relation"
+        # ============================================================
+        nd = 3  # rounding precision (same style as CA spatial input)
+        graph_spat = {"object": {}, "spatial_relation": {}}
 
+        if not isinstance(initial_graph, dict):
+            LOGGER.error("[spat] initial_graph is not a dict. Check JSON load.")
+            raise ValueError("[spat] initial_graph must be a dict")
+
+        # copy prior spatial graph as-is (direction-agnostic candidates in prompt)
+        graph_spat["spatial_relation"] = initial_graph.get("spatial_relation", {})
+
+        # keep only object nodes (+ center/extent)
+        if isinstance(initial_graph.get("object"), dict):
+            for oid, obj in initial_graph["object"].items():
+                if not (isinstance(oid, str) and oid.startswith("obj_")):
+                    continue
+                if not isinstance(obj, dict):
+                    continue
+
+                o = {"label": obj.get("label", "")}
+
+                if isinstance(obj.get("center"), list):
+                    try:
+                        o["center"] = [round(float(x), nd) for x in obj["center"]]
+                    except Exception:
+                        o["center"] = obj.get("center")
+
+                if isinstance(obj.get("extent"), list):
+                    try:
+                        o["extent"] = [round(float(x), nd) for x in obj["extent"]]
+                    except Exception:
+                        o["extent"] = obj.get("extent")
+
+                graph_spat["object"][oid] = o
+
+        graph_str_spat = json.dumps(graph_spat, ensure_ascii=False, separators=(",", ":"))
+        LOGGER.info("[spat] Spatial-only initial_graph prepared (object + spatial_relation).")
+
+
+        prompts = GPTprompt(config=cfg)
+        LOGGER.info("Generating Spatial 3D Scene Graph without part nodes and affordance")
+        LOGGER.info("API REQUESTING... (Spatial Relations)")
+        resp = client.responses.create(
+            model=OPENAI_CHAT_MODEL,
+            instructions=prompts.system_prompt_spatial,
+            input=graph_str_spat,
+            background=True,
+            reasoning={"effort":"high"},
+            text={
+                "verbosity": "high",
+                "format": {
+                    "type": "json_schema",
+                    "name": "Spatial3DSceneGraphEdits",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "replacements": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^obj_\\d+$"
+                                            },
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        },
+                                        "old_label": {"type": "string"},
+                                        "new_label": {
+                                            "type": "string",
+                                            "enum": [
+                                                "near",
+                                                "on",
+                                                "with",
+                                                "above",
+                                                "in",
+                                                "attached to",
+                                                "has",
+                                                "against"
+                                            ]
+                                        },
+                                        "reason": {"type": "string"},
+                                        "score": {
+                                            "type": "number",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0
+                                        }
+                                    },
+                                    "required": ["pair", "old_label", "new_label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            "removals": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^obj_\\d+$"
+                                            },
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        },
+                                        "old_label": {"type": "string"},
+                                        "reason": {"type": "string"},
+                                        "score": {
+                                            "type": "number",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0
+                                        }
+                                    },
+                                    "required": ["pair", "old_label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            },
+                            "adds": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "pair": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "pattern": "^obj_\\d+$"
+                                            },
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "enum": [
+                                                "near",
+                                                "on",
+                                                "with",
+                                                "above",
+                                                "in",
+                                                "attached to",
+                                                "has",
+                                                "against"
+                                            ]
+                                        },
+                                        "reason": {"type": "string"},
+                                        "score": {
+                                            "type": "number",
+                                            "minimum": 0.0,
+                                            "maximum": 1.0
+                                        }
+                                    },
+                                    "required": ["pair", "label", "reason", "score"],
+                                    "additionalProperties": False
+                                }
+                            }
+                        },
+                        "required": ["replacements", "removals", "adds"],
+                        "additionalProperties": False
+                    }
+                }
+            }
+        )
+
+        # ============================================================
+        # (2) Wait async job (same style as other modes)
+        # ============================================================
+        logging.getLogger("openai").setLevel(logging.WARNING)
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+        timeout = 3000  # seconds
+        start_time = time.time()
+        prev_status = None
+
+        while True:
+            r = client.responses.retrieve(resp.id)
+            s = getattr(r, "status", None)
+            if s != prev_status:
+                LOGGER.info(f"[spat] status changed: {prev_status} -> {s}")
+                prev_status = s
+
+            if s in {"completed", "succeeded"}:
+                resp = r
+                break
+            if s in {"failed", "errored", "cancelled", "incomplete"}:
+                LOGGER.error(f"[spat] job failed with status={s}")
+                raise RuntimeError(f"[spat] job failed: {s}")
+
+            if time.time() - start_time > timeout:
+                LOGGER.error(f"[spat] job timeout after {timeout} seconds")
+                raise TimeoutError(f"[spat] job timeout")
+
+            sleep(5)
+
+        # ============================================================
+        # (3) Parse LLM edits JSON
+        # ============================================================
+        try:
+            llm_edits = json.loads(resp.output_text)
+            LOGGER.info("[spat] Successfully parsed LLM response as JSON - Spatial Edits")
+        except Exception as e:
+            LOGGER.error("[spat] Failed to parse LLM response as JSON.")
+            LOGGER.error(f"[spat] Response: {resp}")
+            raise e
+
+        # ============================================================
+        # (4) Save raw edits JSON (debug/trace)
+        # ============================================================
+        sg_dir = Path(cfg.dataset_root) / cfg.scene_id / cfg.save_folder_name / "scene_graph"
+        sg_dir.mkdir(parents=True, exist_ok=True)
+
+        edits_path = sg_dir / "spatial_3d_scene_graph_edits.json"
+        with open(edits_path, "w") as jf:
+            json.dump(llm_edits, jf, ensure_ascii=False, indent=2)
+        LOGGER.info(f"[SceneGraph] Saved LLM edits: {edits_path}")
+
+        # ============================================================
+        # (5) Apply edits to prior spatial_relation and save refined graph
+        # ============================================================
+        obj_ids = set(graph_spat["object"].keys())
+
+        def _norm_obj_id(x):
+            if isinstance(x, str) and x.startswith("obj_"):
+                return x
+            if isinstance(x, str) and x.isdigit():
+                return f"obj_{x}"
+            return None
+
+        def _edges_from_spatial_relation(sr):
+            """
+            Convert various possible prior formats into a canonical edge set:
+            each edge is (a, b, label) where a/b are obj_ ids.
+
+            Supported sr patterns:
+            1) list of {"pair":[obj_i,obj_j], "label":"..."}   (direct)
+            2) dict: obj_i -> {label: [obj_j, obj_k, ...]}    (label-grouped adjacency)
+            3) dict: obj_i -> [{"obj": obj_j, "label": "..."}]
+            4) dict: obj_i -> [obj_j, obj_k, ...]             (UNLABELED adjacency)
+               -> default label="near" (best-effort)
+            """
+            edges = set()
+            if sr is None:
+                return edges
+
+            # case 1: list-of-edges
+            if isinstance(sr, list):
+                for it in sr:
+                    if not isinstance(it, dict):
+                        continue
+                    pair = it.get("pair", None)
+                    lab = it.get("label", None)
+                    if isinstance(pair, list) and len(pair) == 2:
+                        a = _norm_obj_id(pair[0])
+                        b = _norm_obj_id(pair[1])
+                        if a and b and isinstance(lab, str) and lab:
+                            edges.add((a, b, lab))
+                return edges
+
+            # case 2/3/4: adjacency dict
+            if isinstance(sr, dict):
+                for k, v in sr.items():
+                    sub = _norm_obj_id(k)
+                    if sub is None:
+                        continue
+
+                    # 2) label-grouped adjacency: obj_i -> {label: [obj_j,...]}
+                    if isinstance(v, dict):
+                        # if values look like list targets
+                        for lab, targets in v.items():
+                            if isinstance(targets, list):
+                                for t in targets:
+                                    obj = _norm_obj_id(t)
+                                    if obj and obj != sub:
+                                        # direction-agnostic candidate: store canonical order
+                                        a, b = (sub, obj) if sub < obj else (obj, sub)
+                                        edges.add((a, b, str(lab)))
+                        # also support mapping: obj_i -> {obj_j: label}
+                        if all(isinstance(val, str) for val in v.values()):
+                            for tgt, lab in v.items():
+                                obj = _norm_obj_id(tgt)
+                                if obj and obj != sub:
+                                    a, b = (sub, obj) if sub < obj else (obj, sub)
+                                    edges.add((a, b, str(lab)))
+                        continue
+
+                    # 3) list of dicts OR 4) list of strings
+                    if isinstance(v, list):
+                        for it in v:
+                            if isinstance(it, dict):
+                                tgt = _norm_obj_id(it.get("obj") or it.get("target") or it.get("id"))
+                                lab = it.get("label")
+                                if tgt and tgt != sub:
+                                    a, b = (sub, tgt) if sub < tgt else (tgt, sub)
+                                    if isinstance(lab, str) and lab:
+                                        edges.add((a, b, lab))
+                                    else:
+                                        edges.add((a, b, "near"))
+                            elif isinstance(it, str):
+                                tgt = _norm_obj_id(it)
+                                if tgt and tgt != sub:
+                                    a, b = (sub, tgt) if sub < tgt else (tgt, sub)
+                                    edges.add((a, b, "near"))
+                return edges
+
+            return edges
+
+        def _apply_edits(prior_edges, edits):
+            """
+            prior_edges: set[(a,b,label)] where (a,b) might be canonical (undirected candidate)
+            edits: {"replacements": [...], "removals": [...], "adds": [...]}
+
+            - For matching removals/replacements: treat prior as direction-agnostic
+              (try both orientations).
+            - For adds/replacement outputs: use direction exactly as in edit["pair"].
+            """
+            edge_set = set(prior_edges)
+
+            def _find_match(a, b, old_label):
+                # direct match
+                if (a, b, old_label) in edge_set:
+                    return (a, b, old_label)
+                if (b, a, old_label) in edge_set:
+                    return (b, a, old_label)
+
+                # fallback: match by pair ignoring label (only if unique)
+                cand = [e for e in edge_set if (e[0] == a and e[1] == b) or (e[0] == b and e[1] == a)]
+                if len(cand) == 1:
+                    return cand[0]
+                return None
+
+            # removals
+            for rem in edits.get("removals", []) if isinstance(edits, dict) else []:
+                if not isinstance(rem, dict):
+                    continue
+                pair = rem.get("pair", [])
+                old = rem.get("old_label", "")
+                if not (isinstance(pair, list) and len(pair) == 2 and isinstance(old, str) and old):
+                    continue
+                a = _norm_obj_id(pair[0])
+                b = _norm_obj_id(pair[1])
+                if not (a and b) or a == b:
+                    continue
+                m = _find_match(a, b, old)
+                if m is not None:
+                    edge_set.discard(m)
+
+            # replacements
+            for rep in edits.get("replacements", []) if isinstance(edits, dict) else []:
+                if not isinstance(rep, dict):
+                    continue
+                pair = rep.get("pair", [])
+                old = rep.get("old_label", "")
+                new = rep.get("new_label", "")
+                if not (
+                    isinstance(pair, list) and len(pair) == 2
+                    and isinstance(old, str) and old
+                    and isinstance(new, str) and new
+                ):
+                    continue
+                a = _norm_obj_id(pair[0])
+                b = _norm_obj_id(pair[1])
+                if not (a and b) or a == b:
+                    continue
+
+                m = _find_match(a, b, old)
+                if m is not None:
+                    edge_set.discard(m)
+
+                # add the directed replacement (pair order from LLM)
+                edge_set.add((a, b, new))
+
+            # adds
+            for add in edits.get("adds", []) if isinstance(edits, dict) else []:
+                if not isinstance(add, dict):
+                    continue
+                pair = add.get("pair", [])
+                lab = add.get("label", "")
+                if not (isinstance(pair, list) and len(pair) == 2 and isinstance(lab, str) and lab):
+                    continue
+                a = _norm_obj_id(pair[0])
+                b = _norm_obj_id(pair[1])
+                if not (a and b) or a == b:
+                    continue
+                edge_set.add((a, b, lab))
+
+            return edge_set
+
+        prior_edges = _edges_from_spatial_relation(graph_spat.get("spatial_relation"))
+        refined_edges = _apply_edits(prior_edges, llm_edits)
+
+        # Filter edges to existing object ids only
+        refined_edges = {
+            (a, b, lab) for (a, b, lab) in refined_edges
+            if (a in obj_ids and b in obj_ids and isinstance(lab, str) and lab)
+        }
+
+        # Deterministic order
+        def _edge_sort_key(e):
+            a, b, lab = e
+            ai = _idx_from(a, "obj")
+            bi = _idx_from(b, "obj")
+            ai = ai if ai is not None else 10**9
+            bi = bi if bi is not None else 10**9
+            return (ai, bi, lab)
+
+        spatial_rel_out = [{"pair": [a, b], "label": lab} for (a, b, lab) in sorted(refined_edges, key=_edge_sort_key)]
+
+        sg_out = {
+            "object": graph_spat["object"],
+            "spatial_relation": spatial_rel_out
+        }
+
+        sg_path = sg_dir / "spatial_3d_scene_graph.json"
+        with open(sg_path, "w") as jf:
+            json.dump(sg_out, jf, ensure_ascii=False, indent=2)
+        LOGGER.info(f"[SceneGraph] Saved: {sg_path}")
 
     else:
         LOGGER.error(f"Unknown mode: {cfg.mode}")
