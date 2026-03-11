@@ -523,5 +523,16 @@ def main(cfg: DictConfig):  # [HYDRA] cfg directly
     LOGGER.info("FINISH main()")
 
 if __name__ == "__main__":
-    main()
     
+    torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.synchronize()
+
+    main()
+
+    torch.cuda.synchronize()
+    peak_mem_bytes = torch.cuda.max_memory_allocated()
+    peak_mem_gb = peak_mem_bytes / (1024 ** 3)
+
+    print(f"Peak GPU memory: {peak_mem_bytes} bytes")
+    print(f"Peak GPU memory: {peak_mem_gb:.2f} GB")
